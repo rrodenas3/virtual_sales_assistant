@@ -17,6 +17,7 @@ This repo currently implements the secure OSA pilot slice:
 - CRM visit-log drafts
 - pilot metrics and spec compliance documentation
 - local eval harness for OSA grounding, trace, auth, and latency checks
+- structured request telemetry with request IDs and response timing
 - feature-flagged graph-style agent scaffold with parity tests
 - memory provider scaffold with null default and fail-closed Mem0 placeholder
 - IndexedDB route, store, alert, and RGM cache for offline read fallback
@@ -56,6 +57,7 @@ Phase 1:
 
 ```text
 GET  /api/v1/health
+GET  /api/v1/health/observability
 GET  /api/v1/integrations/readiness
 GET  /api/v1/visits/today?territory_code=WEST-01&date=YYYY-MM-DD
 GET  /api/v1/stores/{store_id}

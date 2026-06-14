@@ -10,6 +10,7 @@ from backend.api.routes import admin, agent, alerts, approvals, audit, crm, heal
 from backend.config import settings
 from backend.db.models import Base
 from backend.db.session import engine
+from backend.services.telemetry import log_structured_event, perf_counter_ms, should_sample_trace
 
 
 def should_auto_create_tables() -> bool:
@@ -38,14 +39,38 @@ app.add_middleware(
 @app.middleware("http")
 async def request_id_middleware(request: Request, call_next):
     request_id = request.headers.get("x-request-id", str(uuid4()))
+    started_ms = perf_counter_ms()
+    sampled = should_sample_trace()
     try:
         response = await call_next(request)
     except Exception as exc:  # noqa: BLE001
+        duration_ms = round(perf_counter_ms() - started_ms, 2)
+        if sampled:
+            log_structured_event(
+                "http_request",
+                request_id=request_id,
+                method=request.method,
+                path=request.url.path,
+                status_code=500,
+                duration_ms=duration_ms,
+                error_type=type(exc).__name__,
+            )
         return JSONResponse(
             status_code=500,
             content={"code": "internal_error", "message": str(exc), "request_id": request_id},
         )
     response.headers["x-request-id"] = request_id
+    duration_ms = round(perf_counter_ms() - started_ms, 2)
+    response.headers["x-response-time-ms"] = str(duration_ms)
+    if sampled:
+        log_structured_event(
+            "http_request",
+            request_id=request_id,
+            method=request.method,
+            path=request.url.path,
+            status_code=response.status_code,
+            duration_ms=duration_ms,
+        )
     return response
 
 
@@ -105,6 +130,7 @@ async def api_index() -> dict:
         "service": "PHANTOM VSA API",
         "routes": [
             "GET /api/v1/health",
+            "GET /api/v1/health/observability",
             "GET /api/v1/health/db",
             "GET /api/v1/integrations/readiness",
             "GET /api/v1/metrics/pilot",

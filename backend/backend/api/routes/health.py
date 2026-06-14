@@ -22,3 +22,13 @@ async def db_health() -> dict:
         "app_env": settings.app_env,
         "auto_create_tables": settings.auto_create_tables,
     }
+
+
+@router.get("/health/observability")
+async def observability_health() -> dict:
+    return {
+        "status": "ok",
+        "provider": settings.observability_provider,
+        "trace_sample_rate": settings.trace_sample_rate,
+        "structured_logger": "phantom.telemetry",
+    }

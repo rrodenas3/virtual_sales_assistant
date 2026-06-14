@@ -15,7 +15,7 @@ The internal architecture is organized into ten panels. The current repository i
 | Data + governance | Data sources, guardrails, RBAC, immutable audit | Implemented: mock OSA/RGM sources, RBAC, guardrail stub, append-only audit tables. Deferred: real Snowflake/Databricks/Unity Catalog |
 | Product UI surface | Rep, manager, admin, generative UI, trace/activity, offline banner | Implemented: rep workbench, manager summary, admin audit feed, trace drawer, offline queue status. Deferred: CopilotKit/AG-UI |
 | 90-day roadmap | Phase 1 OSA, Phase 2 RGM/actions, Phase 3 offline/scale | Implemented through Phase 3 foundations in local/demo form |
-| KPI framework | Day 30/60/90 adoption, precision, cost, traceability | Implemented: pilot metrics endpoint, feedback precision, summary cost telemetry, audit event counts |
+| KPI framework | Day 30/60/90 adoption, precision, cost, traceability | Implemented: pilot metrics endpoint, feedback precision, summary cost telemetry, audit event counts, structured request telemetry |
 | Technology decisions | FastAPI, React, PostgreSQL, MCP, LangGraph, Mem0, offline model | Implemented: FastAPI, React/Vite, SQLAlchemy/Alembic, adapter ports, local MCP transport. Deferred: production LangGraph/Mem0/FastMCP, offline model |
 | Discovery and guardrails | Client discovery questions and scope exclusions | Implemented as docs/client-discovery.md, `/integrations/readiness`, and docs/spec-corrections.md |
 
@@ -158,6 +158,7 @@ Tracked:
 - Summary count.
 - Estimated summary cost.
 - Event counts by audit event type.
+- HTTP request ID, status, path, and duration in structured telemetry logs.
 
 ### Step 10: Public Safety
 
@@ -245,6 +246,7 @@ Implemented now:
 - Offline feedback sync and IndexedDB read cache.
 - Manager approval queue and admin audit detail views.
 - Audit and pilot metrics.
+- Structured request telemetry and response timing headers.
 - Local OSA eval harness.
 - Alembic migration scaffold.
 - Public-safety scan.
@@ -257,7 +259,7 @@ Deferred intentionally:
 - Production LangGraph supervisor mesh. A deterministic graph-style scaffold is present behind a feature flag.
 - Active Mem0 memory layer. A null default and fail-closed Mem0 scaffold are implemented.
 - CopilotKit/AG-UI runtime.
-- MLflow/LangSmith integrations beyond structured logs and local eval.
+- MLflow/LangSmith/OpenTelemetry integrations beyond structured logs and local eval.
 - Hermes/Ollama local inference.
 - Real CRM/ERP write-back.
 - Shelf-image recognition.
