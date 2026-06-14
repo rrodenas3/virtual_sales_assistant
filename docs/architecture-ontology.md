@@ -11,7 +11,7 @@ The internal architecture is organized into ten panels. The current repository i
 | Product vision | Field reps receive prioritized store actions before, during, and after visits | Implemented as a route/workbench UI with store priorities, OOS alerts, feedback, order drafts, and traceability |
 | Competitive positioning | Differentiate through OSA, RGM, field execution, and governed action | Represented in product shape; no competitor names are included in public docs |
 | 5-layer system architecture | Presentation, orchestration, MCP tools, data/AI platform, offline layer | Implemented: presentation, API/service orchestration, mock adapter ports, offline feedback queue. Deferred: real MCP/data platform/Hermes |
-| Agent mesh + memory + HITL | Supervisor routes to OSA/RGM/action agents, memory injection, approval gate, audit | Implemented: deterministic OSA/RGM services, graph-style scaffold, HITL approvals, sandbox submit, audit. Deferred: production LangGraph/Mem0 |
+| Agent mesh + memory + HITL | Supervisor routes to OSA/RGM/action agents, memory injection, approval gate, audit | Implemented: deterministic OSA/RGM services, graph-style scaffold, memory port, HITL approvals, sandbox submit, audit. Deferred: production LangGraph/Mem0 |
 | Data + governance | Data sources, guardrails, RBAC, immutable audit | Implemented: mock OSA/RGM sources, RBAC, guardrail stub, append-only audit tables. Deferred: real Snowflake/Databricks/Unity Catalog |
 | Product UI surface | Rep, manager, admin, generative UI, trace/activity, offline banner | Implemented: rep workbench, manager summary, admin audit feed, trace drawer, offline queue status. Deferred: CopilotKit/AG-UI |
 | 90-day roadmap | Phase 1 OSA, Phase 2 RGM/actions, Phase 3 offline/scale | Implemented through Phase 3 foundations in local/demo form |
@@ -113,6 +113,10 @@ Tables:
 - `idempotency_records`
 
 Local/test startup can auto-create tables for developer convenience. Production uses Alembic migrations and does not silently create tables.
+
+### Step 6.5: Memory Boundary
+
+Memory is behind `MemoryPort`. `MEMORY_PROVIDER=none` is the default and returns no memories. `MEMORY_PROVIDER=mem0` fails closed until keys, retention policy, and memory scopes are confirmed.
 
 ### Step 7: Governance
 
@@ -247,7 +251,7 @@ Deferred intentionally:
 - Real Databricks/Snowflake adapters.
 - Real FastMCP transport servers. Mock-backed MCP tool functions are implemented and share the backend adapter/service layer.
 - Production LangGraph supervisor mesh. A deterministic graph-style scaffold is present behind a feature flag.
-- Mem0 memory layer.
+- Active Mem0 memory layer. A null default and fail-closed Mem0 scaffold are implemented.
 - CopilotKit/AG-UI runtime.
 - MLflow/LangSmith integrations beyond structured logs and local eval.
 - Hermes/Ollama local inference.

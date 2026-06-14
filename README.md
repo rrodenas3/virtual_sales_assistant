@@ -18,6 +18,7 @@ This repo currently implements the secure OSA pilot slice:
 - pilot metrics and spec compliance documentation
 - local eval harness for OSA grounding, trace, auth, and latency checks
 - feature-flagged graph-style agent scaffold with parity tests
+- memory provider scaffold with null default and fail-closed Mem0 placeholder
 - Alembic migration scaffold
 - adapter factory for future Databricks/Snowflake integration
 - mock-backed MCP tool functions with transport deferred

@@ -14,7 +14,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes with parity tests; production routes still use services directly |
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs | Implemented and tested |
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; transport later | Implemented: mock-backed tool functions; FastMCP transport deferred |
-| Memory | Mem0 rep/account/session memory | Not needed for read-only OSA pilot | Deferred intentionally |
+| Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, fail-closed Mem0 scaffold |
 | Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, pattern guardrail, read-only policy stub, append-only audit behind `AuditSink` |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented as draft-only local persistence |
@@ -71,7 +71,7 @@ GET  /api/v1/audit/session/{session_id}
 These are not accidental gaps; they are deliberate corrections from the revised plan.
 
 - No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, but routes still use deterministic services directly.
-- No Mem0 yet. Account/rep memory comes after the OSA pilot proves useful.
+- No active Mem0 memory yet. The memory port exists, but the default provider is `none`.
 - No real Snowflake/Databricks/MCP queries yet. Current mock adapters enforce the corrected data contract without live credentials.
 - No CopilotKit dependency in the core UI. The MVP is an operational workbench first.
 - No real ERP submit. `submit-sandbox` validates HITL policy and payload hash but has no external side effects.
@@ -89,7 +89,7 @@ Highest priority:
 
 Later:
 
-- Mem0 memory scopes.
+- Mem0 memory scopes, retention policy, and production provider wiring.
 - MLflow integration beyond the local eval harness.
 - LangSmith or equivalent tracing.
 - Hermes/Ollama offline agent spike.
