@@ -13,7 +13,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
 | Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; add graph later | Deferred intentionally; summary is grounded deterministic service |
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs | Implemented and tested |
-| MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP placeholders; backend adapters own current logic | Partially scaffolded; MCP tool functions next, transport deferred |
+| MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; transport later | Implemented: mock-backed tool functions; FastMCP transport deferred |
 | Memory | Mem0 rep/account/session memory | Not needed for read-only OSA pilot | Deferred intentionally |
 | Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, pattern guardrail, read-only policy stub, append-only audit behind `AuditSink` |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
@@ -50,6 +50,19 @@ POST /api/v1/sync/feedback-events
 POST /api/v1/agent/osa-summary
 GET  /api/v1/audit/session/{session_id}
 ```
+
+## MCP Tool Function Mapping
+
+| MCP tool function | Shared backend source | REST overlap |
+|---|---|---|
+| `mcp.osa.get_visit_priority` | OSA adapter factory | `GET /visits/today` |
+| `mcp.osa.get_oos_alerts` | OSA adapter factory | `GET /stores/{id}/alerts` |
+| `mcp.osa.get_phantom_inventory` | OSA adapter factory | Alert filter/badge |
+| `mcp.store_master.get_store_health` | Store master/OSA adapter factory | `GET /stores/{id}` |
+| `mcp.store_master.get_territory_stores` | OSA adapter factory | `GET /manager/territory-summary` |
+| `mcp.rgm.get_rgm_recommendations` | RGM and OSA adapter factories | `GET /stores/{id}/rgm-recommendations` |
+| `mcp.orders.preview_order_draft_payload` | Stable payload hash service | `POST /orders/drafts` preflight |
+| `mcp.crm.preview_visit_log_draft` | CRM draft payload contract | `POST /crm/visit-log-drafts` preflight |
 
 ## Intentional Deviations From Original Spec
 

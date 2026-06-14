@@ -244,7 +244,7 @@ Implemented now:
 Deferred intentionally:
 
 - Real Databricks/Snowflake adapters.
-- Real FastMCP servers.
+- Real FastMCP transport servers. Mock-backed MCP tool functions are implemented and share the backend adapter/service layer.
 - LangGraph supervisor mesh.
 - Mem0 memory layer.
 - CopilotKit/AG-UI runtime.
