@@ -19,6 +19,7 @@ This repo currently implements the secure OSA pilot slice:
 - local eval harness for OSA grounding, trace, auth, and latency checks
 - feature-flagged graph-style agent scaffold with parity tests
 - memory provider scaffold with null default and fail-closed Mem0 placeholder
+- IndexedDB route, store, alert, and RGM cache for offline read fallback
 - Alembic migration scaffold
 - adapter factory for future Databricks/Snowflake integration
 - mock-backed MCP tool functions with transport deferred
@@ -84,7 +85,8 @@ Order drafts are still pilot artifacts. There is no ERP submission endpoint yet.
 The sandbox submit endpoint enforces approval and payload-hash matching, but does not call a real ERP.
 
 The frontend stores failed/offline feedback submissions in `localStorage` and syncs them through
-`/api/v1/sync/feedback-events` when the browser returns online.
+`/api/v1/sync/feedback-events` when the browser returns online. Route, store, alert, and RGM read
+payloads are cached in IndexedDB with visible stale timestamps when used.
 
 ## Local Frontend
 

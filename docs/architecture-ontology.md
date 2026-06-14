@@ -53,7 +53,7 @@ Surfaces:
 - Manager view: territory metrics, ranked store table, and approval queue.
 - Admin view: filterable audit event feed and detail payload.
 - Trace drawer: formula, source system, model version, freshness, and audit IDs.
-- Offline status: browser queue count and online/offline status.
+- Offline status: browser queue count, online/offline status, and stale cache timestamp when IndexedDB read fallback is used.
 
 ### Step 3: API Layer
 
@@ -133,7 +133,7 @@ Controls:
 
 ### Step 8: Offline Sync
 
-Implemented in frontend local storage and backend idempotency records.
+Implemented with frontend local storage for feedback queue, IndexedDB for read fallback, and backend idempotency records.
 
 Flow:
 
@@ -142,6 +142,7 @@ Flow:
 3. On reconnect, queued events are posted to `/api/v1/sync/feedback-events`.
 4. Backend enforces idempotency key format: `{rep_id}:{client_event_uuid}`.
 5. Duplicate retries return the original feedback response.
+6. Route, store, alert, and RGM reads write through to IndexedDB and can be shown with stale timestamps when online reads fail.
 
 ### Step 9: Metrics And Traceability
 
@@ -239,7 +240,7 @@ Implemented now:
 - OSA/RGM mock adapter ports.
 - Deterministic scoring and alert actions.
 - HITL draft approval and sandbox submit.
-- Offline feedback sync.
+- Offline feedback sync and IndexedDB read cache.
 - Manager approval queue and admin audit detail views.
 - Audit and pilot metrics.
 - Local OSA eval harness.

@@ -19,6 +19,7 @@ import {
 } from "./lib/api";
 import { buildSessionId, getCurrentIdentity, getDemoRole, setDemoRole } from "./lib/api";
 import { clearQueuedFeedback, getQueuedFeedback, queueFeedback } from "./lib/offlineQueue";
+import { cacheGet, cacheKey, cacheSet } from "./lib/offlineCache";
 import type {
   AlertFeedback,
   AdminAuditEventDetailResponse,
@@ -53,6 +54,7 @@ export function App() {
   const [pilotMetricLabel, setPilotMetricLabel] = useState("No pilot metrics yet");
   const [traceOpen, setTraceOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cacheNotice, setCacheNotice] = useState<string | null>(null);
   const [role, setRole] = useState<DemoRole>(getDemoRole());
   const [territorySummary, setTerritorySummary] = useState<TerritorySummaryResponse | null>(null);
   const [approvalQueue, setApprovalQueue] = useState<ApprovalQueueResponse | null>(null);
@@ -64,13 +66,26 @@ export function App() {
 
   useEffect(() => {
     if (role !== "rep") return;
+    const key = cacheKey(identity.sub, "today-route");
     getTodayVisits()
-      .then((rows) => {
+      .then(async (rows) => {
         setVisits(rows);
         setSelectedStoreId(rows[0]?.store_id ?? null);
+        setCacheNotice(null);
+        await cacheSet(key, rows);
       })
-      .catch((err: Error) => setError(err.message));
-  }, [role]);
+      .catch(async (err: Error) => {
+        const cached = await cacheGet<VisitPriority[]>(key);
+        if (cached) {
+          setVisits(cached.value);
+          setSelectedStoreId(cached.value[0]?.store_id ?? null);
+          setCacheNotice(`Route cache from ${new Date(cached.cached_at).toLocaleString()}`);
+          setOnline(false);
+          return;
+        }
+        setError(err.message);
+      });
+  }, [role, identity.sub]);
 
   useEffect(() => {
     setQueuedCount(getQueuedFeedback().length);
@@ -109,14 +124,34 @@ export function App() {
     setDraft(null);
     setApproval(null);
     setSubmission(null);
+    const storeKey = cacheKey(identity.sub, "store", selectedStoreId);
+    const alertsKey = cacheKey(identity.sub, "alerts", selectedStoreId);
+    const rgmKey = cacheKey(identity.sub, "rgm", selectedStoreId);
     Promise.all([getStore(selectedStoreId), getAlerts(selectedStoreId), getRGMRecommendations(selectedStoreId)])
-      .then(([storeRow, alertRows, rgmRows]) => {
+      .then(async ([storeRow, alertRows, rgmRows]) => {
         setStore(storeRow);
         setAlerts(alertRows);
         setRgm(rgmRows);
+        setCacheNotice(null);
+        await Promise.all([cacheSet(storeKey, storeRow), cacheSet(alertsKey, alertRows), cacheSet(rgmKey, rgmRows)]);
       })
-      .catch((err: Error) => setError(err.message));
-  }, [selectedStoreId, role]);
+      .catch(async (err: Error) => {
+        const [cachedStore, cachedAlerts, cachedRgm] = await Promise.all([
+          cacheGet<StoreDetail>(storeKey),
+          cacheGet<OOSAlert[]>(alertsKey),
+          cacheGet<RGMRecommendationsResponse>(rgmKey)
+        ]);
+        if (cachedStore && cachedAlerts && cachedRgm) {
+          setStore(cachedStore.value);
+          setAlerts(cachedAlerts.value);
+          setRgm(cachedRgm.value);
+          setCacheNotice(`Store cache from ${new Date(cachedStore.cached_at).toLocaleString()}`);
+          setOnline(false);
+          return;
+        }
+        setError(err.message);
+      });
+  }, [selectedStoreId, role, identity.sub]);
 
   useEffect(() => {
     if (role !== "manager") return;
@@ -230,6 +265,7 @@ export function App() {
       </header>
 
       {error && <div className="errorBanner">{error}</div>}
+      {cacheNotice && <div className="cacheBanner">{cacheNotice}</div>}
 
       {role === "manager" && territorySummary && (
         <section className="leadershipPane">

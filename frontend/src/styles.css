@@ -348,12 +348,18 @@ button { font: inherit; }
 .componentGrid div { background: var(--panel); border-radius: 8px; padding: 8px; }
 .componentGrid dt { color: var(--muted); font-size: 0.78rem; }
 .componentGrid dd { margin: 2px 0 0; font-weight: 700; }
-.errorBanner, .emptyState {
+.errorBanner, .cacheBanner, .emptyState {
   border: 1px solid color-mix(in oklch, var(--risk), white 45%);
   background: color-mix(in oklch, var(--risk), white 82%);
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 16px;
+}
+.cacheBanner {
+  border-color: color-mix(in oklch, var(--blue), white 45%);
+  background: color-mix(in oklch, var(--blue), white 84%);
+  color: oklch(0.31 0.08 235);
+  font-weight: 700;
 }
 
 @media (max-width: 920px) {
