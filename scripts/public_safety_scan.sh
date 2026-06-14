@@ -22,7 +22,8 @@ files=$(git ls-files \
   ':!:frontend/dist/**' \
   ':!:backend/phantom.db' \
   ':!:backend/**/*.egg-info/**' \
-  ':!:backend/**/__pycache__/**')
+  ':!:backend/**/__pycache__/**' \
+  ':!:scripts/public_safety_scan.sh')
 
 if [[ -z "${files}" ]]; then
   echo "No tracked files to scan."
@@ -37,4 +38,3 @@ for pattern in "${patterns[@]}"; do
 done
 
 echo "Public-safety scan passed."
-

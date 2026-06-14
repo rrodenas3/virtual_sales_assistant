@@ -23,6 +23,8 @@ This repo currently implements the secure OSA pilot slice:
 
 See [docs/spec-compliance.md](docs/spec-compliance.md) for the current correlation between
 the original MVP brief, the revised hybrid plan, and this implementation.
+See [docs/architecture-ontology.md](docs/architecture-ontology.md) for the public-safe system
+architecture, ontology, and step-by-step flow.
 
 ## Local Backend
 
