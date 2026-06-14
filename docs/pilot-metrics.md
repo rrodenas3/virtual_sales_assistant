@@ -64,6 +64,7 @@ For each `osa_summary_created` event, validate that every SKU named in the summa
 ## Latency
 
 Use `scripts/load_test.py` for `/api/v1/agent/osa-summary`; target p95 is below 5 seconds.
+Use `scripts/run_eval.py` for the local deterministic eval covering summary latency, grounded alert IDs, unauthorized store hiding, and trace completeness.
 
 ## Cost Per Interaction
 

@@ -16,6 +16,7 @@ This repo currently implements the secure OSA pilot slice:
 - order draft creation and approval records with payload-hash checks
 - CRM visit-log drafts
 - pilot metrics and spec compliance documentation
+- local eval harness for OSA grounding, trace, auth, and latency checks
 - Alembic migration scaffold
 - adapter factory for future Databricks/Snowflake integration
 - mock-backed MCP tool functions with transport deferred
@@ -96,6 +97,13 @@ npm run dev
 The public repository runs GitHub Actions for:
 
 - backend lint and tests
+- local OSA eval harness
 - Alembic migration smoke test
 - frontend production build
 - public-safety scan for accidental internal names, local paths, and obvious secret markers
+
+Run the local eval harness directly with:
+
+```powershell
+python scripts/run_eval.py
+```

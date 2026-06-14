@@ -32,6 +32,9 @@ jobs:
       - name: Test
         run: python -m pytest tests -q
 
+      - name: Local eval harness
+        run: python ../scripts/run_eval.py
+
       - name: Alembic smoke test
         env:
           DATABASE_URL: sqlite+aiosqlite:///./ci_alembic.db

@@ -238,6 +238,7 @@ Implemented now:
 - Offline feedback sync.
 - Manager approval queue and admin audit detail views.
 - Audit and pilot metrics.
+- Local OSA eval harness.
 - Alembic migration scaffold.
 - Public-safety scan.
 
@@ -248,7 +249,7 @@ Deferred intentionally:
 - LangGraph supervisor mesh.
 - Mem0 memory layer.
 - CopilotKit/AG-UI runtime.
-- MLflow/LangSmith integrations.
+- MLflow/LangSmith integrations beyond structured logs and local eval.
 - Hermes/Ollama local inference.
 - Real CRM/ERP write-back.
 - Shelf-image recognition.
