@@ -27,7 +27,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Manager view | Manager dashboard with territory overview | Add leadership summary and approval queue before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, and manager UI mode |
 | Admin console | Governance and audit console | Add audit feed, filters, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, and admin UI mode |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
-| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before MLflow | Implemented: backend tests, local OSA eval harness, frontend build verification |
+| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, local OSA eval harness, frontend build verification |
 
 ## Implemented API Surface
 
@@ -64,8 +64,8 @@ GET  /api/v1/audit/session/{session_id}
 | `mcp.osa.get_visit_priority` | OSA adapter factory | `GET /visits/today` |
 | `mcp.osa.get_oos_alerts` | OSA adapter factory | `GET /stores/{id}/alerts` |
 | `mcp.osa.get_phantom_inventory` | OSA adapter factory | Alert filter/badge |
-| `mcp.store_master.get_store_health` | Store master/OSA adapter factory | `GET /stores/{id}` |
-| `mcp.store_master.get_territory_stores` | OSA adapter factory | `GET /manager/territory-summary` |
+| `mcp.store_master.get_store_health` | Store master adapter factory | `GET /stores/{id}` |
+| `mcp.store_master.get_territory_stores` | OSA adapter factory for ranked territory summaries | `GET /manager/territory-summary` |
 | `mcp.rgm.get_rgm_recommendations` | RGM and OSA adapter factories | `GET /stores/{id}/rgm-recommendations` |
 | `mcp.orders.preview_order_draft_payload` | Stable payload hash service | `POST /orders/drafts` preflight |
 | `mcp.crm.preview_visit_log_draft` | CRM draft payload contract | `POST /crm/visit-log-drafts` preflight |

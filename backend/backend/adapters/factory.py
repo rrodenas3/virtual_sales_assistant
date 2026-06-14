@@ -3,6 +3,7 @@ from functools import lru_cache
 from backend.adapters.osa import MockOSAAdapter, OSADataPort
 from backend.adapters.real import DatabricksOSAAdapter, DatabricksRGMAdapter, SnowflakeStoreMasterAdapter
 from backend.adapters.rgm import MockRGMAdapter, RGMDataPort
+from backend.adapters.store_master import MockStoreMasterAdapter, StoreMasterPort
 from backend.config import settings
 from backend.governance.discovery import assert_discovery_ready
 
@@ -24,8 +25,8 @@ def get_rgm_data_port() -> RGMDataPort:
 
 
 @lru_cache
-def get_store_master_port() -> OSADataPort | SnowflakeStoreMasterAdapter:
+def get_store_master_port() -> StoreMasterPort:
     if settings.store_master_adapter == "mock":
-        return get_osa_data_port()
+        return MockStoreMasterAdapter()
     assert_discovery_ready("snowflake")
     return SnowflakeStoreMasterAdapter(settings)
