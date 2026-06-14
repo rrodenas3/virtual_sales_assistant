@@ -136,9 +136,24 @@ async def submit_order_draft_sandbox(
     )
 
 
-async def get_draft_for_approval(db: AsyncSession, draft_id: str, current_user: CurrentUser) -> OrderDraft:
+async def get_draft_for_approval(
+    db: AsyncSession,
+    draft_id: str,
+    current_user: CurrentUser,
+    osa: OSADataPort | None = None,
+) -> OrderDraft:
     draft = (await db.execute(select(OrderDraft).where(OrderDraft.draft_id == draft_id))).scalar_one_or_none()
-    if not draft or (current_user.role != "admin" and draft.rep_id != current_user.rep_id):
+    if not draft:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found")
+    if current_user.role == "admin" or draft.rep_id == current_user.rep_id:
+        pass
+    elif current_user.role == "manager" and osa is not None:
+        try:
+            store = await osa.get_store_detail_any(draft.store_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found") from exc
+        assert_store_access(current_user, store.rep_id, store.territory_code)
+    else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found")
     if draft.status not in {"DRAFT", "REJECTED"}:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Draft is no longer approvable")

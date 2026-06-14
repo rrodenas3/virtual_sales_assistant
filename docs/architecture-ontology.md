@@ -11,7 +11,7 @@ The internal architecture is organized into ten panels. The current repository i
 | Product vision | Field reps receive prioritized store actions before, during, and after visits | Implemented as a route/workbench UI with store priorities, OOS alerts, feedback, order drafts, and traceability |
 | Competitive positioning | Differentiate through OSA, RGM, field execution, and governed action | Represented in product shape; no competitor names are included in public docs |
 | 5-layer system architecture | Presentation, orchestration, MCP tools, data/AI platform, offline layer | Implemented: presentation, API/service orchestration, mock adapter ports, offline feedback queue. Deferred: real MCP/data platform/Hermes |
-| Agent mesh + memory + HITL | Supervisor routes to OSA/RGM/action agents, memory injection, approval gate, audit | Implemented without LangGraph: deterministic OSA/RGM services, HITL approvals, sandbox submit, audit. Deferred: LangGraph/Mem0 |
+| Agent mesh + memory + HITL | Supervisor routes to OSA/RGM/action agents, memory injection, approval gate, audit | Implemented: deterministic OSA/RGM services, graph-style scaffold, memory port, HITL approvals, sandbox submit, audit. Deferred: production LangGraph/Mem0 |
 | Data + governance | Data sources, guardrails, RBAC, immutable audit | Implemented: mock OSA/RGM sources, RBAC, guardrail stub, append-only audit tables. Deferred: real Snowflake/Databricks/Unity Catalog |
 | Product UI surface | Rep, manager, admin, generative UI, trace/activity, offline banner | Implemented: rep workbench, manager summary, admin audit feed, trace drawer, offline queue status. Deferred: CopilotKit/AG-UI |
 | 90-day roadmap | Phase 1 OSA, Phase 2 RGM/actions, Phase 3 offline/scale | Implemented through Phase 3 foundations in local/demo form |
@@ -50,10 +50,10 @@ Implemented in `frontend/src`.
 Surfaces:
 
 - Rep workbench: ranked stores, store detail, OOS alerts, RGM action band, draft/approval/sandbox-submit flow.
-- Manager view: territory metrics and ranked store table.
-- Admin view: audit event feed.
+- Manager view: territory metrics, ranked store table, and approval queue.
+- Admin view: filterable audit event feed and detail payload.
 - Trace drawer: formula, source system, model version, freshness, and audit IDs.
-- Offline status: browser queue count and online/offline status.
+- Offline status: browser queue count, online/offline status, and stale cache timestamp when IndexedDB read fallback is used.
 
 ### Step 3: API Layer
 
@@ -69,8 +69,8 @@ Primary route groups:
 - `/crm`: visit-log drafts.
 - `/sync`: idempotent offline feedback sync.
 - `/metrics`: pilot KPI rollup.
-- `/manager`: territory summary.
-- `/admin`: audit feed.
+- `/manager`: territory summary and approval queue.
+- `/admin`: audit feed, filters, and detail.
 - `/audit`: session-level trace lookup.
 - `/agent`: grounded OSA summary.
 
@@ -114,6 +114,10 @@ Tables:
 
 Local/test startup can auto-create tables for developer convenience. Production uses Alembic migrations and does not silently create tables.
 
+### Step 6.5: Memory Boundary
+
+Memory is behind `MemoryPort`. `MEMORY_PROVIDER=none` is the default and returns no memories. `MEMORY_PROVIDER=mem0` fails closed until keys, retention policy, and memory scopes are confirmed.
+
 ### Step 7: Governance
 
 Implemented in `backend/backend/governance` and the audit service boundary.
@@ -129,7 +133,7 @@ Controls:
 
 ### Step 8: Offline Sync
 
-Implemented in frontend local storage and backend idempotency records.
+Implemented with frontend local storage for feedback queue, IndexedDB for read fallback, and backend idempotency records.
 
 Flow:
 
@@ -138,6 +142,7 @@ Flow:
 3. On reconnect, queued events are posted to `/api/v1/sync/feedback-events`.
 4. Backend enforces idempotency key format: `{rep_id}:{client_event_uuid}`.
 5. Duplicate retries return the original feedback response.
+6. Route, store, alert, and RGM reads write through to IndexedDB and can be shown with stale timestamps when online reads fail.
 
 ### Step 9: Metrics And Traceability
 
@@ -235,9 +240,10 @@ Implemented now:
 - OSA/RGM mock adapter ports.
 - Deterministic scoring and alert actions.
 - HITL draft approval and sandbox submit.
-- Offline feedback sync.
-- Manager and admin views.
+- Offline feedback sync and IndexedDB read cache.
+- Manager approval queue and admin audit detail views.
 - Audit and pilot metrics.
+- Local OSA eval harness.
 - Alembic migration scaffold.
 - Public-safety scan.
 
@@ -245,10 +251,10 @@ Deferred intentionally:
 
 - Real Databricks/Snowflake adapters.
 - Real FastMCP transport servers. Mock-backed MCP tool functions are implemented and share the backend adapter/service layer.
-- LangGraph supervisor mesh.
-- Mem0 memory layer.
+- Production LangGraph supervisor mesh. A deterministic graph-style scaffold is present behind a feature flag.
+- Active Mem0 memory layer. A null default and fail-closed Mem0 scaffold are implemented.
 - CopilotKit/AG-UI runtime.
-- MLflow/LangSmith integrations.
+- MLflow/LangSmith integrations beyond structured logs and local eval.
 - Hermes/Ollama local inference.
 - Real CRM/ERP write-back.
 - Shelf-image recognition.
@@ -258,6 +264,5 @@ Deferred intentionally:
 1. Complete external JWT validation after SSO discovery.
 2. Implement parameterized Databricks/Snowflake query bodies behind the scaffolded adapters.
 3. Convert MCP placeholders into FastMCP servers that call the same services/adapters.
-4. Add richer manager approval queue and admin audit filtering.
-5. Introduce LangGraph only when multi-agent routing adds value beyond deterministic services.
-6. Add MLflow evaluation once model/tool routing exists.
+4. Promote graph routing only when multi-agent routing adds value beyond deterministic services.
+5. Add MLflow evaluation once model/tool routing exists.

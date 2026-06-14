@@ -11,6 +11,7 @@ from backend.governance.guardrails import check_guardrails
 from backend.governance.rbac import assert_territory_access
 from backend.services.audit import log_audit_event
 from backend.services.summary import build_grounded_summary
+from backend.services.telemetry import log_structured_event
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
@@ -53,6 +54,17 @@ async def osa_summary(
         data_freshness_ts=alerts[0].data_freshness_ts if alerts else None,
     )
     await db.commit()
+    log_structured_event(
+        "osa_summary_created",
+        audit_event_id=event.event_id,
+        rep_id=current_user.rep_id,
+        session_id=request.session_id,
+        model_id=settings.llm_model_id,
+        grounded_alert_count=len(alerts),
+        estimated_input_tokens=estimated_input_tokens,
+        estimated_output_tokens=estimated_output_tokens,
+        estimated_cost_eur=estimated_cost_eur,
+    )
     return OSASummaryResponse(
         summary=summary,
         grounded_alert_ids=[alert.alert_id for alert in alerts],

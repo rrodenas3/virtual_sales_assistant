@@ -318,3 +318,27 @@ class TerritorySummaryResponse(BaseModel):
 class AdminAuditEventsResponse(BaseModel):
     events: list[AuditEventOut]
     limit: int
+    next_cursor: str | None = None
+
+
+class AdminAuditEventDetailResponse(BaseModel):
+    event: AuditEventOut
+
+
+class ApprovalQueueItem(BaseModel):
+    draft_id: str
+    store_id: str
+    store_name: str
+    rep_id: str
+    session_id: str
+    status: str
+    payload_hash: str
+    item_count: int
+    notes: str | None
+    created_at: datetime
+
+
+class ApprovalQueueResponse(BaseModel):
+    territory_code: str
+    pending_count: int
+    items: list[ApprovalQueueItem]

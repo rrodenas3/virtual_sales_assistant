@@ -1,0 +1,13 @@
+{
+  "cases": [
+    {
+      "name": "rep_001_store_001_grounded_summary",
+      "rep_id": "REP-001",
+      "territory_code": "WEST-01",
+      "store_id": "ST-001",
+      "visit_date": "2026-06-14",
+      "unauthorized_store_id": "ST-002",
+      "latency_budget_ms": 5000
+    }
+  ]
+}

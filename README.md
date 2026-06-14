@@ -16,6 +16,10 @@ This repo currently implements the secure OSA pilot slice:
 - order draft creation and approval records with payload-hash checks
 - CRM visit-log drafts
 - pilot metrics and spec compliance documentation
+- local eval harness for OSA grounding, trace, auth, and latency checks
+- feature-flagged graph-style agent scaffold with parity tests
+- memory provider scaffold with null default and fail-closed Mem0 placeholder
+- IndexedDB route, store, alert, and RGM cache for offline read fallback
 - Alembic migration scaffold
 - adapter factory for future Databricks/Snowflake integration
 - mock-backed MCP tool functions with transport deferred
@@ -72,14 +76,17 @@ POST /api/v1/orders/drafts/{draft_id}/submit-sandbox
 POST /api/v1/sync/feedback-events
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
-GET  /api/v1/admin/audit-events
+GET  /api/v1/manager/approval-queue?territory_code=WEST-01
+GET  /api/v1/admin/audit-events?event_type=&rep_id=&resource_type=&limit=&cursor=
+GET  /api/v1/admin/audit-events/{event_id}
 ```
 
 Order drafts are still pilot artifacts. There is no ERP submission endpoint yet.
 The sandbox submit endpoint enforces approval and payload-hash matching, but does not call a real ERP.
 
 The frontend stores failed/offline feedback submissions in `localStorage` and syncs them through
-`/api/v1/sync/feedback-events` when the browser returns online.
+`/api/v1/sync/feedback-events` when the browser returns online. Route, store, alert, and RGM read
+payloads are cached in IndexedDB with visible stale timestamps when used.
 
 ## Local Frontend
 
@@ -94,6 +101,13 @@ npm run dev
 The public repository runs GitHub Actions for:
 
 - backend lint and tests
+- local OSA eval harness
 - Alembic migration smoke test
 - frontend production build
 - public-safety scan for accidental internal names, local paths, and obvious secret markers
+
+Run the local eval harness directly with:
+
+```powershell
+python scripts/run_eval.py
+```

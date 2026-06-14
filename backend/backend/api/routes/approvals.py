@@ -6,6 +6,8 @@ from backend.api.schemas import ApprovalRequest, ApprovalResponse
 from backend.auth.mock_jwt import CurrentUser, get_current_user
 from backend.db.models import ApprovalRecord
 from backend.db.session import get_db
+from backend.deps import get_osa_adapter
+from backend.adapters.osa import OSADataPort
 from backend.services.audit import log_audit_event
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
@@ -17,8 +19,9 @@ async def _record_decision(
     request: ApprovalRequest,
     current_user: CurrentUser,
     db: AsyncSession,
+    osa: OSADataPort,
 ) -> ApprovalResponse:
-    draft = await get_draft_for_approval(db, draft_id, current_user)
+    draft = await get_draft_for_approval(db, draft_id, current_user, osa)
     approval = ApprovalRecord(
         draft_id=draft.draft_id,
         approved=approved,
@@ -58,8 +61,9 @@ async def approve_draft(
     request: ApprovalRequest,
     current_user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    osa: OSADataPort = Depends(get_osa_adapter),
 ) -> ApprovalResponse:
-    return await _record_decision(draft_id, True, request, current_user, db)
+    return await _record_decision(draft_id, True, request, current_user, db, osa)
 
 
 @router.post("/{draft_id}/reject", response_model=ApprovalResponse)
@@ -68,5 +72,6 @@ async def reject_draft(
     request: ApprovalRequest,
     current_user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    osa: OSADataPort = Depends(get_osa_adapter),
 ) -> ApprovalResponse:
-    return await _record_decision(draft_id, False, request, current_user, db)
+    return await _record_decision(draft_id, False, request, current_user, db, osa)
