@@ -84,3 +84,12 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## CI
+
+The public repository runs GitHub Actions for:
+
+- backend lint and tests
+- Alembic migration smoke test
+- frontend production build
+- public-safety scan for accidental internal names, local paths, and obvious secret markers
