@@ -71,5 +71,4 @@ jobs:
 
       - name: Run public-safety scan
         shell: bash
-        run: ./scripts/public_safety_scan.sh
-
+        run: bash ./scripts/public_safety_scan.sh
