@@ -11,7 +11,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active; Databricks/Snowflake skeletons fail fast until credentials/contracts exist |
 | Priority scoring | Formula sketched in OSA MCP SQL | Deterministic service formula with explainable components | Implemented and tested |
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
-| Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; add graph later | Deferred intentionally; summary is grounded deterministic service |
+| Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes with parity tests; production routes still use services directly |
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs | Implemented and tested |
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; transport later | Implemented: mock-backed tool functions; FastMCP transport deferred |
 | Memory | Mem0 rep/account/session memory | Not needed for read-only OSA pilot | Deferred intentionally |
@@ -70,7 +70,7 @@ GET  /api/v1/audit/session/{session_id}
 
 These are not accidental gaps; they are deliberate corrections from the revised plan.
 
-- No production LangGraph mesh yet. The original graph skeleton had invalid tool-result parsing and was too broad for Phase 1.
+- No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, but routes still use deterministic services directly.
 - No Mem0 yet. Account/rep memory comes after the OSA pilot proves useful.
 - No real Snowflake/Databricks/MCP queries yet. Current mock adapters enforce the corrected data contract without live credentials.
 - No CopilotKit dependency in the core UI. The MVP is an operational workbench first.
@@ -85,7 +85,7 @@ Highest priority:
 1. Complete external JWT validation for Azure AD/Okta after issuer, audience, and JWK discovery details are known.
 2. Implement parameterized Databricks/Snowflake query bodies behind the scaffolded adapters after view contracts are confirmed.
 3. Replace MCP placeholders with real FastMCP servers once data-source credentials are known.
-4. Add LangGraph only when multi-agent routing is needed for real RGM/action workflows.
+4. Promote graph routing only when multi-agent orchestration adds value beyond deterministic services.
 
 Later:
 
