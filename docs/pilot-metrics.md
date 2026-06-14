@@ -66,6 +66,8 @@ For each `osa_summary_created` event, validate that every SKU named in the summa
 Use `scripts/load_test.py` for `/api/v1/agent/osa-summary`; target p95 is below 5 seconds.
 Use `scripts/run_eval.py` for the local deterministic eval covering summary latency, grounded alert IDs, unauthorized store hiding, and trace completeness.
 
+Every HTTP response includes `x-request-id` and `x-response-time-ms`. When `OBSERVABILITY_PROVIDER=structured`, the backend emits structured `http_request` events to the `phantom.telemetry` logger with method, path, status, request ID, and duration.
+
 ## Cost Per Interaction
 
 Phase 3 starts with estimated local telemetry on `osa_summary_created`.

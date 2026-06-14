@@ -22,6 +22,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects | Implemented and tested |
 | Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue and IndexedDB read cache first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache |
 | Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs |
+| Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, observability health |
 | Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented; CopilotKit deferred intentionally |
 | Manager view | Manager dashboard with territory overview | Add leadership summary and approval queue before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, and manager UI mode |
 | Admin console | Governance and audit console | Add audit feed, filters, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, and admin UI mode |
@@ -33,6 +34,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 ```text
 GET  /api/v1/health
 GET  /api/v1/health/db
+GET  /api/v1/health/observability
 GET  /api/v1/integrations/readiness
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
@@ -93,7 +95,7 @@ Later:
 
 - Mem0 memory scopes, retention policy, and production provider wiring.
 - MLflow integration beyond the local eval harness.
-- LangSmith or equivalent tracing.
+- LangSmith/OpenTelemetry exporters beyond structured local telemetry.
 - Hermes/Ollama offline agent spike.
 - Shelf image MCP.
 - Real CRM and ERP integrations after discovery gates are answered.
