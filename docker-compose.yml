@@ -1,0 +1,39 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://phantom:phantom@postgres:5432/phantom
+      ALLOWED_ORIGINS: '["http://localhost:5173"]'
+      AUTH_MODE: mock_jwt
+      TERRITORY_TIMEZONE: Europe/Paris
+      OSA_SOURCE_SYSTEM: mock
+      OSA_MODEL_VERSION: mock-v1
+      LLM_MODEL_ID: grounded-template-v1
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+  frontend:
+    build: ./frontend
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: phantom
+      POSTGRES_USER: phantom
+      POSTGRES_PASSWORD: phantom
+    ports:
+      - "5432:5432"
+    volumes:
+      - phantom_postgres:/var/lib/postgresql/data
+
+volumes:
+  phantom_postgres:
+
