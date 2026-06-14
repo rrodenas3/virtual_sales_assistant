@@ -23,7 +23,7 @@ This repo currently implements the secure OSA pilot slice:
 - client discovery readiness gate for live integrations
 - Alembic migration scaffold
 - adapter factory for future Databricks/Snowflake integration
-- mock-backed MCP tool functions with transport deferred
+- mock-backed MCP tool functions with local JSON transport
 - manager territory summary
 - admin audit event feed
 - frontend demo role switcher for rep / manager / admin
@@ -97,6 +97,17 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## Local MCP Transports
+
+The `mcp/` servers expose a lightweight local JSON transport around the same backend adapter/service layer used by REST.
+
+```powershell
+python -m mcp.osa.server --list
+python -m mcp.osa.server --call get_visit_priority --args-json '{"rep_id":"REP-001","territory_code":"WEST-01","visit_date":"2026-06-14"}'
+```
+
+`docker-compose.yml` includes one local MCP service per domain: OSA, store master, RGM, orders, and CRM.
 
 ## CI
 

@@ -1,12 +1,15 @@
-"""RGM MCP tool entrypoint placeholder."""
+"""RGM local MCP-compatible JSON transport."""
 
-import json
+from mcp.rgm.tools import get_rgm_recommendations
+from mcp.runtime import run_cli
 
-TOOLS = ["get_rgm_recommendations"]
+TOOLS = {
+    "get_rgm_recommendations": get_rgm_recommendations,
+}
 
 
 def main() -> None:
-    print(json.dumps({"server": "rgm", "transport": "deferred", "tools": TOOLS}))
+    run_cli("rgm", TOOLS)
 
 
 if __name__ == "__main__":
