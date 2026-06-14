@@ -111,7 +111,7 @@ Tables:
 - `approval_records`
 - `idempotency_records`
 
-Local startup still auto-creates tables for developer convenience. Non-local environments should run Alembic migrations instead.
+Local/test startup can auto-create tables for developer convenience. Production uses Alembic migrations and does not silently create tables.
 
 ### Step 7: Governance
 
@@ -253,10 +253,9 @@ Deferred intentionally:
 
 ## 5. Next Architecture Steps
 
-1. Replace startup `Base.metadata.create_all` with environment-specific migration enforcement outside local dev.
-2. Add a real auth provider abstraction while keeping mock JWT local.
-3. Implement parameterized Databricks/Snowflake adapters behind the existing ports.
-4. Convert MCP placeholders into FastMCP servers that call the same services/adapters.
-5. Add richer manager approval queue and admin audit filtering.
-6. Introduce LangGraph only when multi-agent routing adds value beyond deterministic services.
-7. Add MLflow evaluation once model/tool routing exists.
+1. Add a real auth provider abstraction while keeping mock JWT local.
+2. Implement parameterized Databricks/Snowflake adapters behind the existing ports.
+3. Convert MCP placeholders into FastMCP servers that call the same services/adapters.
+4. Add richer manager approval queue and admin audit filtering.
+5. Introduce LangGraph only when multi-agent routing adds value beyond deterministic services.
+6. Add MLflow evaluation once model/tool routing exists.

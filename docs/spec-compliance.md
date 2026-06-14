@@ -24,13 +24,14 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented; CopilotKit deferred intentionally |
 | Manager view | Manager dashboard with territory overview | Add leadership summary before full dashboard | Implemented: `/manager/territory-summary` and manager UI mode |
 | Admin console | Governance and audit console | Add audit feed before full admin console | Implemented: `/admin/audit-events` and admin UI mode |
-| Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold | Implemented: Alembic `0001_initial` |
+| Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
 | Tests/eval | MLflow eval and agent tests | API/service tests first; MLflow later with real agent path | Implemented: 17 backend tests, frontend build verification |
 
 ## Implemented API Surface
 
 ```text
 GET  /api/v1/health
+GET  /api/v1/health/db
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
 GET  /api/v1/admin/audit-events
@@ -66,12 +67,11 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 
 Highest priority:
 
-1. Stop relying on `Base.metadata.create_all` in non-local environments; Alembic now exists but startup still auto-creates for local convenience.
-2. Add real auth provider abstraction for Azure AD/Okta while keeping mock JWT local.
-3. Implement parameterized Databricks/Snowflake adapters behind the existing adapter ports.
-4. Replace MCP placeholders with real FastMCP servers once data-source credentials are known.
-5. Expand manager/admin views into approval queue and richer audit console.
-6. Add LangGraph only when multi-agent routing is needed for real RGM/action workflows.
+1. Add real auth provider abstraction for Azure AD/Okta while keeping mock JWT local.
+2. Implement parameterized Databricks/Snowflake adapters behind the existing adapter ports.
+3. Replace MCP placeholders with real FastMCP servers once data-source credentials are known.
+4. Expand manager/admin views into approval queue and richer audit console.
+5. Add LangGraph only when multi-agent routing is needed for real RGM/action workflows.
 
 Later:
 

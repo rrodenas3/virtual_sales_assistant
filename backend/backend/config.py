@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str = "sqlite+aiosqlite:///./phantom.db"
+    app_env: Literal["local", "test", "production"] = "local"
+    auto_create_tables: bool = True
     allowed_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
     auth_mode: Literal["mock_jwt"] = "mock_jwt"
     territory_timezone: str = "Europe/Paris"
@@ -23,4 +25,3 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
-
