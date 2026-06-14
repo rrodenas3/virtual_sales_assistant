@@ -90,12 +90,13 @@ Services:
 
 Implemented in `backend/backend/adapters`.
 
-Current adapters:
+Current adapter factory defaults:
 
 - `MockOSAAdapter`: store master, visit priority, OOS alerts, store details, territory summaries.
 - `MockRGMAdapter`: promo, assortment, and upsell recommendations.
+- `DatabricksOSAAdapter`, `DatabricksRGMAdapter`, and `SnowflakeStoreMasterAdapter`: fail-fast scaffolds until credentials and view contracts are confirmed.
 
-Future adapters should implement the same port contracts using parameterized Databricks/Snowflake/MCP calls.
+REST and MCP must use the same adapter factory and service layer. Future query bodies should use parameterized Databricks/Snowflake/MCP calls.
 
 ### Step 6: Persistence
 
@@ -115,7 +116,7 @@ Local/test startup can auto-create tables for developer convenience. Production 
 
 ### Step 7: Governance
 
-Implemented in `backend/backend/governance`.
+Implemented in `backend/backend/governance` and the audit service boundary.
 
 Controls:
 
@@ -124,6 +125,7 @@ Controls:
 - Summary guardrails use a lightweight pattern blocklist.
 - Write-like flows are draft-first and require explicit approval before sandbox submit.
 - Sandbox submit requires an approved draft and matching payload hash.
+- Audit writes go through `AuditSink`; Postgres is active locally and Unity Catalog dual-write is deferred.
 
 ### Step 8: Offline Sync
 
@@ -254,7 +256,7 @@ Deferred intentionally:
 ## 5. Next Architecture Steps
 
 1. Complete external JWT validation after SSO discovery.
-2. Implement parameterized Databricks/Snowflake adapters behind the existing ports.
+2. Implement parameterized Databricks/Snowflake query bodies behind the scaffolded adapters.
 3. Convert MCP placeholders into FastMCP servers that call the same services/adapters.
 4. Add richer manager approval queue and admin audit filtering.
 5. Introduce LangGraph only when multi-agent routing adds value beyond deterministic services.

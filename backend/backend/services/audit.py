@@ -4,8 +4,8 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.config import settings
 from backend.db.models import AlertFeedback, AuditEvent
+from backend.services.audit_sinks import get_audit_sink
 
 
 async def log_audit_event(
@@ -20,23 +20,20 @@ async def log_audit_event(
     source_system: str | None = None,
     data_freshness_ts: datetime | None = None,
 ) -> AuditEvent:
-    event = AuditEvent(
+    return await get_audit_sink().write(
+        db,
         session_id=session_id,
         rep_id=rep_id,
         event_type=event_type,
         resource_type=resource_type,
         resource_id=resource_id,
         payload_json=payload_json,
-        source_system=source_system or settings.osa_source_system,
+        source_system=source_system,
         data_freshness_ts=data_freshness_ts,
     )
-    db.add(event)
-    await db.flush()
-    return event
 
 
 async def get_session_audit(db: AsyncSession, session_id: str) -> tuple[list[AuditEvent], list[AlertFeedback]]:
     events = list((await db.execute(select(AuditEvent).where(AuditEvent.session_id == session_id))).scalars())
     feedback = list((await db.execute(select(AlertFeedback).where(AlertFeedback.session_id == session_id))).scalars())
     return events, feedback
-

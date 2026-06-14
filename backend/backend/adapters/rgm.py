@@ -1,4 +1,19 @@
+from typing import Protocol
+
 from backend.api.schemas import AssortmentGap, PromoRecommendation, UpsellOpportunity
+
+
+class RGMDataPort(Protocol):
+    source_system: str
+    model_version: str
+
+    async def get_recommendations(
+        self,
+        store_id: str,
+        revenue_opportunity_score: float,
+        promo_compliance_rate: float,
+    ) -> tuple[list[PromoRecommendation], list[AssortmentGap], list[UpsellOpportunity]]:
+        ...
 
 
 class MockRGMAdapter:
@@ -50,4 +65,4 @@ class MockRGMAdapter:
         return promos, assortment_gaps, upsells
 
 
-rgm_adapter = MockRGMAdapter()
+rgm_adapter: RGMDataPort = MockRGMAdapter()

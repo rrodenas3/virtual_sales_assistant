@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.adapters.osa import OSADataPort
-from backend.adapters.rgm import MockRGMAdapter
+from backend.adapters.rgm import RGMDataPort
 from backend.api.schemas import RGMRecommendationsResponse
 from backend.auth.mock_jwt import CurrentUser, get_current_user
 from backend.db.session import get_db
@@ -19,7 +19,7 @@ async def rgm_recommendations(
     current_user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     osa: OSADataPort = Depends(get_osa_adapter),
-    rgm: MockRGMAdapter = Depends(get_rgm_adapter),
+    rgm: RGMDataPort = Depends(get_rgm_adapter),
 ) -> RGMRecommendationsResponse:
     try:
         store = (
