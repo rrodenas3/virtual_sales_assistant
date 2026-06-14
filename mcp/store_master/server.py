@@ -1,10 +1,13 @@
-"""Phase 1 placeholder Store Master MCP server."""
+"""Store Master MCP tool entrypoint placeholder."""
+
+import json
+
+TOOLS = ["get_store_health", "get_territory_stores"]
 
 
 def main() -> None:
-    print("PHANTOM Store Master MCP placeholder. Store health is served by backend MockOSAAdapter.")
+    print(json.dumps({"server": "store_master", "transport": "deferred", "tools": TOOLS}))
 
 
 if __name__ == "__main__":
     main()
-

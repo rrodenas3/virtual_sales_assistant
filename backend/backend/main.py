@@ -12,10 +12,15 @@ from backend.db.models import Base
 from backend.db.session import engine
 
 
+def should_auto_create_tables() -> bool:
+    return settings.auto_create_tables and settings.app_env in {"local", "test"}
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    if should_auto_create_tables():
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
     yield
 
 
@@ -99,6 +104,7 @@ async def api_index() -> dict:
         "service": "PHANTOM VSA API",
         "routes": [
             "GET /api/v1/health",
+            "GET /api/v1/health/db",
             "GET /api/v1/metrics/pilot",
             "GET /api/v1/manager/territory-summary?territory_code=WEST-01",
             "GET /api/v1/admin/audit-events",

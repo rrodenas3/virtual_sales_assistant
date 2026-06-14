@@ -1,14 +1,17 @@
-"""Phase 1 placeholder MCP server.
+"""OSA MCP tool entrypoint placeholder.
 
-The production MCP implementation will wrap the same OSADataPort contract exposed
-by backend adapters. Phase 1 uses MockOSAAdapter directly to avoid duplicate logic.
+Transport wiring is intentionally deferred. The importable functions in
+`mcp.osa.tools` are the source of truth for local MCP behavior.
 """
+
+import json
+
+TOOLS = ["get_visit_priority", "get_oos_alerts", "get_phantom_inventory"]
 
 
 def main() -> None:
-    print("PHANTOM OSA MCP placeholder. Use backend MockOSAAdapter for Phase 1.")
+    print(json.dumps({"server": "osa", "transport": "deferred", "tools": TOOLS}))
 
 
 if __name__ == "__main__":
     main()
-

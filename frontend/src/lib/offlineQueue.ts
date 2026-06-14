@@ -20,10 +20,10 @@ export function getQueuedFeedback(): OfflineFeedbackEvent[] {
   return readQueue();
 }
 
-export function queueFeedback(alertId: string, feedback: AlertFeedback, sessionId: string) {
+export function queueFeedback(alertId: string, feedback: AlertFeedback, sessionId: string, repId: string) {
   const current = readQueue();
   current.push({
-    idempotency_key: `REP-001:${crypto.randomUUID()}`,
+    idempotency_key: `${repId}:${crypto.randomUUID()}`,
     alert_id: alertId,
     feedback,
     session_id: sessionId,

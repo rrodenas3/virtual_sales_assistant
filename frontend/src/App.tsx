@@ -15,7 +15,7 @@ import {
   syncFeedbackEvents,
   submitOrderDraftSandbox
 } from "./lib/api";
-import { getDemoRole, setDemoRole } from "./lib/api";
+import { buildSessionId, getCurrentIdentity, getDemoRole, setDemoRole } from "./lib/api";
 import { clearQueuedFeedback, getQueuedFeedback, queueFeedback } from "./lib/offlineQueue";
 import type {
   AlertFeedback,
@@ -32,8 +32,6 @@ import type {
   VisitPriority
 } from "./lib/types";
 import { TraceDrawer } from "./components/TraceDrawer";
-
-const sessionId = `REP-001:${new Date().toISOString().slice(0, 10)}:workbench`;
 
 export function App() {
   const [visits, setVisits] = useState<VisitPriority[]>([]);
@@ -54,6 +52,8 @@ export function App() {
   const [role, setRole] = useState<DemoRole>(getDemoRole());
   const [territorySummary, setTerritorySummary] = useState<TerritorySummaryResponse | null>(null);
   const [adminAudit, setAdminAudit] = useState<AdminAuditEventsResponse | null>(null);
+  const identity = useMemo(() => getCurrentIdentity(), [role]);
+  const sessionId = useMemo(() => buildSessionId("workbench"), [identity.sub]);
 
   useEffect(() => {
     if (role !== "rep") return;
@@ -133,14 +133,14 @@ export function App() {
   async function handleFeedback(alertId: string, value: AlertFeedback) {
     setFeedback((current) => ({ ...current, [alertId]: value }));
     if (!navigator.onLine) {
-      setQueuedCount(queueFeedback(alertId, value, sessionId));
+      setQueuedCount(queueFeedback(alertId, value, sessionId, identity.sub));
       setOnline(false);
       return;
     }
     try {
       await sendFeedback(alertId, value, sessionId);
     } catch (err) {
-      setQueuedCount(queueFeedback(alertId, value, sessionId));
+      setQueuedCount(queueFeedback(alertId, value, sessionId, identity.sub));
       setError(err instanceof Error ? `Feedback queued: ${err.message}` : "Feedback queued");
     }
   }
@@ -184,7 +184,7 @@ export function App() {
     <main className="shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">PHANTOM / WEST-01 / {role === "rep" ? "REP-001" : role === "manager" ? "MGR-001" : "ADMIN-001"}</p>
+          <p className="eyebrow">PHANTOM / {identity.territory_code ?? "all territories"} / {identity.sub}</p>
           <h1>{role === "rep" ? "Today's field workbench" : role === "manager" ? "Territory command view" : "Governance audit view"}</h1>
         </div>
         <div className="topbar__actions">

@@ -7,15 +7,15 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Area | Original spec intent | Revised plan decision | Current status |
 |---|---|---|---|
 | Product UX | Field assistant with before/during/after visit support | Workbench-first MVP, chat secondary | Implemented: route workbench, store detail, OOS alerts, RGM/action band, trace drawer |
-| Auth / identity | SSO/CRM-mapped rep identity, unresolved in discovery | Mock JWT with `sub`, `territory_code`, `role`; ignore client rep IDs | Implemented: mock JWT, rep/store RBAC, unauthorized store access returns `404` |
-| Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind ports | Implemented: `MockOSAAdapter`, `MockRGMAdapter`; real data adapters deferred |
+| Auth / identity | SSO/CRM-mapped rep identity, unresolved in discovery | Mock JWT with `sub`, `territory_code`, `role`; ignore client rep IDs; scaffold external JWT | Implemented: provider boundary, mock JWT, fail-closed external JWT scaffold, rep/store RBAC, unauthorized store access returns `404` |
+| Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active; Databricks/Snowflake skeletons fail fast until credentials/contracts exist |
 | Priority scoring | Formula sketched in OSA MCP SQL | Deterministic service formula with explainable components | Implemented and tested |
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
 | Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; add graph later | Deferred intentionally; summary is grounded deterministic service |
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs | Implemented and tested |
-| MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP placeholders; backend adapters own current logic | Partially scaffolded; real FastMCP servers deferred |
+| MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; transport later | Implemented: mock-backed tool functions; FastMCP transport deferred |
 | Memory | Mem0 rep/account/session memory | Not needed for read-only OSA pilot | Deferred intentionally |
-| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, pattern guardrail, read-only policy stub, append-only audit |
+| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, pattern guardrail, read-only policy stub, append-only audit behind `AuditSink` |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented as draft-only local persistence |
 | ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects | Implemented and tested |
@@ -24,13 +24,14 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented; CopilotKit deferred intentionally |
 | Manager view | Manager dashboard with territory overview | Add leadership summary before full dashboard | Implemented: `/manager/territory-summary` and manager UI mode |
 | Admin console | Governance and audit console | Add audit feed before full admin console | Implemented: `/admin/audit-events` and admin UI mode |
-| Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold | Implemented: Alembic `0001_initial` |
+| Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
 | Tests/eval | MLflow eval and agent tests | API/service tests first; MLflow later with real agent path | Implemented: 17 backend tests, frontend build verification |
 
 ## Implemented API Surface
 
 ```text
 GET  /api/v1/health
+GET  /api/v1/health/db
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
 GET  /api/v1/admin/audit-events
@@ -50,6 +51,19 @@ POST /api/v1/agent/osa-summary
 GET  /api/v1/audit/session/{session_id}
 ```
 
+## MCP Tool Function Mapping
+
+| MCP tool function | Shared backend source | REST overlap |
+|---|---|---|
+| `mcp.osa.get_visit_priority` | OSA adapter factory | `GET /visits/today` |
+| `mcp.osa.get_oos_alerts` | OSA adapter factory | `GET /stores/{id}/alerts` |
+| `mcp.osa.get_phantom_inventory` | OSA adapter factory | Alert filter/badge |
+| `mcp.store_master.get_store_health` | Store master/OSA adapter factory | `GET /stores/{id}` |
+| `mcp.store_master.get_territory_stores` | OSA adapter factory | `GET /manager/territory-summary` |
+| `mcp.rgm.get_rgm_recommendations` | RGM and OSA adapter factories | `GET /stores/{id}/rgm-recommendations` |
+| `mcp.orders.preview_order_draft_payload` | Stable payload hash service | `POST /orders/drafts` preflight |
+| `mcp.crm.preview_visit_log_draft` | CRM draft payload contract | `POST /crm/visit-log-drafts` preflight |
+
 ## Intentional Deviations From Original Spec
 
 These are not accidental gaps; they are deliberate corrections from the revised plan.
@@ -66,12 +80,11 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 
 Highest priority:
 
-1. Stop relying on `Base.metadata.create_all` in non-local environments; Alembic now exists but startup still auto-creates for local convenience.
-2. Add real auth provider abstraction for Azure AD/Okta while keeping mock JWT local.
-3. Implement parameterized Databricks/Snowflake adapters behind the existing adapter ports.
-4. Replace MCP placeholders with real FastMCP servers once data-source credentials are known.
-5. Expand manager/admin views into approval queue and richer audit console.
-6. Add LangGraph only when multi-agent routing is needed for real RGM/action workflows.
+1. Complete external JWT validation for Azure AD/Okta after issuer, audience, and JWK discovery details are known.
+2. Implement parameterized Databricks/Snowflake query bodies behind the scaffolded adapters after view contracts are confirmed.
+3. Replace MCP placeholders with real FastMCP servers once data-source credentials are known.
+4. Expand manager/admin views into approval queue and richer audit console.
+5. Add LangGraph only when multi-agent routing is needed for real RGM/action workflows.
 
 Later:
 

@@ -23,7 +23,7 @@ The internal architecture is organized into ten panels. The current repository i
 
 ### Step 1: Identity Boundary
 
-The browser sends a mock JWT in local/demo mode.
+The browser sends a mock JWT in local/demo mode. Backend auth is provider-based: `AUTH_PROVIDER=mock` is active for demo, and `AUTH_PROVIDER=external_jwt` fails closed until issuer, audience, and JWK validation are configured.
 
 Claims:
 
@@ -41,7 +41,7 @@ Roles:
 - `manager`: can read territory-level summaries and stores within the territory.
 - `admin`: can read cross-rep audit data.
 
-Backend rule: route handlers use authenticated identity from the token and do not trust client-supplied `rep_id`.
+Backend rule: route handlers use authenticated identity from the token and do not trust client-supplied `rep_id`. The frontend also derives session IDs and offline idempotency keys from the active token claims.
 
 ### Step 2: Presentation Layer
 
@@ -90,12 +90,13 @@ Services:
 
 Implemented in `backend/backend/adapters`.
 
-Current adapters:
+Current adapter factory defaults:
 
 - `MockOSAAdapter`: store master, visit priority, OOS alerts, store details, territory summaries.
 - `MockRGMAdapter`: promo, assortment, and upsell recommendations.
+- `DatabricksOSAAdapter`, `DatabricksRGMAdapter`, and `SnowflakeStoreMasterAdapter`: fail-fast scaffolds until credentials and view contracts are confirmed.
 
-Future adapters should implement the same port contracts using parameterized Databricks/Snowflake/MCP calls.
+REST and MCP must use the same adapter factory and service layer. Future query bodies should use parameterized Databricks/Snowflake/MCP calls.
 
 ### Step 6: Persistence
 
@@ -111,11 +112,11 @@ Tables:
 - `approval_records`
 - `idempotency_records`
 
-Local startup still auto-creates tables for developer convenience. Non-local environments should run Alembic migrations instead.
+Local/test startup can auto-create tables for developer convenience. Production uses Alembic migrations and does not silently create tables.
 
 ### Step 7: Governance
 
-Implemented in `backend/backend/governance`.
+Implemented in `backend/backend/governance` and the audit service boundary.
 
 Controls:
 
@@ -124,6 +125,7 @@ Controls:
 - Summary guardrails use a lightweight pattern blocklist.
 - Write-like flows are draft-first and require explicit approval before sandbox submit.
 - Sandbox submit requires an approved draft and matching payload hash.
+- Audit writes go through `AuditSink`; Postgres is active locally and Unity Catalog dual-write is deferred.
 
 ### Step 8: Offline Sync
 
@@ -242,7 +244,7 @@ Implemented now:
 Deferred intentionally:
 
 - Real Databricks/Snowflake adapters.
-- Real FastMCP servers.
+- Real FastMCP transport servers. Mock-backed MCP tool functions are implemented and share the backend adapter/service layer.
 - LangGraph supervisor mesh.
 - Mem0 memory layer.
 - CopilotKit/AG-UI runtime.
@@ -253,10 +255,9 @@ Deferred intentionally:
 
 ## 5. Next Architecture Steps
 
-1. Replace startup `Base.metadata.create_all` with environment-specific migration enforcement outside local dev.
-2. Add a real auth provider abstraction while keeping mock JWT local.
-3. Implement parameterized Databricks/Snowflake adapters behind the existing ports.
-4. Convert MCP placeholders into FastMCP servers that call the same services/adapters.
-5. Add richer manager approval queue and admin audit filtering.
-6. Introduce LangGraph only when multi-agent routing adds value beyond deterministic services.
-7. Add MLflow evaluation once model/tool routing exists.
+1. Complete external JWT validation after SSO discovery.
+2. Implement parameterized Databricks/Snowflake query bodies behind the scaffolded adapters.
+3. Convert MCP placeholders into FastMCP servers that call the same services/adapters.
+4. Add richer manager approval queue and admin audit filtering.
+5. Introduce LangGraph only when multi-agent routing adds value beyond deterministic services.
+6. Add MLflow evaluation once model/tool routing exists.

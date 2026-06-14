@@ -9,12 +9,30 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str = "sqlite+aiosqlite:///./phantom.db"
+    app_env: Literal["local", "test", "production"] = "local"
+    auto_create_tables: bool = True
     allowed_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
     auth_mode: Literal["mock_jwt"] = "mock_jwt"
+    auth_provider: Literal["mock", "external_jwt"] = "mock"
+    external_jwt_issuer: str | None = None
+    external_jwt_audience: str | None = None
     territory_timezone: str = "Europe/Paris"
     osa_source_system: str = "mock"
     osa_model_version: str = "mock-v1"
+    osa_adapter: Literal["mock", "databricks"] = "mock"
+    rgm_adapter: Literal["mock", "databricks"] = "mock"
+    store_master_adapter: Literal["mock", "snowflake"] = "mock"
+    audit_sink: Literal["postgres", "unity_catalog"] = "postgres"
+    agent_graph_enabled: bool = False
     llm_model_id: str = "grounded-template-v1"
+    databricks_host: str | None = None
+    databricks_token: str | None = None
+    databricks_sql_warehouse_id: str | None = None
+    snowflake_account: str | None = None
+    snowflake_user: str | None = None
+    snowflake_warehouse: str | None = None
+    snowflake_database: str | None = None
+    snowflake_schema: str | None = None
 
 
 @lru_cache
@@ -23,4 +41,3 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
-

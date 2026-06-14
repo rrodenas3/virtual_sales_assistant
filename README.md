@@ -17,6 +17,8 @@ This repo currently implements the secure OSA pilot slice:
 - CRM visit-log drafts
 - pilot metrics and spec compliance documentation
 - Alembic migration scaffold
+- adapter factory for future Databricks/Snowflake integration
+- mock-backed MCP tool functions with transport deferred
 - manager territory summary
 - admin audit event feed
 - frontend demo role switcher for rep / manager / admin
