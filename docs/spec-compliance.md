@@ -100,10 +100,14 @@ Later:
 
 ```powershell
 cd backend
-python -m ruff check backend tests
+python -m ruff check backend tests alembic ..\mcp ..\scripts\run_eval.py
 python -m pytest tests -q
 alembic upgrade head
 
 cd ../frontend
 npm run build
+
+cd ..
+python scripts/run_eval.py
+bash ./scripts/public_safety_scan.sh
 ```
