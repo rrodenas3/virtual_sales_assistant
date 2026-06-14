@@ -93,7 +93,8 @@ Implemented in `backend/backend/adapters`.
 
 Current adapter factory defaults:
 
-- `MockOSAAdapter`: store master, visit priority, OOS alerts, store details, territory summaries.
+- `MockOSAAdapter`: visit priority, OOS alerts, rep-scoped store details, territory summaries.
+- `MockStoreMasterAdapter`: store-master detail port backed by the mock store seed data.
 - `MockRGMAdapter`: promo, assortment, and upsell recommendations.
 - `DatabricksOSAAdapter`, `DatabricksRGMAdapter`, and `SnowflakeStoreMasterAdapter`: fail-fast scaffolds until credentials and view contracts are confirmed.
 

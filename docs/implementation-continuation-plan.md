@@ -37,6 +37,13 @@ This plan continues the MVP from the current public repository state. It hardens
 - LangGraph remains behind a feature flag until parity tests pass.
 - Offline route, alert, store, and RGM cache should use IndexedDB; feedback idempotency remains tied to authenticated identity.
 
+## Completed Continuation Additions
+
+- Local MCP JSON transport and Compose wiring are implemented for OSA, store master, RGM, CRM, and orders.
+- Structured request observability is implemented with request IDs, response timing, sampling controls, and `/health/observability`.
+- Client discovery readiness gates are implemented before live SSO, data, CRM, ERP, and audit integrations.
+- Store-master access is split behind a dedicated `StoreMasterPort`; OSA remains responsible for ranked territory and alert logic.
+
 ## Deferred Spec Areas
 
 - CopilotKit / AG-UI SSE `POST /agent/run`.
