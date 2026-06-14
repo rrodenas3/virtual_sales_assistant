@@ -1,4 +1,6 @@
 import sys
+import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -7,8 +9,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from mcp.crm.tools import preview_visit_log_draft  # noqa: E402
 from mcp.orders.tools import preview_order_draft_payload  # noqa: E402
+from mcp.osa.server import TOOLS as OSA_TOOLS  # noqa: E402
 from mcp.osa.tools import get_oos_alerts, get_phantom_inventory, get_visit_priority  # noqa: E402
 from mcp.rgm.tools import get_rgm_recommendations  # noqa: E402
+from mcp.runtime import call_tool, tool_manifest  # noqa: E402
 from mcp.store_master.tools import get_store_health, get_territory_stores  # noqa: E402
 
 
@@ -53,3 +57,31 @@ def test_action_mcp_preview_tools_reuse_service_hashing() -> None:
     visit = preview_visit_log_draft("ST-001", "REP-001", "session-1", "Checked shelf", "completed")
     assert visit["status"] == "DRAFT"
     assert visit["requires_approval"] is False
+
+
+@pytest.mark.asyncio
+async def test_mcp_runtime_manifest_and_call_tool() -> None:
+    manifest = tool_manifest("osa", OSA_TOOLS)
+    assert manifest["transport"] == "local-json"
+    assert "get_visit_priority" in manifest["tools"]
+
+    result = await call_tool(
+        OSA_TOOLS,
+        "get_visit_priority",
+        {"rep_id": "REP-001", "territory_code": "WEST-01", "visit_date": "2026-06-14"},
+    )
+    assert result[0]["store_id"]
+
+
+def test_mcp_server_cli_lists_tools() -> None:
+    root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        [sys.executable, "-m", "mcp.osa.server", "--list"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    body = json.loads(result.stdout)
+    assert body["server"] == "osa"
+    assert body["transport"] == "local-json"

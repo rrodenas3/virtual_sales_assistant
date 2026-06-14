@@ -1,12 +1,15 @@
-"""CRM MCP tool entrypoint placeholder."""
+"""CRM local MCP-compatible JSON transport."""
 
-import json
+from mcp.crm.tools import preview_visit_log_draft
+from mcp.runtime import run_cli
 
-TOOLS = ["preview_visit_log_draft"]
+TOOLS = {
+    "preview_visit_log_draft": preview_visit_log_draft,
+}
 
 
 def main() -> None:
-    print(json.dumps({"server": "crm", "transport": "deferred", "tools": TOOLS}))
+    run_cli("crm", TOOLS)
 
 
 if __name__ == "__main__":

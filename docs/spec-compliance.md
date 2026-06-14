@@ -13,7 +13,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
 | Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes with parity tests; production routes still use services directly |
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs | Implemented and tested |
-| MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; transport later | Implemented: mock-backed tool functions; FastMCP transport deferred |
+| MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, fail-closed Mem0 scaffold |
 | Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, pattern guardrail, read-only policy stub, append-only audit behind `AuditSink` |
 | Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness` and live-mode gate checks |
@@ -86,7 +86,7 @@ Highest priority:
 
 1. Complete external JWT validation for Azure AD/Okta after issuer, audience, JWK, and `DISCOVERY_SSO_PROVIDER` are confirmed.
 2. Implement parameterized Databricks/Snowflake query bodies after discovery readiness is green for data sharing and residency.
-3. Replace MCP placeholders with real FastMCP servers once data-source credentials are known.
+3. Replace local JSON MCP transport with FastMCP dependency once runtime requirements and data-source credentials are known.
 4. Promote graph routing only when multi-agent orchestration adds value beyond deterministic services.
 
 Later:

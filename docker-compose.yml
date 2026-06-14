@@ -23,6 +23,36 @@ services:
     depends_on:
       - backend
 
+  mcp-osa:
+    build:
+      context: .
+      dockerfile: mcp/Dockerfile
+    command: ["python", "-m", "mcp.osa.server", "--list"]
+
+  mcp-store-master:
+    build:
+      context: .
+      dockerfile: mcp/Dockerfile
+    command: ["python", "-m", "mcp.store_master.server", "--list"]
+
+  mcp-rgm:
+    build:
+      context: .
+      dockerfile: mcp/Dockerfile
+    command: ["python", "-m", "mcp.rgm.server", "--list"]
+
+  mcp-orders:
+    build:
+      context: .
+      dockerfile: mcp/Dockerfile
+    command: ["python", "-m", "mcp.orders.server", "--list"]
+
+  mcp-crm:
+    build:
+      context: .
+      dockerfile: mcp/Dockerfile
+    command: ["python", "-m", "mcp.crm.server", "--list"]
+
   postgres:
     image: postgres:16
     environment:
@@ -36,4 +66,3 @@ services:
 
 volumes:
   phantom_postgres:
-
