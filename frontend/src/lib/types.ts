@@ -190,18 +190,44 @@ export type TerritorySummaryResponse = {
   stores: TerritoryStoreSummary[];
 };
 
+export type ApprovalQueueItem = {
+  draft_id: string;
+  store_id: string;
+  store_name: string;
+  rep_id: string;
+  session_id: string;
+  status: string;
+  payload_hash: string;
+  item_count: number;
+  notes: string | null;
+  created_at: string;
+};
+
+export type ApprovalQueueResponse = {
+  territory_code: string;
+  pending_count: number;
+  items: ApprovalQueueItem[];
+};
+
+export type AuditEvent = {
+  event_id: string;
+  session_id: string;
+  rep_id: string;
+  event_type: string;
+  resource_type: string;
+  resource_id: string | null;
+  payload_json: Record<string, unknown>;
+  source_system: string;
+  data_freshness_ts: string | null;
+  created_at: string;
+};
+
 export type AdminAuditEventsResponse = {
-  events: Array<{
-    event_id: string;
-    session_id: string;
-    rep_id: string;
-    event_type: string;
-    resource_type: string;
-    resource_id: string | null;
-    payload_json: Record<string, unknown>;
-    source_system: string;
-    data_freshness_ts: string | null;
-    created_at: string;
-  }>;
+  events: AuditEvent[];
   limit: number;
+  next_cursor: string | null;
+};
+
+export type AdminAuditEventDetailResponse = {
+  event: AuditEvent;
 };

@@ -1,6 +1,8 @@
 import type {
   AlertFeedback,
   AdminAuditEventsResponse,
+  AdminAuditEventDetailResponse,
+  ApprovalQueueResponse,
   ApprovalResponse,
   DemoIdentity,
   DemoRole,
@@ -163,6 +165,26 @@ export function getTerritorySummary(): Promise<TerritorySummaryResponse> {
   return request(`/api/v1/manager/territory-summary?territory_code=${encodeURIComponent(getCurrentTerritory())}`);
 }
 
-export function getAdminAuditEvents(): Promise<AdminAuditEventsResponse> {
-  return request("/api/v1/admin/audit-events?limit=75");
+export function getApprovalQueue(): Promise<ApprovalQueueResponse> {
+  return request(`/api/v1/manager/approval-queue?territory_code=${encodeURIComponent(getCurrentTerritory())}`);
+}
+
+export function getAdminAuditEvents(filters?: {
+  event_type?: string;
+  rep_id?: string;
+  resource_type?: string;
+  cursor?: string | null;
+  limit?: number;
+}): Promise<AdminAuditEventsResponse> {
+  const params = new URLSearchParams();
+  params.set("limit", String(filters?.limit ?? 75));
+  if (filters?.event_type) params.set("event_type", filters.event_type);
+  if (filters?.rep_id) params.set("rep_id", filters.rep_id);
+  if (filters?.resource_type) params.set("resource_type", filters.resource_type);
+  if (filters?.cursor) params.set("cursor", filters.cursor);
+  return request(`/api/v1/admin/audit-events?${params.toString()}`);
+}
+
+export function getAdminAuditEvent(eventId: string): Promise<AdminAuditEventDetailResponse> {
+  return request(`/api/v1/admin/audit-events/${encodeURIComponent(eventId)}`);
 }

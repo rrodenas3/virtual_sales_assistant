@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.adapters.osa import OSADataPort
-from backend.api.schemas import TerritoryStoreSummary, TerritorySummaryResponse
+from backend.api.schemas import ApprovalQueueItem, ApprovalQueueResponse, TerritoryStoreSummary, TerritorySummaryResponse
 from backend.auth.mock_jwt import CurrentUser, get_current_user
 from backend.db.models import AlertFeedback, OrderDraft
 from backend.db.session import get_db
@@ -58,3 +58,45 @@ async def territory_summary(
         open_draft_count=sum(row.open_draft_count for row in enriched),
         stores=enriched,
     )
+
+
+@router.get("/approval-queue", response_model=ApprovalQueueResponse)
+async def approval_queue(
+    territory_code: str,
+    current_user: CurrentUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    osa: OSADataPort = Depends(get_osa_adapter),
+) -> ApprovalQueueResponse:
+    if current_user.role not in {"manager", "admin"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Manager role required")
+    assert_territory_access(current_user, territory_code)
+    summaries = await osa.get_territory_store_summaries(territory_code, date.today())
+    stores_by_id = {store.store_id: store for store in summaries}
+    rows = list(
+        (
+            await db.execute(
+                select(OrderDraft)
+                .where(OrderDraft.store_id.in_(list(stores_by_id)))
+                .where(OrderDraft.status.in_(["DRAFT", "REJECTED"]))
+                .order_by(OrderDraft.created_at.desc())
+            )
+        ).scalars()
+    )
+    items: list[ApprovalQueueItem] = []
+    for row in rows:
+        store = stores_by_id[row.store_id]
+        items.append(
+            ApprovalQueueItem(
+                draft_id=row.draft_id,
+                store_id=row.store_id,
+                store_name=store.store_name,
+                rep_id=row.rep_id,
+                session_id=row.session_id,
+                status=row.status,
+                payload_hash=row.payload_hash,
+                item_count=len(row.payload_json.get("items", [])),
+                notes=row.payload_json.get("notes"),
+                created_at=row.created_at,
+            )
+        )
+    return ApprovalQueueResponse(territory_code=territory_code, pending_count=len(items), items=items)

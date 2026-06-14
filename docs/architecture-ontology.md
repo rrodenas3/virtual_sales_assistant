@@ -50,8 +50,8 @@ Implemented in `frontend/src`.
 Surfaces:
 
 - Rep workbench: ranked stores, store detail, OOS alerts, RGM action band, draft/approval/sandbox-submit flow.
-- Manager view: territory metrics and ranked store table.
-- Admin view: audit event feed.
+- Manager view: territory metrics, ranked store table, and approval queue.
+- Admin view: filterable audit event feed and detail payload.
 - Trace drawer: formula, source system, model version, freshness, and audit IDs.
 - Offline status: browser queue count and online/offline status.
 
@@ -69,8 +69,8 @@ Primary route groups:
 - `/crm`: visit-log drafts.
 - `/sync`: idempotent offline feedback sync.
 - `/metrics`: pilot KPI rollup.
-- `/manager`: territory summary.
-- `/admin`: audit feed.
+- `/manager`: territory summary and approval queue.
+- `/admin`: audit feed, filters, and detail.
 - `/audit`: session-level trace lookup.
 - `/agent`: grounded OSA summary.
 
@@ -236,7 +236,7 @@ Implemented now:
 - Deterministic scoring and alert actions.
 - HITL draft approval and sandbox submit.
 - Offline feedback sync.
-- Manager and admin views.
+- Manager approval queue and admin audit detail views.
 - Audit and pilot metrics.
 - Alembic migration scaffold.
 - Public-safety scan.
@@ -258,6 +258,5 @@ Deferred intentionally:
 1. Complete external JWT validation after SSO discovery.
 2. Implement parameterized Databricks/Snowflake query bodies behind the scaffolded adapters.
 3. Convert MCP placeholders into FastMCP servers that call the same services/adapters.
-4. Add richer manager approval queue and admin audit filtering.
-5. Introduce LangGraph only when multi-agent routing adds value beyond deterministic services.
-6. Add MLflow evaluation once model/tool routing exists.
+4. Introduce LangGraph only when multi-agent routing adds value beyond deterministic services.
+5. Add MLflow evaluation once model/tool routing exists.

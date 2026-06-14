@@ -22,8 +22,8 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue first; Hermes spike later | Implemented: localStorage feedback queue + idempotent sync |
 | Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs |
 | Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented; CopilotKit deferred intentionally |
-| Manager view | Manager dashboard with territory overview | Add leadership summary before full dashboard | Implemented: `/manager/territory-summary` and manager UI mode |
-| Admin console | Governance and audit console | Add audit feed before full admin console | Implemented: `/admin/audit-events` and admin UI mode |
+| Manager view | Manager dashboard with territory overview | Add leadership summary and approval queue before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, and manager UI mode |
+| Admin console | Governance and audit console | Add audit feed, filters, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, and admin UI mode |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
 | Tests/eval | MLflow eval and agent tests | API/service tests first; MLflow later with real agent path | Implemented: 17 backend tests, frontend build verification |
 
@@ -34,7 +34,9 @@ GET  /api/v1/health
 GET  /api/v1/health/db
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
-GET  /api/v1/admin/audit-events
+GET  /api/v1/manager/approval-queue?territory_code=WEST-01
+GET  /api/v1/admin/audit-events?event_type=&rep_id=&resource_type=&limit=&cursor=
+GET  /api/v1/admin/audit-events/{event_id}
 GET  /api/v1/visits/today?territory_code=WEST-01&date=YYYY-MM-DD
 GET  /api/v1/stores/{store_id}
 GET  /api/v1/stores/{store_id}/alerts
@@ -83,8 +85,7 @@ Highest priority:
 1. Complete external JWT validation for Azure AD/Okta after issuer, audience, and JWK discovery details are known.
 2. Implement parameterized Databricks/Snowflake query bodies behind the scaffolded adapters after view contracts are confirmed.
 3. Replace MCP placeholders with real FastMCP servers once data-source credentials are known.
-4. Expand manager/admin views into approval queue and richer audit console.
-5. Add LangGraph only when multi-agent routing is needed for real RGM/action workflows.
+4. Add LangGraph only when multi-agent routing is needed for real RGM/action workflows.
 
 Later:
 

@@ -3,8 +3,10 @@ import { AlertTriangle, CheckCircle2, Clock, Database, MapPin, PackageCheck, Rou
 import {
   approveOrderDraft,
   createOrderDraft,
+  getAdminAuditEvent,
   getAlerts,
   getAdminAuditEvents,
+  getApprovalQueue,
   getRGMRecommendations,
   getPilotMetrics,
   getStore,
@@ -19,8 +21,10 @@ import { buildSessionId, getCurrentIdentity, getDemoRole, setDemoRole } from "./
 import { clearQueuedFeedback, getQueuedFeedback, queueFeedback } from "./lib/offlineQueue";
 import type {
   AlertFeedback,
+  AdminAuditEventDetailResponse,
   AdminAuditEventsResponse,
   ApprovalResponse,
+  ApprovalQueueResponse,
   DemoRole,
   OOSAlert,
   OrderDraftResponse,
@@ -51,7 +55,10 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [role, setRole] = useState<DemoRole>(getDemoRole());
   const [territorySummary, setTerritorySummary] = useState<TerritorySummaryResponse | null>(null);
+  const [approvalQueue, setApprovalQueue] = useState<ApprovalQueueResponse | null>(null);
   const [adminAudit, setAdminAudit] = useState<AdminAuditEventsResponse | null>(null);
+  const [auditDetail, setAuditDetail] = useState<AdminAuditEventDetailResponse | null>(null);
+  const [auditFilters, setAuditFilters] = useState({ event_type: "", rep_id: "", resource_type: "" });
   const identity = useMemo(() => getCurrentIdentity(), [role]);
   const sessionId = useMemo(() => buildSessionId("workbench"), [identity.sub]);
 
@@ -113,17 +120,20 @@ export function App() {
 
   useEffect(() => {
     if (role !== "manager") return;
-    getTerritorySummary()
-      .then(setTerritorySummary)
+    Promise.all([getTerritorySummary(), getApprovalQueue()])
+      .then(([summaryRows, queueRows]) => {
+        setTerritorySummary(summaryRows);
+        setApprovalQueue(queueRows);
+      })
       .catch((err: Error) => setError(err.message));
   }, [role]);
 
   useEffect(() => {
     if (role !== "admin") return;
-    getAdminAuditEvents()
+    getAdminAuditEvents(auditFilters)
       .then(setAdminAudit)
       .catch((err: Error) => setError(err.message));
-  }, [role]);
+  }, [role, auditFilters]);
 
   const selectedVisit = useMemo(
     () => visits.find((visit) => visit.store_id === selectedStoreId) ?? null,
@@ -165,6 +175,17 @@ export function App() {
     setDraft((current) => current ? { ...current, status: "APPROVED" } : current);
   }
 
+  async function approveQueueDraft(draftId: string) {
+    await approveOrderDraft(draftId);
+    const queueRows = await getApprovalQueue();
+    setApprovalQueue(queueRows);
+  }
+
+  async function openAuditDetail(eventId: string) {
+    const detail = await getAdminAuditEvent(eventId);
+    setAuditDetail(detail);
+  }
+
   async function submitSandbox() {
     if (!draft) return;
     const result = await submitOrderDraftSandbox(draft.draft_id);
@@ -177,7 +198,9 @@ export function App() {
     setRole(nextRole);
     setError(null);
     setTerritorySummary(null);
+    setApprovalQueue(null);
     setAdminAudit(null);
+    setAuditDetail(null);
   }
 
   return (
@@ -227,6 +250,28 @@ export function App() {
               </button>
             ))}
           </div>
+          {approvalQueue && (
+            <div className="queueBlock">
+              <div className="sectionHead">
+                <div>
+                  <p className="eyebrow">Approval queue</p>
+                  <h3>{approvalQueue.pending_count} pending drafts</h3>
+                </div>
+              </div>
+              <div className="approvalQueue">
+                {approvalQueue.items.map((item) => (
+                  <article key={item.draft_id} className="approvalRow">
+                    <div>
+                      <strong>{item.store_name}</strong>
+                      <span>{item.rep_id} / {item.item_count} items / {item.status}</span>
+                    </div>
+                    <span>hash {item.payload_hash.slice(0, 10)}</span>
+                    <button className="secondaryButton" onClick={() => approveQueueDraft(item.draft_id)}>Approve</button>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
@@ -238,15 +283,23 @@ export function App() {
               <h3>{adminAudit.events.length} recent events</h3>
             </div>
           </div>
+          <div className="filterBar">
+            <input placeholder="event type" value={auditFilters.event_type} onChange={(event) => setAuditFilters((current) => ({ ...current, event_type: event.target.value }))} />
+            <input placeholder="rep id" value={auditFilters.rep_id} onChange={(event) => setAuditFilters((current) => ({ ...current, rep_id: event.target.value }))} />
+            <input placeholder="resource type" value={auditFilters.resource_type} onChange={(event) => setAuditFilters((current) => ({ ...current, resource_type: event.target.value }))} />
+          </div>
           <div className="auditFeed">
             {adminAudit.events.map((event) => (
-              <article key={event.event_id} className="auditRow">
+              <button key={event.event_id} className="auditRow" onClick={() => openAuditDetail(event.event_id)}>
                 <strong>{event.event_type}</strong>
                 <span>{event.rep_id} / {event.resource_type} / {event.resource_id ?? "none"}</span>
                 <span>{new Date(event.created_at).toLocaleString()}</span>
-              </article>
+              </button>
             ))}
           </div>
+          {auditDetail && (
+            <pre className="summaryBox auditDetail">{JSON.stringify(auditDetail.event, null, 2)}</pre>
+          )}
         </section>
       )}
 

@@ -72,7 +72,9 @@ POST /api/v1/orders/drafts/{draft_id}/submit-sandbox
 POST /api/v1/sync/feedback-events
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
-GET  /api/v1/admin/audit-events
+GET  /api/v1/manager/approval-queue?territory_code=WEST-01
+GET  /api/v1/admin/audit-events?event_type=&rep_id=&resource_type=&limit=&cursor=
+GET  /api/v1/admin/audit-events/{event_id}
 ```
 
 Order drafts are still pilot artifacts. There is no ERP submission endpoint yet.

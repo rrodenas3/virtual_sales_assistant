@@ -118,11 +118,11 @@ button { font: inherit; }
   border-radius: 8px;
   padding: 20px;
 }
-.managerTable, .auditFeed {
+.managerTable, .auditFeed, .approvalQueue {
   display: grid;
   gap: 8px;
 }
-.managerRow, .auditRow {
+.managerRow, .auditRow, .approvalRow {
   display: grid;
   grid-template-columns: 1.4fr 0.7fr 0.7fr 0.55fr 0.7fr;
   gap: 12px;
@@ -135,8 +135,26 @@ button { font: inherit; }
   text-align: left;
 }
 .managerRow { cursor: pointer; }
-.managerRow span, .auditRow span { color: var(--muted); font-size: 0.88rem; }
+.managerRow span, .auditRow span, .approvalRow span { color: var(--muted); font-size: 0.88rem; }
 .auditRow { grid-template-columns: 1fr 1.2fr 1fr; }
+.approvalRow { grid-template-columns: 1fr 0.7fr auto; }
+.queueBlock { margin-top: 24px; }
+.filterBar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.filterBar input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: color-mix(in oklch, var(--paper), white 25%);
+  color: var(--ink);
+  font: inherit;
+}
+.auditDetail { margin-top: 14px; max-height: 360px; overflow: auto; }
 
 .routePane, .detailPane, .trace {
   border: 1px solid var(--line);
@@ -344,7 +362,7 @@ button { font: inherit; }
   .layout { grid-template-columns: 1fr; }
   .routePane { position: static; }
   .metricStrip { grid-template-columns: 1fr 1fr; }
-  .managerRow, .auditRow { grid-template-columns: 1fr; }
+  .managerRow, .auditRow, .approvalRow, .filterBar { grid-template-columns: 1fr; }
   .actionBand { grid-template-columns: 1fr; }
   .alertRow { grid-template-columns: 1fr; }
 }
