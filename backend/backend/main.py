@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from backend.api.routes import admin, agent, alerts, approvals, audit, crm, health, manager, metrics, orders, rgm, stores, sync, visits
+from backend.api.routes import admin, agent, alerts, approvals, audit, crm, health, integrations, manager, metrics, orders, rgm, stores, sync, visits
 from backend.config import settings
 from backend.db.models import Base
 from backend.db.session import engine
@@ -69,6 +69,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 for router in [
     health.router,
+    integrations.router,
     metrics.router,
     manager.router,
     admin.router,
@@ -105,6 +106,7 @@ async def api_index() -> dict:
         "routes": [
             "GET /api/v1/health",
             "GET /api/v1/health/db",
+            "GET /api/v1/integrations/readiness",
             "GET /api/v1/metrics/pilot",
             "GET /api/v1/manager/territory-summary?territory_code=WEST-01",
             "GET /api/v1/manager/approval-queue?territory_code=WEST-01",

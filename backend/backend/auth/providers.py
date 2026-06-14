@@ -8,6 +8,7 @@ from typing import Literal, Protocol
 from fastapi import HTTPException, Request, status
 
 from backend.config import settings
+from backend.governance.discovery import assert_discovery_ready
 
 
 @dataclass(frozen=True)
@@ -67,6 +68,10 @@ def parse_mock_jwt(token: str) -> CurrentUser:
 class ExternalJWTProvider:
     async def authenticate(self, request: Request) -> CurrentUser:
         _extract_bearer_token(request)
+        try:
+            assert_discovery_ready("external_jwt")
+        except RuntimeError as exc:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
         if not settings.external_jwt_issuer or not settings.external_jwt_audience:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="External JWT provider is not configured")
         raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="External JWT validation is not implemented")

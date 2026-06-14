@@ -16,6 +16,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; transport later | Implemented: mock-backed tool functions; FastMCP transport deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, fail-closed Mem0 scaffold |
 | Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, pattern guardrail, read-only policy stub, append-only audit behind `AuditSink` |
+| Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness` and live-mode gate checks |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented as draft-only local persistence |
 | ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects | Implemented and tested |
@@ -32,6 +33,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 ```text
 GET  /api/v1/health
 GET  /api/v1/health/db
+GET  /api/v1/integrations/readiness
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
 GET  /api/v1/manager/approval-queue?territory_code=WEST-01
@@ -82,8 +84,8 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 
 Highest priority:
 
-1. Complete external JWT validation for Azure AD/Okta after issuer, audience, and JWK discovery details are known.
-2. Implement parameterized Databricks/Snowflake query bodies behind the scaffolded adapters after view contracts are confirmed.
+1. Complete external JWT validation for Azure AD/Okta after issuer, audience, JWK, and `DISCOVERY_SSO_PROVIDER` are confirmed.
+2. Implement parameterized Databricks/Snowflake query bodies after discovery readiness is green for data sharing and residency.
 3. Replace MCP placeholders with real FastMCP servers once data-source credentials are known.
 4. Promote graph routing only when multi-agent orchestration adds value beyond deterministic services.
 

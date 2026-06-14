@@ -342,3 +342,19 @@ class ApprovalQueueResponse(BaseModel):
     territory_code: str
     pending_count: int
     items: list[ApprovalQueueItem]
+
+
+class DiscoveryGateOut(BaseModel):
+    topic: str
+    setting_name: str
+    status: Literal["answered", "defaulted", "missing"]
+    value: str | None
+    required_for: list[str]
+    notes: str
+
+
+class IntegrationReadinessResponse(BaseModel):
+    ready: bool
+    selected_live_modes: list[str]
+    blockers: list[str]
+    gates: list[DiscoveryGateOut]

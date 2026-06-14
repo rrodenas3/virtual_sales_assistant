@@ -16,6 +16,14 @@ class Settings(BaseSettings):
     auth_provider: Literal["mock", "external_jwt"] = "mock"
     external_jwt_issuer: str | None = None
     external_jwt_audience: str | None = None
+    discovery_data_sharing_model: str | None = None
+    discovery_crm_platform: str | None = None
+    discovery_erp_sandbox: str | None = None
+    discovery_pilot_territory: str | None = "WEST-01"
+    discovery_rep_device: str | None = "PWA"
+    discovery_sso_provider: str | None = None
+    discovery_data_residency: str | None = None
+    discovery_offline_sync_policy: str | None = "browser-feedback-queue"
     territory_timezone: str = "Europe/Paris"
     osa_source_system: str = "mock"
     osa_model_version: str = "mock-v1"

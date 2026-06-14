@@ -22,6 +22,7 @@ def test_invalid_role_is_rejected() -> None:
 
 def test_external_jwt_provider_fails_closed_when_unconfigured(monkeypatch) -> None:
     monkeypatch.setattr(settings, "auth_provider", "external_jwt")
+    monkeypatch.setattr(settings, "discovery_sso_provider", "Azure AD")
     monkeypatch.setattr(settings, "external_jwt_issuer", None)
     monkeypatch.setattr(settings, "external_jwt_audience", None)
     with TestClient(app, headers={"Authorization": f"Bearer {REP_001}"}) as client:

@@ -20,6 +20,7 @@ This repo currently implements the secure OSA pilot slice:
 - feature-flagged graph-style agent scaffold with parity tests
 - memory provider scaffold with null default and fail-closed Mem0 placeholder
 - IndexedDB route, store, alert, and RGM cache for offline read fallback
+- client discovery readiness gate for live integrations
 - Alembic migration scaffold
 - adapter factory for future Databricks/Snowflake integration
 - mock-backed MCP tool functions with transport deferred
@@ -55,6 +56,7 @@ Phase 1:
 
 ```text
 GET  /api/v1/health
+GET  /api/v1/integrations/readiness
 GET  /api/v1/visits/today?territory_code=WEST-01&date=YYYY-MM-DD
 GET  /api/v1/stores/{store_id}
 GET  /api/v1/stores/{store_id}/alerts
