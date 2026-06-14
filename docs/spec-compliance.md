@@ -7,7 +7,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Area | Original spec intent | Revised plan decision | Current status |
 |---|---|---|---|
 | Product UX | Field assistant with before/during/after visit support | Workbench-first MVP, chat secondary | Implemented: route workbench, store detail, OOS alerts, RGM/action band, trace drawer |
-| Auth / identity | SSO/CRM-mapped rep identity, unresolved in discovery | Mock JWT with `sub`, `territory_code`, `role`; ignore client rep IDs | Implemented: mock JWT, rep/store RBAC, unauthorized store access returns `404` |
+| Auth / identity | SSO/CRM-mapped rep identity, unresolved in discovery | Mock JWT with `sub`, `territory_code`, `role`; ignore client rep IDs; scaffold external JWT | Implemented: provider boundary, mock JWT, fail-closed external JWT scaffold, rep/store RBAC, unauthorized store access returns `404` |
 | Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind ports | Implemented: `MockOSAAdapter`, `MockRGMAdapter`; real data adapters deferred |
 | Priority scoring | Formula sketched in OSA MCP SQL | Deterministic service formula with explainable components | Implemented and tested |
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
@@ -67,7 +67,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 
 Highest priority:
 
-1. Add real auth provider abstraction for Azure AD/Okta while keeping mock JWT local.
+1. Complete external JWT validation for Azure AD/Okta after issuer, audience, and JWK discovery details are known.
 2. Implement parameterized Databricks/Snowflake adapters behind the existing adapter ports.
 3. Replace MCP placeholders with real FastMCP servers once data-source credentials are known.
 4. Expand manager/admin views into approval queue and richer audit console.

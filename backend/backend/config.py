@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     auto_create_tables: bool = True
     allowed_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
     auth_mode: Literal["mock_jwt"] = "mock_jwt"
+    auth_provider: Literal["mock", "external_jwt"] = "mock"
+    external_jwt_issuer: str | None = None
+    external_jwt_audience: str | None = None
     territory_timezone: str = "Europe/Paris"
     osa_source_system: str = "mock"
     osa_model_version: str = "mock-v1"

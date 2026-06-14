@@ -23,7 +23,7 @@ The internal architecture is organized into ten panels. The current repository i
 
 ### Step 1: Identity Boundary
 
-The browser sends a mock JWT in local/demo mode.
+The browser sends a mock JWT in local/demo mode. Backend auth is provider-based: `AUTH_PROVIDER=mock` is active for demo, and `AUTH_PROVIDER=external_jwt` fails closed until issuer, audience, and JWK validation are configured.
 
 Claims:
 
@@ -41,7 +41,7 @@ Roles:
 - `manager`: can read territory-level summaries and stores within the territory.
 - `admin`: can read cross-rep audit data.
 
-Backend rule: route handlers use authenticated identity from the token and do not trust client-supplied `rep_id`.
+Backend rule: route handlers use authenticated identity from the token and do not trust client-supplied `rep_id`. The frontend also derives session IDs and offline idempotency keys from the active token claims.
 
 ### Step 2: Presentation Layer
 
@@ -253,7 +253,7 @@ Deferred intentionally:
 
 ## 5. Next Architecture Steps
 
-1. Add a real auth provider abstraction while keeping mock JWT local.
+1. Complete external JWT validation after SSO discovery.
 2. Implement parameterized Databricks/Snowflake adapters behind the existing ports.
 3. Convert MCP placeholders into FastMCP servers that call the same services/adapters.
 4. Add richer manager approval queue and admin audit filtering.

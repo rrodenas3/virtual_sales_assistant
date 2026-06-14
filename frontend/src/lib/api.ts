@@ -2,6 +2,7 @@ import type {
   AlertFeedback,
   AdminAuditEventsResponse,
   ApprovalResponse,
+  DemoIdentity,
   DemoRole,
   OOSAlert,
   OrderDraftResponse,
@@ -17,6 +18,7 @@ import type {
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 const ROLE_KEY = "phantom.demoRole";
+const DEFAULT_TERRITORY = "WEST-01";
 
 function encodeSegment(value: unknown) {
   return btoa(JSON.stringify(value)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -32,6 +34,12 @@ function mockTokenForRole(role: DemoRole) {
   return `${encodeSegment({ alg: "none", typ: "JWT" })}.${encodeSegment(claims)}.`;
 }
 
+function decodeSegment<T>(segment: string): T {
+  const base64 = segment.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+  return JSON.parse(atob(padded)) as T;
+}
+
 export function getDemoRole(): DemoRole {
   const role = window.localStorage.getItem(ROLE_KEY);
   return role === "manager" || role === "admin" ? role : "rep";
@@ -39,6 +47,19 @@ export function getDemoRole(): DemoRole {
 
 export function setDemoRole(role: DemoRole) {
   window.localStorage.setItem(ROLE_KEY, role);
+}
+
+export function getCurrentIdentity(): DemoIdentity {
+  const token = mockTokenForRole(getDemoRole());
+  return decodeSegment<DemoIdentity>(token.split(".")[1]);
+}
+
+export function getCurrentTerritory(): string {
+  return getCurrentIdentity().territory_code ?? DEFAULT_TERRITORY;
+}
+
+export function buildSessionId(scope = "workbench", date = new Date()): string {
+  return `${getCurrentIdentity().sub}:${date.toISOString().slice(0, 10)}:${scope}`;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -59,7 +80,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export function getTodayVisits(): Promise<VisitPriority[]> {
   const today = new Date().toISOString().slice(0, 10);
-  return request(`/api/v1/visits/today?territory_code=WEST-01&date=${today}`);
+  return request(`/api/v1/visits/today?territory_code=${encodeURIComponent(getCurrentTerritory())}&date=${today}`);
 }
 
 export function getStore(storeId: string): Promise<StoreDetail> {
@@ -82,7 +103,7 @@ export function getSummary(storeId: string, sessionId: string, alertIds: string[
   return request("/api/v1/agent/osa-summary", {
     method: "POST",
     body: JSON.stringify({
-      territory_code: "WEST-01",
+      territory_code: getCurrentTerritory(),
       store_id: storeId,
       session_id: sessionId,
       alert_ids: alertIds
@@ -139,7 +160,7 @@ export function getPilotMetrics(): Promise<PilotMetricsResponse> {
 }
 
 export function getTerritorySummary(): Promise<TerritorySummaryResponse> {
-  return request("/api/v1/manager/territory-summary?territory_code=WEST-01");
+  return request(`/api/v1/manager/territory-summary?territory_code=${encodeURIComponent(getCurrentTerritory())}`);
 }
 
 export function getAdminAuditEvents(): Promise<AdminAuditEventsResponse> {

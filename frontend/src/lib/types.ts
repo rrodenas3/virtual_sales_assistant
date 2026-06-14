@@ -162,6 +162,12 @@ export type PilotMetricsResponse = {
 
 export type DemoRole = "rep" | "manager" | "admin";
 
+export type DemoIdentity = {
+  sub: string;
+  role: DemoRole;
+  territory_code?: string;
+};
+
 export type TerritoryStoreSummary = {
   store_id: string;
   store_name: string;
