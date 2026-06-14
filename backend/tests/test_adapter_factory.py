@@ -17,6 +17,8 @@ def test_factory_returns_mock_adapters_by_default(monkeypatch) -> None:
 
 def test_databricks_adapter_fails_fast_without_required_settings(monkeypatch) -> None:
     monkeypatch.setattr(settings, "osa_adapter", "databricks")
+    monkeypatch.setattr(settings, "discovery_data_sharing_model", "client_databricks")
+    monkeypatch.setattr(settings, "discovery_data_residency", "eu-west")
     monkeypatch.setattr(settings, "databricks_host", None)
     monkeypatch.setattr(settings, "databricks_token", None)
     monkeypatch.setattr(settings, "databricks_sql_warehouse_id", None)

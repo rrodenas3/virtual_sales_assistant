@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.config import settings
 from backend.db.models import AuditEvent
+from backend.governance.discovery import assert_discovery_ready
 
 
 class AuditSink(Protocol):
@@ -75,4 +76,5 @@ class UnityCatalogAuditSink:
 def get_audit_sink() -> AuditSink:
     if settings.audit_sink == "postgres":
         return PostgresAuditSink()
+    assert_discovery_ready("unity_catalog")
     return UnityCatalogAuditSink()

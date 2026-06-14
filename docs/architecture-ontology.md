@@ -17,7 +17,7 @@ The internal architecture is organized into ten panels. The current repository i
 | 90-day roadmap | Phase 1 OSA, Phase 2 RGM/actions, Phase 3 offline/scale | Implemented through Phase 3 foundations in local/demo form |
 | KPI framework | Day 30/60/90 adoption, precision, cost, traceability | Implemented: pilot metrics endpoint, feedback precision, summary cost telemetry, audit event counts |
 | Technology decisions | FastAPI, React, PostgreSQL, MCP, LangGraph, Mem0, offline model | Implemented: FastAPI, React/Vite, SQLAlchemy/Alembic, adapter ports. Deferred: LangGraph, Mem0, real MCP, offline model |
-| Discovery and guardrails | Client discovery questions and scope exclusions | Implemented as docs/client-discovery.md and docs/spec-corrections.md |
+| Discovery and guardrails | Client discovery questions and scope exclusions | Implemented as docs/client-discovery.md, `/integrations/readiness`, and docs/spec-corrections.md |
 
 ## 2. System Architecture, Step By Step
 
@@ -68,6 +68,7 @@ Primary route groups:
 - `/approvals`: approve/reject draft.
 - `/crm`: visit-log drafts.
 - `/sync`: idempotent offline feedback sync.
+- `/integrations`: discovery readiness for live integration gates.
 - `/metrics`: pilot KPI rollup.
 - `/manager`: territory summary and approval queue.
 - `/admin`: audit feed, filters, and detail.
@@ -125,6 +126,7 @@ Implemented in `backend/backend/governance` and the audit service boundary.
 Controls:
 
 - RBAC: reps are scoped to assigned stores; managers are scoped to territory; admins can read audit.
+- Integration readiness blocks selected live providers until required discovery gates are answered.
 - Unauthorized store access returns `404` for anti-enumeration.
 - Summary guardrails use a lightweight pattern blocklist.
 - Write-like flows are draft-first and require explicit approval before sandbox submit.
@@ -246,6 +248,7 @@ Implemented now:
 - Local OSA eval harness.
 - Alembic migration scaffold.
 - Public-safety scan.
+- Client discovery readiness endpoint and live-mode blockers.
 
 Deferred intentionally:
 
