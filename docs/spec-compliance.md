@@ -12,7 +12,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Priority scoring | Formula sketched in OSA MCP SQL | Deterministic service formula with explainable components | Implemented and tested |
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
 | Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes; summary routes can use graph routing behind `AGENT_GRAPH_ENABLED` with parity tests |
-| LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs | Implemented and tested |
+| LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs; Anthropic SDK provider is config-gated behind deterministic template fallback | Implemented: `SUMMARY_PROVIDER=template|anthropic`, grounded identifier validation, provider metadata in audit |
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, fail-closed Mem0 scaffold |
 | Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, read-only policy stub, append-only Postgres audit behind `AuditSink`, Unity Catalog mirror scaffold |
@@ -27,7 +27,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Manager view | Manager dashboard with territory overview | Add leadership summary and approval queue before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, and manager UI mode |
 | Admin console | Governance and audit console | Add audit feed, filters, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, and admin UI mode |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
-| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, Playwright workbench smoke, local OSA eval harness, frontend build verification |
+| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, Playwright workbench smoke, local OSA eval harness, frontend build verification, summary provider unit coverage |
 
 ## Implemented API Surface
 
@@ -75,10 +75,11 @@ GET  /api/v1/audit/session/{session_id}
 
 These are not accidental gaps; they are deliberate corrections from the revised plan.
 
-- No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, and OSA summary routes can opt into graph routing with audited parity coverage.
+- No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, and OSA summary routes can opt into graph routing with audited parity coverage. The client-pilot path explicitly defers adding LangGraph dependencies until multi-agent routing adds value beyond current services.
 - No active Mem0 memory yet. The memory port exists, but the default provider is `none`.
 - No live Snowflake/Databricks/MCP credentials yet. Current mock adapters enforce the corrected data contract; live adapters build parameterized query statements and are ready for view-contract validation.
-- No CopilotKit dependency in the core UI. The MVP is an operational workbench first; `/agent/run` is a feature-flagged SSE bridge for later AG-UI wiring.
+- No CopilotKit dependency in the core UI. The client-pilot path uses the custom `/agent/run` SSE bridge first and defers CopilotKit package integration.
+- Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but final AI-assistant pilot validation must include an eval run with `SUMMARY_PROVIDER=anthropic`.
 - No real ERP submit. `submit-sandbox` validates HITL policy and payload hash but has no external side effects.
 - No Hermes/Ollama inference yet. Browser offline feedback sync is implemented first.
 - No shelf image recognition, voice, digital shelf, manager-initiated tasks, or multi-tenant support.
@@ -94,7 +95,7 @@ Highest priority:
 
 Later:
 
-- CopilotKit client package integration on top of the feature-flagged `/agent/run` SSE bridge.
+- Custom frontend SSE assistant panel on top of `/agent/run`; CopilotKit remains a later optional UI dependency.
 - Mem0 memory scopes, retention policy, and production provider wiring.
 - MLflow integration beyond the local eval harness.
 - Live Unity Catalog audit mirror implementation beyond the scaffolded dual-write sink.

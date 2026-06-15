@@ -11,7 +11,12 @@ from backend.config import settings
 from backend.governance.guardrails import check_guardrails
 from backend.governance.rbac import assert_territory_access
 from backend.services.audit import log_audit_event
-from backend.services.summary import build_grounded_summary
+from backend.services.summary_providers import (
+    SummaryGroundingError,
+    SummaryProviderError,
+    TemplateSummaryProvider,
+    get_summary_provider,
+)
 from backend.services.telemetry import log_structured_event
 
 
@@ -49,18 +54,25 @@ async def create_osa_summary(
         except ValueError as exc:
             raise SummaryValidationError(str(exc)) from exc
         alerts = graph_state.alerts
-        summary = graph_state.summary or build_grounded_summary(alerts)
     else:
         alerts = await osa.get_alerts_by_ids(current_user.rep_id, request.territory_code, request.alert_ids)
         if request.alert_ids is not None and len(alerts) != len(set(request.alert_ids)):
             raise SummaryValidationError("Unknown alert_id in grounded set")
         if request.store_id:
             alerts = [alert for alert in alerts if alert.store_id == request.store_id]
-        summary = build_grounded_summary(alerts)
 
-    estimated_input_tokens = max(1, sum(len(alert.model_dump_json()) for alert in alerts) // 4)
-    estimated_output_tokens = max(1, len(summary) // 4)
-    estimated_cost_eur = round((estimated_input_tokens + estimated_output_tokens) * 0.000002, 6)
+    try:
+        summary_result = await get_summary_provider().summarize(alerts)
+    except SummaryGroundingError as exc:
+        raise SummaryValidationError(str(exc)) from exc
+    except SummaryProviderError as exc:
+        if not settings.summary_fail_open:
+            raise SummaryValidationError(str(exc)) from exc
+        summary_result = await TemplateSummaryProvider().summarize(alerts)
+        summary_result = summary_result.__class__(
+            **{**summary_result.__dict__, "fallback_used": True, "grounding_result": "provider_fallback"}
+        )
+
     event = await log_audit_event(
         db,
         session_id=request.session_id,
@@ -70,10 +82,14 @@ async def create_osa_summary(
         resource_id=request.store_id or request.territory_code,
         payload_json={
             "grounded_alert_ids": [alert.alert_id for alert in alerts],
-            "model_id": settings.llm_model_id,
-            "estimated_input_tokens": estimated_input_tokens,
-            "estimated_output_tokens": estimated_output_tokens,
-            "estimated_cost_eur": estimated_cost_eur,
+            "model_id": summary_result.model_id,
+            "summary_provider": summary_result.provider,
+            "estimated_input_tokens": summary_result.estimated_input_tokens,
+            "estimated_output_tokens": summary_result.estimated_output_tokens,
+            "estimated_cost_eur": summary_result.estimated_cost_eur,
+            "latency_ms": summary_result.latency_ms,
+            "grounding_result": summary_result.grounding_result,
+            "fallback_used": summary_result.fallback_used,
             "orchestration_mode": orchestration_mode,
         },
         data_freshness_ts=alerts[0].data_freshness_ts if alerts else None,
@@ -84,17 +100,20 @@ async def create_osa_summary(
         audit_event_id=event.event_id,
         rep_id=current_user.rep_id,
         session_id=request.session_id,
-        model_id=settings.llm_model_id,
+        model_id=summary_result.model_id,
+        summary_provider=summary_result.provider,
         grounded_alert_count=len(alerts),
-        estimated_input_tokens=estimated_input_tokens,
-        estimated_output_tokens=estimated_output_tokens,
-        estimated_cost_eur=estimated_cost_eur,
+        estimated_input_tokens=summary_result.estimated_input_tokens,
+        estimated_output_tokens=summary_result.estimated_output_tokens,
+        estimated_cost_eur=summary_result.estimated_cost_eur,
+        latency_ms=summary_result.latency_ms,
+        fallback_used=summary_result.fallback_used,
         orchestration_mode=orchestration_mode,
     )
     return OSASummaryResponse(
-        summary=summary,
+        summary=summary_result.summary,
         grounded_alert_ids=[alert.alert_id for alert in alerts],
         session_id=request.session_id,
-        model_id=settings.llm_model_id,
+        model_id=summary_result.model_id,
         audit_event_id=event.event_id,
     )

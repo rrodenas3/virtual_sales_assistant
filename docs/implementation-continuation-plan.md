@@ -50,6 +50,8 @@ This plan continues the MVP from the current public repository state. It hardens
 - Guardrails support a provider boundary: default pattern checks plus fail-open/fail-closed external classifier scaffolding.
 - Databricks and Snowflake adapters build parameterized `QueryStatement` objects with injectable SQL clients and schema mappers.
 - OSA summary routes can use the graph scaffold behind `AGENT_GRAPH_ENABLED`; audit payloads record `orchestration_mode`.
+- Live adapter row mapping is shared by helper functions; Snowflake no longer calls Databricks adapter methods by duck typing.
+- OSA summary generation has a provider boundary: `SUMMARY_PROVIDER=template|anthropic`. The official Anthropic SDK is the selected LLM client; production LangGraph and CopilotKit remain deferred for the client-pilot path.
 
 ## Deferred Spec Areas
 
@@ -59,3 +61,11 @@ This plan continues the MVP from the current public repository state. It hardens
 - Live Haiku/Bedrock guardrail classifier implementation beyond the external-classifier scaffold.
 - Live Databricks, Snowflake, CRM, ERP, and device integrations.
 - Hermes/Ollama offline inference spike.
+
+## Locked Forward Decisions
+
+- LLM library: official `anthropic` Python SDK.
+- Pilot model setting: `ANTHROPIC_MODEL=claude-haiku-4-5`, configurable by environment.
+- LangGraph: defer production dependency; keep current graph-style scaffold as a parity/migration harness.
+- CopilotKit: defer for pilot; use the existing custom `/agent/run` SSE bridge first.
+- Real AI gate: pilot validation must run the summary eval path once with `SUMMARY_PROVIDER=anthropic`; template-only pilot mode is not sufficient for AI-assistant validation.

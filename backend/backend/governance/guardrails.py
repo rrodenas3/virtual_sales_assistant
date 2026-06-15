@@ -55,6 +55,7 @@ class ExternalClassifierGuardrailProvider:
             "guardrail_classifier_deferred",
             fail_closed=settings.guardrail_fail_closed,
             endpoint_configured=True,
+            block_threshold=settings.guardrail_classifier_block_threshold,
         )
         if settings.guardrail_fail_closed:
             return GuardrailResult(True, "External guardrail classifier integration is deferred", 1.0)

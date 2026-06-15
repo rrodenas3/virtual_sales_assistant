@@ -49,6 +49,54 @@ def _stable_alert_id(row: dict[str, Any]) -> str:
     return f"{row['store_id']}:{row['sku_id']}:{prediction_date}"
 
 
+def _store_from_row(row: dict[str, Any]) -> StoreDetail:
+    return StoreDetail(
+        store_id=str(row["store_id"]),
+        store_name=str(row["store_name"]),
+        retailer_name=str(row["retailer_name"]),
+        address=str(row["address"]),
+        store_tier=str(row["store_tier"]),  # type: ignore[arg-type]
+        territory_code=str(row["territory_code"]),
+        rep_id=str(row["rep_id"]),
+        last_visit_date=_date_str(row.get("last_visit_date")),
+        next_visit_date=_date_str(row.get("next_visit_date")),
+        units_sold_30d=_int(row["units_sold_30d"]),
+        revenue_30d=_float(row["revenue_30d"]),
+        promo_compliance_rate=_float(row["promo_compliance_rate"]),
+        revenue_opportunity_score=_float(row["revenue_opportunity_score"]),
+        oos_sku_count=_int(row["oos_sku_count"]),
+        data_freshness_ts=_dt(row["data_freshness_ts"]),
+    )
+
+
+def _alert_from_row(row: dict[str, Any], *, model_version: str, source_system: str) -> OOSAlert:
+    risk_score = _float(row["risk_score"])
+    is_phantom = bool(row["is_phantom_inventory"])
+    data_freshness_ts = _dt(row["data_freshness_ts"])
+    recommended_action, confidence_label = action_and_confidence(
+        risk_score=risk_score,
+        is_phantom_inventory=is_phantom,
+        data_freshness_ts=data_freshness_ts,
+    )
+    return OOSAlert(
+        alert_id=str(row.get("alert_id") or _stable_alert_id(row)),
+        prediction_row_id=str(row["prediction_row_id"]),
+        store_id=str(row["store_id"]),
+        sku_id=str(row["sku_id"]),
+        sku_name=str(row["sku_name"]),
+        category=str(row["category"]),
+        risk_score=risk_score,
+        is_phantom_inventory=is_phantom,
+        predicted_stockout_date=_date_str(row.get("predicted_stockout_date")),
+        root_cause_label=str(row["root_cause_label"]),
+        recommended_action=recommended_action,
+        confidence_label=confidence_label,
+        data_freshness_ts=data_freshness_ts,
+        model_version=model_version,
+        source_system=source_system,
+    )
+
+
 class DatabricksOSAAdapter:
     source_system = "databricks"
     model_version = "databricks-pending"
@@ -164,7 +212,7 @@ LIMIT 1
         )
         if not rows:
             raise KeyError(store_id)
-        return self._store_from_row(rows[0])
+        return _store_from_row(rows[0])
 
     async def get_alerts_by_ids(self, rep_id: str, territory_code: str, alert_ids: list[str] | None) -> list[OOSAlert]:
         params = [param("rep_id", rep_id), param("territory_code", territory_code)]
@@ -202,7 +250,7 @@ LIMIT 1
         )
         if not rows:
             raise KeyError(store_id)
-        return self._store_from_row(rows[0])
+        return _store_from_row(rows[0])
 
     async def get_territory_store_summaries(self, territory_code: str, visit_date: date) -> list[TerritoryStoreSummary]:
         rows = await self.client.execute(
@@ -232,51 +280,8 @@ ORDER BY priority_score DESC, oos_sku_count DESC, store_id ASC
             for row in rows
         ]
 
-    def _store_from_row(self, row: dict[str, Any]) -> StoreDetail:
-        return StoreDetail(
-            store_id=str(row["store_id"]),
-            store_name=str(row["store_name"]),
-            retailer_name=str(row["retailer_name"]),
-            address=str(row["address"]),
-            store_tier=str(row["store_tier"]),  # type: ignore[arg-type]
-            territory_code=str(row["territory_code"]),
-            rep_id=str(row["rep_id"]),
-            last_visit_date=_date_str(row.get("last_visit_date")),
-            next_visit_date=_date_str(row.get("next_visit_date")),
-            units_sold_30d=_int(row["units_sold_30d"]),
-            revenue_30d=_float(row["revenue_30d"]),
-            promo_compliance_rate=_float(row["promo_compliance_rate"]),
-            revenue_opportunity_score=_float(row["revenue_opportunity_score"]),
-            oos_sku_count=_int(row["oos_sku_count"]),
-            data_freshness_ts=_dt(row["data_freshness_ts"]),
-        )
-
     def _alert_from_row(self, row: dict[str, Any]) -> OOSAlert:
-        risk_score = _float(row["risk_score"])
-        is_phantom = bool(row["is_phantom_inventory"])
-        data_freshness_ts = _dt(row["data_freshness_ts"])
-        recommended_action, confidence_label = action_and_confidence(
-            risk_score=risk_score,
-            is_phantom_inventory=is_phantom,
-            data_freshness_ts=data_freshness_ts,
-        )
-        return OOSAlert(
-            alert_id=str(row.get("alert_id") or _stable_alert_id(row)),
-            prediction_row_id=str(row["prediction_row_id"]),
-            store_id=str(row["store_id"]),
-            sku_id=str(row["sku_id"]),
-            sku_name=str(row["sku_name"]),
-            category=str(row["category"]),
-            risk_score=risk_score,
-            is_phantom_inventory=is_phantom,
-            predicted_stockout_date=_date_str(row.get("predicted_stockout_date")),
-            root_cause_label=str(row["root_cause_label"]),
-            recommended_action=recommended_action,
-            confidence_label=confidence_label,
-            data_freshness_ts=data_freshness_ts,
-            model_version=self.model_version,
-            source_system=self.source_system,
-        )
+        return _alert_from_row(row, model_version=self.model_version, source_system=self.source_system)
 
 
 class DatabricksRGMAdapter:
@@ -381,4 +386,4 @@ LIMIT 1
         )
         if not rows:
             raise KeyError(store_id)
-        return DatabricksOSAAdapter._store_from_row(self, rows[0])
+        return _store_from_row(rows[0])
