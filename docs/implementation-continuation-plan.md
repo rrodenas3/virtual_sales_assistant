@@ -66,6 +66,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Local pilot readiness now includes scaffold smoke gates for HITL order submit, shelf-image analysis, and manager task transitions.
 - Manager task MCP preview tools now share the backend task payload service with REST routes.
 - AI-demo readiness is now exposed through `/health/ai` and `/integrations/readiness`, so template summaries cannot be confused with the required real-provider validation path.
+- Live data contract validation now supports `--output-dir` artifacts, including a readiness env JSON for recording the validated status after credentialed checks.
 
 ## Deferred Spec Areas
 

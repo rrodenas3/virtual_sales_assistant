@@ -82,6 +82,7 @@ python scripts/validate_live_data_contracts.py --output-dir artifacts/contracts/
 Exit gate:
 
 - Required columns, non-null columns, normalized score columns, rep filters, territory filters, and alert business keys validate.
+- Contract artifacts exist: `live_data_contract_report.json`, `live_data_contract_report.md`, and `readiness_env.json`.
 - `LIVE_DATA_CONTRACT_LAST_VALIDATION_AT` and `LIVE_DATA_CONTRACT_VALIDATION_SUMMARY` are populated.
 - No SQL string interpolation is introduced in live adapters.
 
