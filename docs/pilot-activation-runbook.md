@@ -21,6 +21,7 @@ Exit gate:
 - Local readiness report passes.
 - Backend tests, frontend build, Playwright smoke, eval harness, live-contract manifest check, and public-safety scan are green.
 - Readiness scaffold smoke passes for HITL sandbox submit, manager task status updates, and shelf-image analysis.
+- Readiness MCP smoke passes for every local MCP server manifest.
 - `SUMMARY_PROVIDER=template` is acceptable only for this phase.
 
 ## Phase 1: Real AI Demo Readiness

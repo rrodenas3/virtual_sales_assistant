@@ -7,12 +7,14 @@ from pathlib import Path
 from typing import Any, Literal
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
 from backend.config import settings  # noqa: E402
 from backend.governance.discovery import readiness_blockers, selected_live_modes  # noqa: E402
 from backend.main import app  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
+from scripts.mcp_smoke import build_report as build_mcp_smoke_report  # noqa: E402
 from tests.eval.run_eval import run_eval  # noqa: E402
 
 Target = Literal["local", "ai-demo", "pilot"]
@@ -128,6 +130,7 @@ def build_report(target: Target) -> dict[str, Any]:
     required_provider = "anthropic" if target in {"ai-demo", "pilot"} else None
     eval_result = run_eval(require_provider=required_provider)
     smoke_result = run_scaffold_smoke()
+    mcp_smoke = build_mcp_smoke_report()
     modes = selected_live_modes()
     blockers = readiness_blockers()
     providers = eval_result["summary"]["providers"]
@@ -169,6 +172,11 @@ def build_report(target: Target) -> dict[str, Any]:
             smoke_result["passed"],
             "; ".join(f"{check['name']}={check['passed']}" for check in smoke_result["checks"]),
         ),
+        _gate(
+            "mcp_smoke",
+            mcp_smoke["passed"],
+            f"servers={mcp_smoke['server_count']}",
+        ),
     ]
     return {
         "target": target,
@@ -177,6 +185,7 @@ def build_report(target: Target) -> dict[str, Any]:
         "discovery_blockers": blockers,
         "eval_summary": eval_result["summary"],
         "scaffold_smoke": smoke_result,
+        "mcp_smoke": mcp_smoke,
         "gates": gates,
     }
 
