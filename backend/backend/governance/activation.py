@@ -34,6 +34,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
             "notes": "Safe local scaffold gate using mock/default providers.",
         },
         {
+            "name": "api_contract",
+            "command": "python scripts/validate_api_contract.py --base-url http://localhost:8000 --output-dir artifacts/api-contract",
+            "notes": "Detects stale backend processes missing current manager/readiness routes.",
+        },
+        {
             "name": "final_api_smoke",
             "command": "python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke",
             "notes": "End-to-end local API smoke covering rep, manager, admin, HITL, audit, and metrics paths.",
