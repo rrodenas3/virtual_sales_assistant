@@ -27,7 +27,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Manager view | Manager dashboard with territory overview | Add leadership summary and approval queue before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, and manager UI mode |
 | Admin console | Governance and audit console | Add audit feed, filters, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, and admin UI mode |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
-| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, Playwright workbench smoke, local OSA eval harness with optional required-provider gate, pilot readiness report, frontend build verification, summary provider unit coverage |
+| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before managed MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, Playwright workbench smoke, local OSA eval harness with optional required-provider gate, MLflow-ready artifact export, pilot readiness report, frontend build verification, summary provider unit coverage |
 
 ## Implemented API Surface
 
@@ -99,7 +99,7 @@ Later:
 
 - CopilotKit remains a later optional UI dependency after the custom SSE assistant panel.
 - Mem0 workspace provisioning, retention approval, and credentialed smoke tests.
-- MLflow integration beyond the local eval harness.
+- Managed MLflow tracking server configuration beyond local MLflow-ready artifact export.
 - Credentialed Unity Catalog audit smoke tests beyond the parameterized insert path.
 - LangSmith exporters and production collector wiring beyond the OTLP HTTP log boundary.
 - Live Haiku/Bedrock guardrail classifier implementation beyond the scaffold.

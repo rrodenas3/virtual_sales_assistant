@@ -153,6 +153,14 @@ def _percentile(values: list[float], percentile: float) -> float:
 def write_artifacts(result: dict[str, Any], output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "osa_eval_results.json").write_text(json.dumps(result, indent=2, sort_keys=True), encoding="utf-8")
+    (output_dir / "mlflow_metrics.json").write_text(
+        json.dumps(_mlflow_metrics(result), indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+    (output_dir / "mlflow_params.json").write_text(
+        json.dumps(_mlflow_params(result), indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
     with (output_dir / "osa_eval_results.csv").open("w", newline="", encoding="utf-8") as csv_file:
         writer = csv.DictWriter(
             csv_file,
@@ -181,6 +189,33 @@ def write_artifacts(result: dict[str, Any], output_dir: Path) -> None:
                     "hallucinated_skus": ";".join(row["hallucinated_skus"]),
                 }
             )
+
+
+def _mlflow_metrics(result: dict[str, Any]) -> dict[str, float]:
+    summary = result["summary"]
+    checks = summary["checks"]
+    return {
+        "case_count": float(summary["case_count"]),
+        "p95_latency_ms": float(summary["p95_latency_ms"]),
+        "hallucination_rate": float(summary["hallucination_rate"]),
+        "trace_completeness": float(summary["trace_completeness"]),
+        "max_estimated_cost_eur": float(summary["max_estimated_cost_eur"]),
+        "passed": 1.0 if result["passed"] else 0.0,
+        **{f"check_{name}": 1.0 if passed else 0.0 for name, passed in checks.items()},
+    }
+
+
+def _mlflow_params(result: dict[str, Any]) -> dict[str, str]:
+    summary = result["summary"]
+    return {
+        "providers": ",".join(summary["providers"]),
+        "models": ",".join(summary["models"]),
+        "required_provider": str(summary["required_provider"] or ""),
+        "threshold_max_p95_latency_ms": str(summary["thresholds"]["max_p95_latency_ms"]),
+        "threshold_max_hallucination_rate": str(summary["thresholds"]["max_hallucination_rate"]),
+        "threshold_min_trace_completeness": str(summary["thresholds"]["min_trace_completeness"]),
+        "threshold_max_cost_eur": str(summary["thresholds"]["max_cost_eur"]),
+    }
 
 
 def main() -> None:

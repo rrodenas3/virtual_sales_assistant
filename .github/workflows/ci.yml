@@ -27,7 +27,7 @@ jobs:
         run: pip install -e ".[dev]"
 
       - name: Lint
-        run: python -m ruff check backend tests alembic ../mcp ../scripts/run_eval.py ../scripts/validate_live_data_contracts.py ../scripts/pilot_readiness_report.py
+        run: python -m ruff check backend tests alembic ../mcp ../scripts/run_eval.py ../scripts/validate_live_data_contracts.py ../scripts/pilot_readiness_report.py ../scripts/log_eval_to_mlflow.py
 
       - name: Test
         run: python -m pytest tests -q

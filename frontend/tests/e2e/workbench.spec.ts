@@ -2,6 +2,8 @@ import { expect, test, type Route } from "@playwright/test";
 
 const alertId = "ST-001:SKU-4001:2026-06-15";
 
+test.use({ serviceWorkers: "block" });
+
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.clear();
@@ -201,7 +203,9 @@ test("rep can review route, generate summary, and submit alert feedback", async 
   await expect(page.getByTestId(`feedback-${alertId}-confirmed`)).toHaveClass(/feedbackButton--active/);
 });
 
-test("app exposes PWA manifest and registers service worker", async ({ page }) => {
+test("app exposes PWA manifest and registers service worker", async ({ browser }) => {
+  const context = await browser.newContext({ baseURL: "http://127.0.0.1:4173", serviceWorkers: "allow" });
+  const page = await context.newPage();
   await page.goto("/");
 
   const manifestHref = await page.locator('link[rel="manifest"]').getAttribute("href");
@@ -218,4 +222,5 @@ test("app exposes PWA manifest and registers service worker", async ({ page }) =
     return registration.active?.scriptURL.endsWith("/sw.js") ? "registered" : "missing";
   });
   expect(registrationState).toBe("registered");
+  await context.close();
 });

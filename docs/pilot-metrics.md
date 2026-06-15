@@ -79,7 +79,20 @@ Optional evidence artifacts:
 python scripts/run_eval.py --output-dir artifacts/eval
 ```
 
-The artifact directory is intentionally untracked.
+The artifact directory is intentionally untracked. It contains:
+
+- `osa_eval_results.json`: full gate result and per-case details.
+- `osa_eval_results.csv`: analyst-friendly per-case rows.
+- `mlflow_metrics.json`: numeric metrics ready for MLflow logging.
+- `mlflow_params.json`: provider, model, and threshold params ready for MLflow logging.
+
+Optional MLflow handoff:
+
+```powershell
+python scripts/log_eval_to_mlflow.py --artifact-dir artifacts/eval --experiment-name phantom-vsa-evals
+```
+
+`scripts/log_eval_to_mlflow.py` imports MLflow only at runtime, so CI does not require MLflow.
 
 For AI-demo or pilot validation, require the configured AI provider explicitly:
 
