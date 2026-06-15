@@ -216,6 +216,36 @@ test.beforeEach(async ({ page }) => {
     await route.fulfill({ json: { territory_code: "WEST-01", pending_count: 0, items: [] } });
   });
 
+  await page.route("**/api/v1/integrations/readiness", async (route) => {
+    await route.fulfill({
+      json: {
+        ready: true,
+        selected_live_modes: [],
+        blockers: [],
+        provider_blockers: [],
+        provider_readiness: {
+          auth: { provider: "mock", ready: true },
+          data_platform: { ready: true },
+          action_providers: { ready: true },
+          shelf_image: { provider: "mock", ready: true },
+          memory: { provider: "none", ready: true },
+          audit: { primary_sink: "postgres", ready: true },
+          guardrails: { provider: "pattern", ready: true },
+          offline_agent: { provider: "none", enabled: false, ready: false },
+          observability: { provider: "structured", ready: true }
+        },
+        gates: [],
+        view_contract_validated: false,
+        last_validation_at: null,
+        validation_summary: null,
+        summary_provider: "template",
+        summary_model_id: "grounded-template-v1",
+        ai_demo_ready: false,
+        ai_demo_blockers: ["SUMMARY_PROVIDER must be anthropic for AI-demo readiness"]
+      }
+    });
+  });
+
   await page.route("**/api/v1/agent/run", async (route) => {
     await route.fulfill({
       contentType: "text/event-stream",
@@ -299,6 +329,8 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
 
   await page.getByRole("button", { name: "manager" }).click();
   await expect(page.getByRole("heading", { name: "Territory command view" })).toBeVisible();
+  await expect(page.getByTestId("readiness-panel")).toContainText("Local scaffold ready");
+  await expect(page.getByTestId("readiness-panel")).toContainText("mock/local modes");
   await expect(page.getByText("0 assigned tasks")).toBeVisible();
 
   await page.getByRole("button", { name: "Assign shelf check" }).click();

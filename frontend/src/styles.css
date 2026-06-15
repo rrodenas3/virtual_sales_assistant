@@ -118,6 +118,38 @@ button { font: inherit; }
   border-radius: 8px;
   padding: 20px;
 }
+.readinessPanel {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(0, 1.4fr);
+  gap: 14px;
+  align-items: center;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.readinessPanel h3 { margin: 0; font-family: "Archivo", sans-serif; }
+.readinessPanel__meta, .readinessPanel__blockers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.readinessPanel__meta span, .readinessPanel__blockers span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.readinessPanel__blockers {
+  grid-column: 1 / -1;
+  justify-content: flex-start;
+}
+.readinessPanel__blockers span {
+  border-color: color-mix(in oklch, var(--risk), white 58%);
+  color: color-mix(in oklch, var(--risk), black 12%);
+}
 .managerTable, .auditFeed, .approvalQueue, .taskQueue {
   display: grid;
   gap: 8px;
@@ -455,6 +487,8 @@ button { font: inherit; }
   .layout { grid-template-columns: 1fr; }
   .routePane { position: static; }
   .metricStrip { grid-template-columns: 1fr 1fr; }
+  .readinessPanel { grid-template-columns: 1fr; }
+  .readinessPanel__meta { justify-content: flex-start; }
   .managerRow, .auditRow, .approvalRow, .taskRow, .filterBar { grid-template-columns: 1fr; }
   .actionBand { grid-template-columns: 1fr; }
   .alertRow { grid-template-columns: 1fr; }

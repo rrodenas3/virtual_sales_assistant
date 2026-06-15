@@ -178,6 +178,31 @@ export type PilotMetricsResponse = {
   trace_event_counts: Record<string, number>;
 };
 
+export type DiscoveryGate = {
+  topic: string;
+  setting_name: string;
+  status: "answered" | "defaulted" | "missing";
+  value: string | null;
+  required_for: string[];
+  notes: string;
+};
+
+export type IntegrationReadinessResponse = {
+  ready: boolean;
+  selected_live_modes: string[];
+  blockers: string[];
+  provider_blockers: string[];
+  provider_readiness: Record<string, Record<string, unknown>>;
+  gates: DiscoveryGate[];
+  view_contract_validated: boolean;
+  last_validation_at: string | null;
+  validation_summary: string | null;
+  summary_provider: string;
+  summary_model_id: string;
+  ai_demo_ready: boolean;
+  ai_demo_blockers: string[];
+};
+
 export type DemoRole = "rep" | "manager" | "admin";
 
 export type DemoIdentity = {

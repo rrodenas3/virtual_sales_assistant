@@ -9,6 +9,7 @@ import {
   getAlerts,
   getAdminAuditEvents,
   getApprovalQueue,
+  getIntegrationReadiness,
   getManagerTasks,
   getMyManagerTasks,
   getRGMRecommendations,
@@ -34,6 +35,7 @@ import type {
   ApprovalResponse,
   ApprovalQueueResponse,
   DemoRole,
+  IntegrationReadinessResponse,
   ManagerTask,
   ManagerTaskListResponse,
   OOSAlert,
@@ -70,6 +72,7 @@ export function App() {
   const [role, setRole] = useState<DemoRole>(getDemoRole());
   const [territorySummary, setTerritorySummary] = useState<TerritorySummaryResponse | null>(null);
   const [approvalQueue, setApprovalQueue] = useState<ApprovalQueueResponse | null>(null);
+  const [readiness, setReadiness] = useState<IntegrationReadinessResponse | null>(null);
   const [managerTasks, setManagerTasks] = useState<ManagerTaskListResponse | null>(null);
   const [myTasks, setMyTasks] = useState<ManagerTaskListResponse | null>(null);
   const [taskNotice, setTaskNotice] = useState<string | null>(null);
@@ -172,11 +175,12 @@ export function App() {
 
   useEffect(() => {
     if (role !== "manager") return;
-    Promise.all([getTerritorySummary(), getApprovalQueue(), getManagerTasks()])
-      .then(([summaryRows, queueRows, taskRows]) => {
+    Promise.all([getTerritorySummary(), getApprovalQueue(), getManagerTasks(), getIntegrationReadiness()])
+      .then(([summaryRows, queueRows, taskRows, readinessRows]) => {
         setTerritorySummary(summaryRows);
         setApprovalQueue(queueRows);
         setManagerTasks(taskRows);
+        setReadiness(readinessRows);
       })
       .catch((err: Error) => setError(err.message));
   }, [role]);
@@ -316,6 +320,7 @@ export function App() {
     setError(null);
     setTerritorySummary(null);
     setApprovalQueue(null);
+    setReadiness(null);
     setManagerTasks(null);
     setMyTasks(null);
     setTaskNotice(null);
@@ -355,6 +360,26 @@ export function App() {
 
       {role === "manager" && territorySummary && (
         <section className="leadershipPane">
+          {readiness && (
+            <div className="readinessPanel" data-testid="readiness-panel">
+              <div>
+                <p className="eyebrow">Pilot readiness</p>
+                <h3>{readiness.ready ? "Local scaffold ready" : "Action required"}</h3>
+              </div>
+              <div className="readinessPanel__meta">
+                <span>{readiness.selected_live_modes.length ? readiness.selected_live_modes.join(", ") : "mock/local modes"}</span>
+                <span>{readiness.provider_blockers.length} provider blockers</span>
+                <span>{readiness.ai_demo_ready ? "AI demo ready" : `${readiness.summary_provider} summary`}</span>
+              </div>
+              {(readiness.blockers.length > 0 || readiness.provider_blockers.length > 0) && (
+                <div className="readinessPanel__blockers">
+                  {[...readiness.blockers, ...readiness.provider_blockers].slice(0, 4).map((blocker) => (
+                    <span key={blocker}>{blocker}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           <div className="metricStrip">
             <div><span>Stores</span><strong>{territorySummary.store_count}</strong></div>
             <div><span>OOS alerts</span><strong>{territorySummary.total_oos_alerts}</strong></div>
