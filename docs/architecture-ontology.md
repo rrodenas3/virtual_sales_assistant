@@ -71,6 +71,7 @@ Primary route groups:
 - `/health/action-providers`: selected CRM/ERP provider readiness.
 - `/health/data-platform`: selected Databricks/Snowflake provider readiness.
 - `/health/auth`: selected identity provider readiness.
+- `/health/shelf-image`: selected shelf-image provider readiness.
 - `/sync`: idempotent offline feedback sync.
 - `/integrations`: discovery readiness for live integration gates.
 - `/metrics`: pilot KPI rollup.
@@ -135,6 +136,7 @@ Controls:
 - Integration readiness blocks selected live providers until required discovery gates are answered.
 - Data-platform readiness blocks selected Databricks/Snowflake modes until credentials, discovery answers, and live contract validation are present.
 - Auth readiness blocks selected external JWT mode until SSO discovery, issuer, audience, and algorithms are present.
+- Shelf-image readiness blocks selected external image analysis until endpoint, token-reference, device runtime, and data residency are present.
 - Unauthorized store access returns `404` for anti-enumeration.
 - Summary guardrails use a provider boundary. Pattern blocking is active by default; external classifier mode is scaffolded with explicit fail-open/fail-closed behavior.
 - Write-like flows are draft-first and require explicit approval before sandbox submit.

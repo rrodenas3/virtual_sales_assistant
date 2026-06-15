@@ -78,6 +78,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - External CRM/ERP write-back activation now has `/health/action-providers` status and a pilot-readiness gate for endpoint, token-reference, and discovery blockers.
 - Live Databricks/Snowflake activation now has `/health/data-platform` status and a pilot-readiness gate for credentials, discovery answers, and live contract validation.
 - External JWT activation now has `/health/auth` status and a pilot-readiness gate for SSO discovery, issuer, audience, and accepted algorithms.
+- External shelf-image activation now has `/health/shelf-image` status and a pilot-readiness gate for endpoint, token-reference, device, and data-residency blockers.
 
 ## Deferred Spec Areas
 

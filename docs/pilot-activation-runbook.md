@@ -191,6 +191,7 @@ DISCOVERY_DATA_RESIDENCY=<approved-region>
 Exit gate:
 
 - External provider receives only approved image references plus grounded OOS alert context.
+- `/api/v1/health/shelf-image` reports `ready=true` before external image analysis is used.
 - Findings either reference supplied alert IDs or are labeled `unknown`/`low`.
 - Every analysis emits `shelf_image_analysis_created` audit events.
 - Image findings cannot create orders without the existing HITL draft and approval flow.

@@ -8,6 +8,7 @@ from backend.governance.action_providers import action_provider_status
 from backend.governance.data_platform import data_platform_status
 from backend.governance.guardrails import guardrail_status
 from backend.governance.offline_agent import offline_agent_status
+from backend.governance.shelf_image import shelf_image_status
 from backend.memory.adapters import memory_status
 from backend.services.summary_providers import summary_provider_status
 
@@ -77,3 +78,8 @@ async def data_platform_health() -> dict:
 @router.get("/health/auth")
 async def auth_health() -> dict:
     return {"status": "ok", **auth_status()}
+
+
+@router.get("/health/shelf-image")
+async def shelf_image_health() -> dict:
+    return {"status": "ok", **shelf_image_status()}

@@ -15,6 +15,7 @@ from backend.config import settings  # noqa: E402
 from backend.governance.action_providers import action_provider_status  # noqa: E402
 from backend.governance.data_platform import data_platform_status  # noqa: E402
 from backend.governance.discovery import readiness_blockers, selected_live_modes  # noqa: E402
+from backend.governance.shelf_image import shelf_image_status  # noqa: E402
 from backend.main import app  # noqa: E402
 from backend.memory.adapters import memory_status  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
@@ -139,6 +140,7 @@ def build_report(target: Target) -> dict[str, Any]:
     action_providers = action_provider_status()
     data_platform = data_platform_status()
     auth = auth_status()
+    shelf_image = shelf_image_status()
     modes = selected_live_modes()
     blockers = readiness_blockers()
     providers = eval_result["summary"]["providers"]
@@ -215,6 +217,11 @@ def build_report(target: Target) -> dict[str, Any]:
             auth["ready"],
             f"provider={auth['provider']}; blockers={auth['blockers']}",
         ),
+        _gate(
+            "shelf_image_provider",
+            shelf_image["ready"],
+            f"provider={shelf_image['provider']}; blockers={shelf_image['blockers']}",
+        ),
     ]
     return {
         "target": target,
@@ -228,6 +235,7 @@ def build_report(target: Target) -> dict[str, Any]:
         "action_providers": action_providers,
         "data_platform": data_platform,
         "auth": auth,
+        "shelf_image": shelf_image,
         "gates": gates,
     }
 
