@@ -7,7 +7,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Area | Original spec intent | Revised plan decision | Current status |
 |---|---|---|---|
 | Product UX | Field assistant with before/during/after visit support | Workbench-first MVP, chat secondary | Implemented: route workbench, store detail, OOS alerts, RGM/action band, trace drawer |
-| Auth / identity | SSO/CRM-mapped rep identity, unresolved in discovery | Mock JWT with `sub`, `territory_code`, `role`; ignore client rep IDs; scaffold external JWT | Implemented: provider boundary, mock JWT, fail-closed external JWT scaffold, rep/store RBAC, unauthorized store access returns `404` |
+| Auth / identity | SSO/CRM-mapped rep identity, unresolved in discovery | Mock JWT with `sub`, `territory_code`, `role`; ignore client rep IDs; validate external JWT after discovery | Implemented: provider boundary, mock JWT, JWKS-backed external JWT validation, rep/store RBAC, unauthorized store access returns `404` |
 | Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active; Databricks/Snowflake skeletons fail fast until credentials/contracts exist |
 | Priority scoring | Formula sketched in OSA MCP SQL | Deterministic service formula with explainable components | Implemented and tested |
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
@@ -15,7 +15,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs | Implemented and tested |
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, fail-closed Mem0 scaffold |
-| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, pattern guardrail, read-only policy stub, append-only Postgres audit behind `AuditSink`, Unity Catalog mirror scaffold |
+| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, read-only policy stub, append-only Postgres audit behind `AuditSink`, Unity Catalog mirror scaffold |
 | Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness` and live-mode gate checks |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented as draft-only local persistence |
@@ -87,10 +87,10 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 
 Highest priority:
 
-1. Complete external JWT validation for Azure AD/Okta after issuer, audience, JWK, and `DISCOVERY_SSO_PROVIDER` are confirmed.
-2. Implement parameterized Databricks/Snowflake query bodies after discovery readiness is green for data sharing and residency.
-3. Replace local JSON MCP transport with FastMCP dependency once runtime requirements and data-source credentials are known.
-4. Promote graph routing only when multi-agent orchestration adds value beyond deterministic services.
+1. Implement parameterized Databricks/Snowflake query bodies after discovery readiness is green for data sharing and residency.
+2. Replace local JSON MCP transport with FastMCP dependency once runtime requirements and data-source credentials are known.
+3. Promote graph routing only when multi-agent orchestration adds value beyond deterministic services.
+4. Wire live CRM/ERP submit after discovery gates are answered.
 
 Later:
 
@@ -99,6 +99,7 @@ Later:
 - MLflow integration beyond the local eval harness.
 - Live Unity Catalog audit mirror implementation beyond the scaffolded dual-write sink.
 - LangSmith/OpenTelemetry exporters beyond structured local telemetry.
+- Live Haiku/Bedrock guardrail classifier implementation beyond the scaffold.
 - Hermes/Ollama offline agent spike.
 - Shelf image MCP.
 - Real CRM and ERP integrations after discovery gates are answered.
