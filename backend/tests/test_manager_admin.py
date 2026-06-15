@@ -124,6 +124,51 @@ def test_manager_can_create_task_and_rep_can_read_assignment() -> None:
         assert mine.status_code == 200
         assert any(row["task_id"] == task["task_id"] for row in mine.json()["tasks"])
 
+        completed = rep.post(
+            f"/api/v1/manager/tasks/{task['task_id']}/status",
+            json={"status": "COMPLETED", "session_id": "manager_task_complete", "notes": "Shelf verified."},
+        )
+        assert completed.status_code == 200
+        assert completed.json()["status"] == "COMPLETED"
+        assert completed.json()["audit_event_id"]
+
+        forbidden = rep.post(
+            f"/api/v1/manager/tasks/{task['task_id']}/status",
+            json={"status": "CANCELLED", "session_id": "manager_task_cancel_forbidden"},
+        )
+        assert forbidden.status_code == 403
+
+
+def test_manager_can_cancel_territory_task() -> None:
+    with authorized_client(MANAGER) as manager:
+        created = manager.post(
+            "/api/v1/manager/tasks",
+            json={
+                "territory_code": "WEST-01",
+                "store_id": "ST-001",
+                "assigned_rep_id": "REP-001",
+                "session_id": "manager_task_cancel_create",
+                "title": "Cancel this duplicate task",
+                "task_type": "follow_up",
+                "priority": "low",
+            },
+        )
+        assert created.status_code == 200
+        task = created.json()
+
+        cancelled = manager.post(
+            f"/api/v1/manager/tasks/{task['task_id']}/status",
+            json={"status": "CANCELLED", "session_id": "manager_task_cancel", "notes": "Duplicate task."},
+        )
+        assert cancelled.status_code == 200
+        assert cancelled.json()["status"] == "CANCELLED"
+
+        blocked = manager.post(
+            f"/api/v1/manager/tasks/{task['task_id']}/status",
+            json={"status": "COMPLETED", "session_id": "manager_task_complete_forbidden"},
+        )
+        assert blocked.status_code == 403
+
 
 def test_rep_cannot_create_manager_task() -> None:
     with authorized_client(REP_001) as rep:

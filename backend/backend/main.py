@@ -140,6 +140,7 @@ async def api_index() -> dict:
             "POST /api/v1/manager/tasks",
             "GET /api/v1/manager/tasks?territory_code=WEST-01",
             "GET /api/v1/manager/my-tasks",
+            "POST /api/v1/manager/tasks/{task_id}/status",
             "GET /api/v1/admin/audit-events?limit=75",
             "GET /api/v1/admin/audit-events/{event_id}",
             "GET /api/v1/visits/today?territory_code=WEST-01",

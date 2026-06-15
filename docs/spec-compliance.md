@@ -25,7 +25,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs |
 | Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, OTLP HTTP log export boundary, observability health, audit mirror failure telemetry |
 | Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented: workbench UI; custom feature-flagged `/agent/run` SSE assistant panel; CopilotKit package integration deferred |
-| Manager view | Manager dashboard with territory overview and manager-initiated work | Add leadership summary, approval queue, and auditable task scaffold before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, `/manager/tasks`, `/manager/my-tasks`, and manager UI mode |
+| Manager view | Manager dashboard with territory overview and manager-initiated work | Add leadership summary, approval queue, and auditable task workflow before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, `/manager/tasks`, `/manager/my-tasks`, `/manager/tasks/{id}/status`, and manager UI mode |
 | Admin console | Governance and audit console | Add audit feed, filters, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, and admin UI mode |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
 | Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before managed MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, Playwright workbench smoke, local OSA eval harness with optional required-provider gate, MLflow-ready artifact export, pilot readiness report, frontend build verification, summary provider unit coverage |
@@ -43,6 +43,7 @@ GET  /api/v1/manager/approval-queue?territory_code=WEST-01
 POST /api/v1/manager/tasks
 GET  /api/v1/manager/tasks?territory_code=WEST-01
 GET  /api/v1/manager/my-tasks
+POST /api/v1/manager/tasks/{task_id}/status
 GET  /api/v1/admin/audit-events?event_type=&rep_id=&resource_type=&limit=&cursor=
 GET  /api/v1/admin/audit-events/{event_id}
 GET  /api/v1/visits/today?territory_code=WEST-01&date=YYYY-MM-DD
@@ -89,7 +90,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 - External guardrail classifier behavior is implemented against an HTTP contract with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; production endpoint selection remains discovery/configuration work.
 - No real ERP submit by default. `submit-sandbox` validates HITL policy and payload hash; external ERP provider is discovery-gated and disabled unless configured.
 - No Hermes/Ollama inference yet. Browser offline feedback sync, IndexedDB read fallback, and PWA app-shell caching are implemented first.
-- No production shelf image recognition, voice, digital shelf execution, or multi-tenant support. Shelf-image analysis is currently a governed mock/external-provider boundary only. Manager-initiated tasks are scaffolded as auditable assignments, not a full workflow engine.
+- No production shelf image recognition, voice, digital shelf execution, or multi-tenant support. Shelf-image analysis is currently a governed mock/external-provider boundary only. Manager-initiated tasks support auditable assignment plus completion/block/cancel transitions, not a full workflow engine.
 
 ## Remaining Work To Fully Meet The Original Spec
 

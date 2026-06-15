@@ -199,6 +199,6 @@ Final outcome:
 
 - A field rep can authenticate through approved identity, review prioritized stores, inspect grounded OOS/RGM recommendations, run the AI assistant, submit feedback, create HITL-gated drafts, and work through brief offline periods.
 - A manager can review territory performance and approval queues.
-- A manager can assign auditable store tasks to reps; full task workflow automation remains a later expansion.
+- A manager can assign auditable store tasks to reps, and reps can complete or block assigned work; full task workflow automation remains a later expansion.
 - An admin can inspect filtered audit events and linked feedback.
 - Every AI summary and write intent is grounded, audited, cost-tracked, and tied to the acting identity.

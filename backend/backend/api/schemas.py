@@ -382,6 +382,12 @@ class ManagerTaskResponse(BaseModel):
     audit_event_id: str | None = None
 
 
+class UpdateManagerTaskStatusRequest(BaseModel):
+    status: Literal["COMPLETED", "BLOCKED", "CANCELLED"]
+    session_id: str
+    notes: str | None = Field(default=None, max_length=1000)
+
+
 class ManagerTaskListResponse(BaseModel):
     territory_code: str | None = None
     assigned_rep_id: str | None = None

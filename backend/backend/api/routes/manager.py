@@ -13,6 +13,7 @@ from backend.api.schemas import (
     ManagerTaskResponse,
     TerritoryStoreSummary,
     TerritorySummaryResponse,
+    UpdateManagerTaskStatusRequest,
 )
 from backend.auth.mock_jwt import CurrentUser, get_current_user
 from backend.db.models import AlertFeedback, ManagerTask, OrderDraft
@@ -237,3 +238,65 @@ async def my_manager_tasks(
         assigned_rep_id=current_user.rep_id,
         tasks=[_task_response(row, stores_by_id.get(row.store_id)) for row in rows],
     )
+
+
+@router.post("/tasks/{task_id}/status", response_model=ManagerTaskResponse)
+async def update_manager_task_status(
+    task_id: str,
+    request: UpdateManagerTaskStatusRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    osa: OSADataPort = Depends(get_osa_adapter),
+) -> ManagerTaskResponse:
+    row = (
+        await db.execute(
+            select(ManagerTask)
+            .where(ManagerTask.task_id == task_id)
+        )
+    ).scalar_one_or_none()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    try:
+        store = await osa.get_store_detail_any(row.store_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found") from exc
+
+    if current_user.role == "rep":
+        if row.assigned_rep_id != current_user.rep_id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        if request.status not in {"COMPLETED", "BLOCKED"}:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Rep cannot cancel manager tasks")
+    elif current_user.role in {"manager", "admin"}:
+        assert_territory_access(current_user, row.territory_code)
+        if request.status != "CANCELLED":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Manager can only cancel tasks")
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unsupported role")
+
+    previous_status = row.status
+    row.status = request.status
+    payload = dict(row.payload_json)
+    payload["status_notes"] = request.notes
+    payload["status_updated_by"] = current_user.rep_id
+    payload["previous_status"] = previous_status
+    row.payload_json = payload
+
+    event = await log_audit_event(
+        db,
+        session_id=request.session_id,
+        rep_id=current_user.rep_id,
+        event_type="manager_task_status_updated",
+        resource_type="manager_task",
+        resource_id=row.task_id,
+        payload_json={
+            "task_id": row.task_id,
+            "previous_status": previous_status,
+            "status": row.status,
+            "assigned_rep_id": row.assigned_rep_id,
+            "store_id": row.store_id,
+            "notes": request.notes,
+        },
+        data_freshness_ts=store.data_freshness_ts,
+    )
+    await db.commit()
+    return _task_response(row, store.store_name, event.event_id)
