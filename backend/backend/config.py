@@ -42,9 +42,11 @@ class Settings(BaseSettings):
     audit_sink: Literal["postgres", "unity_catalog"] = "postgres"
     audit_dual_write_enabled: bool = False
     audit_dual_write_fail_closed: bool = True
+    audit_unity_catalog_table: str = "phantom.audit.agent_actions"
     guardrail_provider: Literal["pattern", "external_classifier"] = "pattern"
     guardrail_classifier_endpoint: str | None = None
     guardrail_classifier_block_threshold: float = Field(default=0.85, ge=0.0, le=1.0)
+    guardrail_classifier_timeout_seconds: float = 3.0
     guardrail_fail_closed: bool = True
     agent_graph_enabled: bool = False
     agent_run_enabled: bool = False
