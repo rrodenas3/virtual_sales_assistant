@@ -4,6 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from backend.governance.activation import runtime_validation_command_sets  # noqa: E402
 from scripts.readiness_bundle import build_bundle, write_artifacts  # noqa: E402
 
 
@@ -33,6 +34,15 @@ def test_readiness_bundle_includes_pilot_runtime_commands() -> None:
         "live_data_contracts",
         "pilot_readiness",
     } <= command_names
+
+
+def test_runtime_validation_command_sets_cover_all_targets() -> None:
+    command_sets = runtime_validation_command_sets()
+
+    assert set(command_sets) == {"local", "ai-demo", "pilot"}
+    assert command_sets["local"][0]["name"] == "public_safety_scan"
+    assert any(command["name"] == "summary_load_test" for command in command_sets["ai-demo"])
+    assert any(command["name"] == "live_data_contracts" for command in command_sets["pilot"])
 
 
 def test_readiness_bundle_writes_handoff_artifacts(tmp_path) -> None:

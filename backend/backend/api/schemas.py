@@ -440,6 +440,12 @@ class ActivationTargetReadiness(BaseModel):
     blockers: list[str] = Field(default_factory=list)
 
 
+class RuntimeValidationCommandOut(BaseModel):
+    name: str
+    command: str
+    notes: str
+
+
 class IntegrationReadinessResponse(BaseModel):
     ready: bool
     selected_live_modes: list[str]
@@ -455,3 +461,4 @@ class IntegrationReadinessResponse(BaseModel):
     ai_demo_ready: bool
     ai_demo_blockers: list[str] = Field(default_factory=list)
     activation_targets: list[ActivationTargetReadiness] = Field(default_factory=list)
+    runtime_validation_commands: dict[str, list[RuntimeValidationCommandOut]] = Field(default_factory=dict)

@@ -45,6 +45,9 @@ def test_readiness_reports_default_local_mode() -> None:
     assert "AGENT_RUN_ENABLED must be true for AI-demo readiness" in targets["ai-demo"]["blockers"]
     assert targets["pilot"]["ready"] is False
     assert "Live data contracts must be validated for pilot readiness" in targets["pilot"]["blockers"]
+    assert body["runtime_validation_commands"]["local"][0]["name"] == "public_safety_scan"
+    assert any(command["name"] == "summary_load_test" for command in body["runtime_validation_commands"]["ai-demo"])
+    assert any(command["name"] == "pilot_readiness" for command in body["runtime_validation_commands"]["pilot"])
 
 
 def test_readiness_reports_live_contract_validation_status(monkeypatch) -> None:

@@ -15,6 +15,75 @@ class ActivationTarget(TypedDict):
     blockers: list[str]
 
 
+class RuntimeValidationCommand(TypedDict):
+    name: str
+    command: str
+    notes: str
+
+
+def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeValidationCommand]:
+    commands: list[RuntimeValidationCommand] = [
+        {
+            "name": "public_safety_scan",
+            "command": "bash ./scripts/public_safety_scan.sh",
+            "notes": "Required before sharing or publishing artifacts.",
+        },
+        {
+            "name": "local_readiness",
+            "command": "python scripts/pilot_readiness_report.py --target local --output-dir artifacts/readiness/local",
+            "notes": "Safe local scaffold gate using mock/default providers.",
+        },
+    ]
+    if target in {"ai-demo", "pilot"}:
+        commands.extend(
+            [
+                {
+                    "name": "ai_demo_readiness",
+                    "command": "python scripts/pilot_readiness_report.py --target ai-demo --output-dir artifacts/readiness/ai-demo",
+                    "notes": "Requires approved summary provider configuration.",
+                },
+                {
+                    "name": "summary_load_test",
+                    "command": (
+                        "python scripts/load_test.py --base-url http://localhost:8000 --requests 50 "
+                        "--concurrency 10 --threshold-p95-ms 5000 --output-dir artifacts/load/summary"
+                    ),
+                    "notes": (
+                        "Set LOAD_TEST_BEARER_TOKEN only in the approved runtime environment when validating "
+                        "external identity."
+                    ),
+                },
+            ]
+        )
+    if target == "pilot":
+        commands.extend(
+            [
+                {
+                    "name": "live_data_contracts",
+                    "command": "python scripts/validate_live_data_contracts.py --output-dir artifacts/contracts/live",
+                    "notes": "Run only in an approved credentialed environment.",
+                },
+                {
+                    "name": "pilot_readiness",
+                    "command": "python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/readiness/pilot",
+                    "notes": (
+                        "Final gate after AI-demo, live data, identity, audit, action provider, memory, and "
+                        "offline decisions are approved."
+                    ),
+                },
+            ]
+        )
+    return commands
+
+
+def runtime_validation_command_sets() -> dict[ActivationTargetName, list[RuntimeValidationCommand]]:
+    return {
+        "local": runtime_validation_commands("local"),
+        "ai-demo": runtime_validation_commands("ai-demo"),
+        "pilot": runtime_validation_commands("pilot"),
+    }
+
+
 def flatten_provider_blockers(provider_readiness: dict[str, dict[str, Any]]) -> list[str]:
     blockers: list[str] = []
     for provider_name, status_body in provider_readiness.items():

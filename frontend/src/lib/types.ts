@@ -208,6 +208,14 @@ export type IntegrationReadinessResponse = {
     description: string;
     blockers: string[];
   }[];
+  runtime_validation_commands: Record<
+    "local" | "ai-demo" | "pilot",
+    {
+      name: string;
+      command: string;
+      notes: string;
+    }[]
+  >;
 };
 
 export type DemoRole = "rep" | "manager" | "admin";

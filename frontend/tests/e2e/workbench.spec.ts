@@ -273,7 +273,30 @@ test.beforeEach(async ({ page }) => {
             description: "Credentialed pilot with live contracts, live modes, and audit mirror",
             blockers: ["Live data contracts must be validated for pilot readiness"]
           }
-        ]
+        ],
+        runtime_validation_commands: {
+          local: [
+            {
+              name: "public_safety_scan",
+              command: "bash ./scripts/public_safety_scan.sh",
+              notes: "Required before sharing or publishing artifacts."
+            }
+          ],
+          "ai-demo": [
+            {
+              name: "summary_load_test",
+              command: "python scripts/load_test.py --base-url http://localhost:8000 --requests 50 --concurrency 10 --threshold-p95-ms 5000 --output-dir artifacts/load/summary",
+              notes: "Set LOAD_TEST_BEARER_TOKEN only in the approved runtime environment when validating external identity."
+            }
+          ],
+          pilot: [
+            {
+              name: "pilot_readiness",
+              command: "python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/readiness/pilot",
+              notes: "Final gate after approved decisions."
+            }
+          ]
+        }
       }
     });
   });

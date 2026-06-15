@@ -10,58 +10,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
+from backend.governance.activation import runtime_validation_commands  # noqa: E402
 from backend.governance.live_contracts import contract_manifest  # noqa: E402
 from scripts.mcp_smoke import build_report as build_mcp_smoke_report  # noqa: E402
 from scripts.mcp_smoke import write_artifacts as write_mcp_smoke_artifacts  # noqa: E402
 from scripts.pilot_readiness_report import build_report as build_pilot_readiness_report  # noqa: E402
 from scripts.pilot_readiness_report import write_artifacts as write_pilot_readiness_artifacts  # noqa: E402
 from scripts.validate_live_data_contracts import readiness_env_manifest  # noqa: E402
-
-
-def runtime_validation_commands(target: str) -> list[dict[str, str]]:
-    commands = [
-        {
-            "name": "public_safety_scan",
-            "command": "bash ./scripts/public_safety_scan.sh",
-            "notes": "Required before sharing or publishing artifacts.",
-        },
-        {
-            "name": "local_readiness",
-            "command": "python scripts/pilot_readiness_report.py --target local --output-dir artifacts/readiness/local",
-            "notes": "Safe local scaffold gate using mock/default providers.",
-        },
-    ]
-    if target in {"ai-demo", "pilot"}:
-        commands.extend(
-            [
-                {
-                    "name": "ai_demo_readiness",
-                    "command": "python scripts/pilot_readiness_report.py --target ai-demo --output-dir artifacts/readiness/ai-demo",
-                    "notes": "Requires approved summary provider configuration.",
-                },
-                {
-                    "name": "summary_load_test",
-                    "command": "python scripts/load_test.py --base-url http://localhost:8000 --requests 50 --concurrency 10 --threshold-p95-ms 5000 --output-dir artifacts/load/summary",
-                    "notes": "Set LOAD_TEST_BEARER_TOKEN only in the approved runtime environment when validating external identity.",
-                },
-            ]
-        )
-    if target == "pilot":
-        commands.extend(
-            [
-                {
-                    "name": "live_data_contracts",
-                    "command": "python scripts/validate_live_data_contracts.py --output-dir artifacts/contracts/live",
-                    "notes": "Run only in an approved credentialed environment.",
-                },
-                {
-                    "name": "pilot_readiness",
-                    "command": "python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/readiness/pilot",
-                    "notes": "Final gate after AI-demo, live data, identity, audit, action provider, memory, and offline decisions are approved.",
-                },
-            ]
-        )
-    return commands
 
 
 def build_bundle(target: str) -> dict[str, Any]:
