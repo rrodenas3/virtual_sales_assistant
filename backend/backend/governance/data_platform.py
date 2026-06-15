@@ -46,6 +46,7 @@ def _snowflake_status(config: Settings) -> dict:
         for name in (
             "snowflake_account",
             "snowflake_user",
+            "snowflake_token",
             "snowflake_warehouse",
             "snowflake_database",
             "snowflake_schema",
@@ -64,6 +65,7 @@ def _snowflake_status(config: Settings) -> dict:
         "store_master_adapter": config.store_master_adapter,
         "account_configured": bool(config.snowflake_account),
         "user_configured": bool(config.snowflake_user),
+        "token_configured": bool(config.snowflake_token),
         "warehouse_configured": bool(config.snowflake_warehouse),
         "database_configured": bool(config.snowflake_database),
         "schema_configured": bool(config.snowflake_schema),

@@ -87,6 +87,7 @@ class Settings(BaseSettings):
     databricks_sql_warehouse_id: str | None = None
     snowflake_account: str | None = None
     snowflake_user: str | None = None
+    snowflake_token: str | None = None
     snowflake_warehouse: str | None = None
     snowflake_database: str | None = None
     snowflake_schema: str | None = None

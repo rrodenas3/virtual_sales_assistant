@@ -31,6 +31,7 @@ def test_data_platform_status_reports_live_blockers(monkeypatch) -> None:
     monkeypatch.setattr(settings, "databricks_sql_warehouse_id", None)
     monkeypatch.setattr(settings, "snowflake_account", None)
     monkeypatch.setattr(settings, "snowflake_user", None)
+    monkeypatch.setattr(settings, "snowflake_token", None)
     monkeypatch.setattr(settings, "snowflake_warehouse", None)
     monkeypatch.setattr(settings, "snowflake_database", None)
     monkeypatch.setattr(settings, "snowflake_schema", None)
@@ -44,6 +45,7 @@ def test_data_platform_status_reports_live_blockers(monkeypatch) -> None:
     assert "databricks.databricks_host" in status["blockers"]
     assert "databricks.live_data_contract_validated" in status["blockers"]
     assert "snowflake.snowflake_account" in status["blockers"]
+    assert "snowflake.snowflake_token" in status["blockers"]
     assert "snowflake.live_data_contract_validated" in status["blockers"]
 
 
@@ -56,6 +58,7 @@ def test_data_platform_status_reports_live_ready(monkeypatch) -> None:
     monkeypatch.setattr(settings, "databricks_sql_warehouse_id", "warehouse-1")
     monkeypatch.setattr(settings, "snowflake_account", "acct")
     monkeypatch.setattr(settings, "snowflake_user", "svc_user")
+    monkeypatch.setattr(settings, "snowflake_token", "approved-token-reference")
     monkeypatch.setattr(settings, "snowflake_warehouse", "warehouse")
     monkeypatch.setattr(settings, "snowflake_database", "database")
     monkeypatch.setattr(settings, "snowflake_schema", "schema")

@@ -21,7 +21,13 @@ class QueryParam:
         return {"name": self.name, "value": str(self.value), "type": self.type}
 
     def as_snowflake(self) -> dict[str, Any]:
-        return {"name": self.name, "value": str(self.value), "type": self.type}
+        snowflake_type = {
+            "STRING": "TEXT",
+            "DATE": "TEXT",
+            "DOUBLE": "REAL",
+            "INT": "FIXED",
+        }[self.type]
+        return {"type": snowflake_type, "value": str(self.value)}
 
 
 @dataclass(frozen=True)
@@ -64,15 +70,54 @@ class DatabricksSQLClient:
 
 
 class SnowflakeSQLClient:
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, transport: httpx.AsyncBaseTransport | None = None) -> None:
         self.account = settings.snowflake_account
         self.user = settings.snowflake_user
+        self.token = settings.snowflake_token
         self.warehouse = settings.snowflake_warehouse
         self.database = settings.snowflake_database
         self.schema = settings.snowflake_schema
+        self.transport = transport
 
     async def execute(self, query: QueryStatement) -> list[dict[str, Any]]:
-        raise NotImplementedError("Snowflake SQL API execution is deferred until auth method is confirmed")
+        missing = [
+            name
+            for name, value in {
+                "snowflake_account": self.account,
+                "snowflake_user": self.user,
+                "snowflake_token": self.token,
+                "snowflake_warehouse": self.warehouse,
+                "snowflake_database": self.database,
+                "snowflake_schema": self.schema,
+            }.items()
+            if not value
+        ]
+        if missing:
+            raise RuntimeError(f"Snowflake SQL client missing setting: {', '.join(missing)}")
+        payload = {
+            "statement": query.statement,
+            "timeout": 20,
+            "database": self.database,
+            "schema": self.schema,
+            "warehouse": self.warehouse,
+            "bindings": {param.name: param.as_snowflake() for param in query.parameters},
+        }
+        async with httpx.AsyncClient(timeout=20.0, transport=self.transport) as client:
+            response = await client.post(
+                f"https://{self.account}.snowflakecomputing.com/api/v2/statements",
+                headers={
+                    "Authorization": f"Bearer {self.token}",
+                    "X-Snowflake-Authorization-Token-Type": "OAUTH",
+                    "Accept": "application/json",
+                },
+                json=payload,
+            )
+            response.raise_for_status()
+        body = response.json()
+        metadata = body.get("resultSetMetaData", {})
+        columns = [column["name"] for column in metadata.get("rowType", [])]
+        data = body.get("data", [])
+        return [dict(zip(columns, row, strict=False)) for row in data]
 
 
 def param(name: str, value: str | int | float | date | datetime, type_: QueryParamType = "STRING") -> QueryParam:
