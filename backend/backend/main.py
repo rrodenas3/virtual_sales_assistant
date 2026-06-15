@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from backend.api.routes import admin, agent, alerts, approvals, audit, crm, health, integrations, manager, metrics, orders, rgm, stores, sync, visits
+from backend.api.routes import admin, agent, alerts, approvals, audit, crm, health, integrations, manager, metrics, orders, rgm, shelf_images, stores, sync, visits
 from backend.config import settings
 from backend.db.models import Base
 from backend.db.session import engine
@@ -101,6 +101,7 @@ for router in [
     visits.router,
     stores.router,
     rgm.router,
+    shelf_images.router,
     alerts.router,
     orders.router,
     approvals.router,
@@ -136,12 +137,17 @@ async def api_index() -> dict:
             "GET /api/v1/metrics/pilot",
             "GET /api/v1/manager/territory-summary?territory_code=WEST-01",
             "GET /api/v1/manager/approval-queue?territory_code=WEST-01",
+            "POST /api/v1/manager/tasks",
+            "GET /api/v1/manager/tasks?territory_code=WEST-01",
+            "GET /api/v1/manager/my-tasks",
+            "POST /api/v1/manager/tasks/{task_id}/status",
             "GET /api/v1/admin/audit-events?limit=75",
             "GET /api/v1/admin/audit-events/{event_id}",
             "GET /api/v1/visits/today?territory_code=WEST-01",
             "GET /api/v1/stores/{store_id}",
             "GET /api/v1/stores/{store_id}/alerts",
             "GET /api/v1/stores/{store_id}/rgm-recommendations",
+            "POST /api/v1/stores/{store_id}/shelf-image-analysis",
             "POST /api/v1/alerts/{alert_id}/feedback",
             "POST /api/v1/orders/drafts",
             "GET /api/v1/orders/drafts/{draft_id}",

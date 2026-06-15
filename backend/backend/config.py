@@ -12,8 +12,11 @@ class Settings(BaseSettings):
     app_env: Literal["local", "test", "production"] = "local"
     auto_create_tables: bool = True
     allowed_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
-    observability_provider: Literal["structured", "none"] = "structured"
+    observability_provider: Literal["structured", "otlp_http", "none"] = "structured"
     trace_sample_rate: float = Field(default=1.0, ge=0.0, le=1.0)
+    otel_service_name: str = "phantom-vsa-backend"
+    otel_exporter_otlp_endpoint: str | None = None
+    otel_fail_closed: bool = False
     auth_mode: Literal["mock_jwt"] = "mock_jwt"
     auth_provider: Literal["mock", "external_jwt"] = "mock"
     external_jwt_issuer: str | None = None
@@ -30,6 +33,8 @@ class Settings(BaseSettings):
     discovery_sso_provider: str | None = None
     discovery_data_residency: str | None = None
     discovery_offline_sync_policy: str | None = "browser-feedback-queue"
+    discovery_memory_retention_policy: str | None = None
+    discovery_memory_scopes: str | None = None
     live_data_contract_validated: bool = False
     live_data_contract_last_validation_at: str | None = None
     live_data_contract_validation_summary: str | None = None
@@ -39,17 +44,31 @@ class Settings(BaseSettings):
     osa_adapter: Literal["mock", "databricks"] = "mock"
     rgm_adapter: Literal["mock", "databricks"] = "mock"
     store_master_adapter: Literal["mock", "snowflake"] = "mock"
+    crm_adapter: Literal["local", "external"] = "local"
+    erp_adapter: Literal["sandbox", "external"] = "sandbox"
+    shelf_image_adapter: Literal["mock", "external"] = "mock"
+    crm_endpoint: str | None = None
+    crm_token_ref: str | None = None
+    erp_endpoint: str | None = None
+    erp_token_ref: str | None = None
+    shelf_image_endpoint: str | None = None
+    shelf_image_token_ref: str | None = None
+    shelf_image_timeout_seconds: float = 8.0
     audit_sink: Literal["postgres", "unity_catalog"] = "postgres"
     audit_dual_write_enabled: bool = False
     audit_dual_write_fail_closed: bool = True
+    audit_unity_catalog_table: str = "phantom.audit.agent_actions"
     guardrail_provider: Literal["pattern", "external_classifier"] = "pattern"
     guardrail_classifier_endpoint: str | None = None
     guardrail_classifier_block_threshold: float = Field(default=0.85, ge=0.0, le=1.0)
+    guardrail_classifier_timeout_seconds: float = 3.0
     guardrail_fail_closed: bool = True
     agent_graph_enabled: bool = False
     agent_run_enabled: bool = False
     memory_provider: Literal["none", "mem0"] = "none"
     mem0_token_ref: str | None = None
+    mem0_endpoint: str = "https://api.mem0.ai/v1"
+    mem0_timeout_seconds: float = 5.0
     summary_provider: Literal["template", "anthropic"] = "template"
     llm_model_id: str = "grounded-template-v1"
     anthropic_token_ref: str | None = None

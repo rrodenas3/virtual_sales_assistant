@@ -14,20 +14,21 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes; summary routes can use graph routing behind `AGENT_GRAPH_ENABLED` with parity tests |
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs; Anthropic SDK provider is config-gated behind deterministic template fallback | Implemented: `SUMMARY_PROVIDER=template|anthropic`, grounded identifier validation, provider metadata in audit |
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services; FastMCP dependency deferred |
-| Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, fail-closed Mem0 scaffold |
-| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, read-only policy stub, append-only Postgres audit behind `AuditSink`, Unity Catalog mirror scaffold |
+| Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, discovery-gated Mem0 HTTP contract, summary audit metadata |
+| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, read-only policy stub, append-only Postgres audit behind `AuditSink`, parameterized Unity Catalog audit insert path |
 | Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness`, live-mode gate checks, owner model, and live data contract validation status fields |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
-| CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented as draft-only local persistence |
-| ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects | Implemented and tested |
-| Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue and IndexedDB read cache first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache |
+| CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented: local draft provider default plus discovery-gated external CRM HTTP adapter |
+| ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects by default | Implemented: sandbox provider default plus discovery-gated external ERP HTTP adapter |
+| Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue, IndexedDB read cache, and PWA shell first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache, manifest, service worker app shell/static cache |
+| Shelf image | Image-based shelf recognition MCP | Mock-first image-analysis boundary; external provider only after device/data-residency discovery | Implemented: `POST /stores/{id}/shelf-image-analysis`, `mcp.shelf_image.analyze_shelf_image`, mock grounded findings from OOS alerts, external HTTP adapter scaffold |
 | Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs |
-| Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, observability health |
-| Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented: workbench UI; feature-flagged `/agent/run` SSE scaffold; CopilotKit package integration deferred |
-| Manager view | Manager dashboard with territory overview | Add leadership summary and approval queue before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, and manager UI mode |
+| Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, OTLP HTTP log export boundary, observability health, audit mirror failure telemetry |
+| Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented: workbench UI; custom feature-flagged `/agent/run` SSE assistant panel; CopilotKit package integration deferred |
+| Manager view | Manager dashboard with territory overview and manager-initiated work | Add leadership summary, approval queue, and auditable task workflow before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, `/manager/tasks`, `/manager/my-tasks`, `/manager/tasks/{id}/status`, and manager UI mode |
 | Admin console | Governance and audit console | Add audit feed, filters, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, and admin UI mode |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
-| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, Playwright workbench smoke, local OSA eval harness, frontend build verification, summary provider unit coverage |
+| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before managed MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, Playwright workbench smoke, local OSA eval harness with optional required-provider gate, MLflow-ready artifact export, pilot readiness report, frontend build verification, summary provider unit coverage |
 
 ## Implemented API Surface
 
@@ -39,6 +40,10 @@ GET  /api/v1/integrations/readiness
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
 GET  /api/v1/manager/approval-queue?territory_code=WEST-01
+POST /api/v1/manager/tasks
+GET  /api/v1/manager/tasks?territory_code=WEST-01
+GET  /api/v1/manager/my-tasks
+POST /api/v1/manager/tasks/{task_id}/status
 GET  /api/v1/admin/audit-events?event_type=&rep_id=&resource_type=&limit=&cursor=
 GET  /api/v1/admin/audit-events/{event_id}
 GET  /api/v1/visits/today?territory_code=WEST-01&date=YYYY-MM-DD
@@ -55,6 +60,7 @@ POST /api/v1/crm/visit-log-drafts
 POST /api/v1/sync/feedback-events
 POST /api/v1/agent/osa-summary
 POST /api/v1/agent/run
+POST /api/v1/stores/{store_id}/shelf-image-analysis
 GET  /api/v1/audit/session/{session_id}
 ```
 
@@ -70,40 +76,43 @@ GET  /api/v1/audit/session/{session_id}
 | `mcp.rgm.get_rgm_recommendations` | RGM and OSA adapter factories | `GET /stores/{id}/rgm-recommendations` |
 | `mcp.orders.preview_order_draft_payload` | Stable payload hash service | `POST /orders/drafts` preflight |
 | `mcp.crm.preview_visit_log_draft` | CRM draft payload contract | `POST /crm/visit-log-drafts` preflight |
+| `mcp.shelf_image.analyze_shelf_image` | Shelf image adapter factory + OSA adapter grounding | `POST /stores/{id}/shelf-image-analysis` |
 
 ## Intentional Deviations From Original Spec
 
 These are not accidental gaps; they are deliberate corrections from the revised plan.
 
 - No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, and OSA summary routes can opt into graph routing with audited parity coverage. The client-pilot path explicitly defers adding LangGraph dependencies until multi-agent routing adds value beyond current services.
-- No active Mem0 memory yet. The memory port exists, but the default provider is `none`.
+- No active Mem0 memory by default. The memory port exists, `none` is the default provider, and Mem0 is discovery-gated behind retention/scope settings.
 - No live Snowflake/Databricks/MCP credentials yet. Current mock adapters enforce the corrected data contract; live adapters build parameterized query statements and `scripts/validate_live_data_contracts.py` is ready for view-contract validation in a credentialed environment.
-- No CopilotKit dependency in the core UI. The client-pilot path uses the custom `/agent/run` SSE bridge first and defers CopilotKit package integration.
+- No CopilotKit dependency in the core UI. The client-pilot path now uses the custom `/agent/run` SSE assistant panel first and defers CopilotKit package integration.
 - Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but final AI-assistant pilot validation must include an eval run with `SUMMARY_PROVIDER=anthropic`.
-- No real ERP submit. `submit-sandbox` validates HITL policy and payload hash but has no external side effects.
-- No Hermes/Ollama inference yet. Browser offline feedback sync is implemented first.
-- No shelf image recognition, voice, digital shelf, manager-initiated tasks, or multi-tenant support.
+- External guardrail classifier behavior is implemented against an HTTP contract with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; production endpoint selection remains discovery/configuration work.
+- No real ERP submit by default. `submit-sandbox` validates HITL policy and payload hash; external ERP provider is discovery-gated and disabled unless configured.
+- No Hermes/Ollama inference yet. Browser offline feedback sync, IndexedDB read fallback, and PWA app-shell caching are implemented first.
+- No production shelf image recognition, voice, digital shelf execution, or multi-tenant support. Shelf-image analysis is currently a governed mock/external-provider boundary only. Manager-initiated tasks support auditable assignment plus completion/block/cancel transitions, not a full workflow engine.
 
 ## Remaining Work To Fully Meet The Original Spec
 
 Highest priority:
 
 1. Run `scripts/validate_live_data_contracts.py` against confirmed live view contracts and credentials, then record validation status in readiness settings.
-2. Replace local JSON MCP transport with FastMCP dependency once runtime requirements and data-source credentials are known.
-3. Replace the deterministic graph scaffold with production LangGraph only when multi-agent orchestration adds value beyond current services.
-4. Wire live CRM/ERP submit after discovery gates are answered.
+2. Run `scripts/pilot_readiness_report.py --target ai-demo` with `SUMMARY_PROVIDER=anthropic` before calling the product an AI assistant.
+3. Replace local JSON MCP transport with FastMCP dependency once runtime requirements and data-source credentials are known.
+4. Replace the deterministic graph scaffold with production LangGraph only when multi-agent orchestration adds value beyond current services.
+5. Wire live CRM/ERP submit after discovery gates are answered.
 
 Later:
 
-- Custom frontend SSE assistant panel on top of `/agent/run`; CopilotKit remains a later optional UI dependency.
-- Mem0 memory scopes, retention policy, and production provider wiring.
-- MLflow integration beyond the local eval harness.
-- Live Unity Catalog audit mirror implementation beyond the scaffolded dual-write sink.
-- LangSmith/OpenTelemetry exporters beyond structured local telemetry.
+- CopilotKit remains a later optional UI dependency after the custom SSE assistant panel.
+- Mem0 workspace provisioning, retention approval, and credentialed smoke tests.
+- Managed MLflow tracking server configuration beyond local MLflow-ready artifact export.
+- Credentialed Unity Catalog audit smoke tests beyond the parameterized insert path.
+- LangSmith exporters and production collector wiring beyond the OTLP HTTP log boundary.
 - Live Haiku/Bedrock guardrail classifier implementation beyond the scaffold.
-- Hermes/Ollama offline agent spike.
-- Shelf image MCP.
-- Real CRM and ERP integrations after discovery gates are answered.
+- Hermes/Ollama offline agent spike and local tool-call accuracy testing.
+- Credentialed shelf-image provider smoke tests after image policy and data residency gates are answered.
+- Credentialed CRM and ERP smoke tests after discovery gates are answered.
 
 ## Verification Commands
 
@@ -118,6 +127,9 @@ npm run build
 
 cd ..
 python scripts/run_eval.py
+python scripts/pilot_readiness_report.py --target local
 python scripts/validate_live_data_contracts.py --manifest-only
 bash ./scripts/public_safety_scan.sh
 ```
+
+For AI-demo or pilot validation, run `python scripts/run_eval.py --require-provider anthropic` after configuring `SUMMARY_PROVIDER=anthropic`.

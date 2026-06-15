@@ -56,6 +56,13 @@ def test_live_databricks_mode_is_blocked_by_missing_discovery(monkeypatch) -> No
     get_osa_data_port.cache_clear()
 
 
+def test_external_shelf_image_mode_requires_data_residency(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "shelf_image_adapter", "external")
+    monkeypatch.setattr(settings, "discovery_data_residency", None)
+    blockers = readiness_blockers()
+    assert "discovery_data_residency" in blockers
+
+
 def test_external_jwt_discovery_gate_precedes_provider_config_check(monkeypatch) -> None:
     monkeypatch.setattr(settings, "auth_provider", "external_jwt")
     monkeypatch.setattr(settings, "discovery_sso_provider", None)

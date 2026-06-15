@@ -27,13 +27,19 @@ jobs:
         run: pip install -e ".[dev]"
 
       - name: Lint
-        run: python -m ruff check backend tests alembic ../mcp ../scripts/run_eval.py
+        run: python -m ruff check backend tests alembic ../mcp ../scripts/run_eval.py ../scripts/validate_live_data_contracts.py ../scripts/pilot_readiness_report.py ../scripts/log_eval_to_mlflow.py
 
       - name: Test
         run: python -m pytest tests -q
 
       - name: Local eval harness
         run: python ../scripts/run_eval.py
+
+      - name: Local readiness report
+        run: python ../scripts/pilot_readiness_report.py --target local
+
+      - name: Live data contract manifest
+        run: python ../scripts/validate_live_data_contracts.py --manifest-only
 
       - name: Alembic smoke test
         env:

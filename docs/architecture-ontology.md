@@ -53,7 +53,7 @@ Surfaces:
 - Manager view: territory metrics, ranked store table, and approval queue.
 - Admin view: filterable audit event feed and detail payload.
 - Trace drawer: formula, source system, model version, freshness, and audit IDs.
-- Offline status: browser queue count, online/offline status, and stale cache timestamp when IndexedDB read fallback is used.
+- Offline status: browser queue count, online/offline status, PWA shell registration, and stale cache timestamp when IndexedDB read fallback is used.
 
 ### Step 3: API Layer
 
@@ -118,7 +118,7 @@ Local/test startup can auto-create tables for developer convenience. Production 
 
 ### Step 6.5: Memory Boundary
 
-Memory is behind `MemoryPort`. `MEMORY_PROVIDER=none` is the default and returns no memories. `MEMORY_PROVIDER=mem0` fails closed until keys, retention policy, and memory scopes are confirmed.
+Memory is behind `MemoryPort`. `MEMORY_PROVIDER=none` is the default and returns no memories. `MEMORY_PROVIDER=mem0` is discovery-gated until keys, retention policy, and memory scopes are confirmed. Summary audit payloads record memory provider and memory count, but grounded facts still come from OOS alerts.
 
 ### Step 7: Governance
 
@@ -244,7 +244,7 @@ Implemented now:
 - OSA/RGM mock adapter ports.
 - Deterministic scoring and alert actions.
 - HITL draft approval and sandbox submit.
-- Offline feedback sync and IndexedDB read cache.
+- Offline feedback sync, IndexedDB read cache, and PWA app-shell/static asset cache.
 - Manager approval queue and admin audit detail views.
 - Audit and pilot metrics.
 - Structured request telemetry and response timing headers.
@@ -260,7 +260,7 @@ Deferred intentionally:
 - Live Databricks/Snowflake credentials, view contracts, and production smoke tests.
 - FastMCP dependency wiring. Mock-backed MCP tool functions use local JSON transport and share the backend adapter/service layer.
 - Production LangGraph supervisor mesh. A deterministic graph-style scaffold is present behind a feature flag and can route OSA summaries.
-- Active Mem0 memory layer. A null default and fail-closed Mem0 scaffold are implemented.
+- Active Mem0 memory by default. A null default and discovery-gated Mem0 HTTP contract are implemented.
 - CopilotKit/AG-UI runtime. The client-pilot path uses the custom `/agent/run` SSE bridge first.
 - MLflow/LangSmith/OpenTelemetry integrations beyond structured logs and local eval.
 - Hermes/Ollama local inference.

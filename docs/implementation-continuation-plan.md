@@ -53,15 +53,26 @@ This plan continues the MVP from the current public repository state. It hardens
 - Live adapter row mapping is shared by helper functions; Snowflake no longer calls Databricks adapter methods by duck typing.
 - OSA summary generation has a provider boundary: `SUMMARY_PROVIDER=template|anthropic`. The official Anthropic SDK is the selected LLM client; production LangGraph and CopilotKit remain deferred for the client-pilot path.
 - Live data contract validation is scaffolded through `scripts/validate_live_data_contracts.py`, backend column manifests, row-level normalization checks, and readiness fields for validation status.
+- Governance controls now include a parameterized Unity Catalog audit insert path behind `AuditSink` and an HTTP external-classifier guardrail provider with the configured `0.85` block threshold.
+- The rep workbench includes a feature-flagged custom SSE assistant panel backed by `POST /agent/run`; CopilotKit remains deferred.
+- Offline/PWA hardening now includes installability metadata, an app-shell service worker, static asset caching, and E2E registration coverage. API read fallback remains handled by IndexedDB in the app; writes are never service-worker cached.
+- CRM and ERP action boundaries now use provider-selected ports: local CRM drafts and sandbox ERP remain defaults, while external HTTP providers are discovery-gated.
+- Memory now has discovery-gated Mem0 HTTP read/write contracts, scoped metadata, and summary audit fields. `MEMORY_PROVIDER=none` remains the default.
+- Pilot activation gates now distinguish local scaffold readiness, AI demo readiness, and final pilot readiness through `scripts/pilot_readiness_report.py` and `docs/pilot-activation-runbook.md`.
+- Observability now has an OTLP HTTP export boundary behind `OBSERVABILITY_PROVIDER=otlp_http`, while structured local logging remains the default.
+- Eval artifacts now include MLflow-ready metrics/params plus an optional `scripts/log_eval_to_mlflow.py` handoff script.
+- Shelf-image analysis now has a mock-first REST and MCP boundary with external-provider discovery gates; no real image pixels are analyzed by default.
+- Manager-initiated work is scaffolded through auditable task assignment/status endpoints and a deployable `manager_tasks` migration.
 
 ## Deferred Spec Areas
 
-- CopilotKit client package integration on top of the existing `/agent/run` SSE bridge.
-- Live Unity Catalog audit mirror implementation beyond the dual-write scaffold.
-- OpenTelemetry, LangSmith, and MLflow production wiring.
-- Live Haiku/Bedrock guardrail classifier implementation beyond the external-classifier scaffold.
-- Live Databricks, Snowflake, CRM, ERP, and device integrations.
-- Hermes/Ollama offline inference spike.
+- CopilotKit client package integration after the custom SSE pilot surface proves useful.
+- Live Unity Catalog audit provisioning and credentialed smoke tests beyond the parameterized insert path.
+- LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts and optional logging.
+- Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
+- Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract.
+- Live Databricks, Snowflake, CRM, ERP, shelf-image, and device integrations.
+- Hermes/Ollama offline inference spike and offline local-agent tool calls.
 
 ## Locked Forward Decisions
 

@@ -64,6 +64,24 @@ export type OSASummaryResponse = {
   audit_event_id: string;
 };
 
+export type AgentRunEvent =
+  | {
+      event: "run_started";
+      data: { run_id: string; session_id: string; intent: "osa_summary" };
+    }
+  | {
+      event: "message";
+      data: { run_id: string; role: "assistant"; content: string; grounded_alert_ids: string[] };
+    }
+  | {
+      event: "audit";
+      data: { run_id: string; audit_event_id: string; model_id: string };
+    }
+  | {
+      event: "run_completed";
+      data: { run_id: string; session_id: string };
+    };
+
 export type PromoRecommendation = {
   recommendation_id: string;
   store_id: string;

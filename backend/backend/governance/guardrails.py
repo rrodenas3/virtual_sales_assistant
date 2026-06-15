@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Protocol
 
+import httpx
+
 from backend.config import settings
 from backend.services.telemetry import log_structured_event
 
@@ -51,15 +53,36 @@ class ExternalClassifierGuardrailProvider:
             if settings.guardrail_fail_closed:
                 return GuardrailResult(True, "External guardrail classifier is not configured", 1.0)
             return PatternGuardrailProvider().check(text)
+        try:
+            with httpx.Client(timeout=settings.guardrail_classifier_timeout_seconds) as client:
+                response = client.post(settings.guardrail_classifier_endpoint, json={"text": text})
+                response.raise_for_status()
+            body = response.json()
+        except Exception as exc:  # noqa: BLE001
+            log_structured_event(
+                "guardrail_classifier_failed",
+                fail_closed=settings.guardrail_fail_closed,
+                error_type=type(exc).__name__,
+                block_threshold=settings.guardrail_classifier_block_threshold,
+            )
+            if settings.guardrail_fail_closed:
+                return GuardrailResult(True, "External guardrail classifier failed", 1.0)
+            return PatternGuardrailProvider().check(text)
+
+        risk_score = float(body.get("risk_score", 0.0))
+        blocked = bool(body.get("blocked", False)) or risk_score >= settings.guardrail_classifier_block_threshold
+        reason = body.get("reason") or (
+            f"External guardrail classifier risk {risk_score:.2f}"
+            if blocked
+            else None
+        )
         log_structured_event(
-            "guardrail_classifier_deferred",
-            fail_closed=settings.guardrail_fail_closed,
-            endpoint_configured=True,
+            "guardrail_classifier_checked",
+            blocked=blocked,
+            risk_score=risk_score,
             block_threshold=settings.guardrail_classifier_block_threshold,
         )
-        if settings.guardrail_fail_closed:
-            return GuardrailResult(True, "External guardrail classifier integration is deferred", 1.0)
-        return PatternGuardrailProvider().check(text)
+        return GuardrailResult(blocked=blocked, reason=reason, risk_score=risk_score)
 
 
 def get_guardrail_provider() -> GuardrailProvider:

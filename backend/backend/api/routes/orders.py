@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.adapters.erp import ERPPort
 from backend.adapters.osa import OSADataPort
 from backend.api.schemas import CreateOrderDraftRequest, OrderDraftResponse, SandboxSubmitResponse
 from backend.auth.mock_jwt import CurrentUser, get_current_user
 from backend.db.models import ApprovalRecord, OrderDraft
 from backend.db.session import get_db
-from backend.deps import get_osa_adapter
+from backend.deps import get_erp_adapter, get_osa_adapter
 from backend.governance.rbac import assert_store_access
 from backend.services.audit import log_audit_event
 from backend.services.hashing import stable_payload_hash
@@ -90,6 +91,7 @@ async def submit_order_draft_sandbox(
     draft_id: str,
     current_user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    erp: ERPPort = Depends(get_erp_adapter),
 ) -> SandboxSubmitResponse:
     draft = await db.get(OrderDraft, draft_id)
     if not draft or (current_user.role != "admin" and draft.rep_id != current_user.rep_id):
@@ -109,7 +111,7 @@ async def submit_order_draft_sandbox(
     if not approval:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Matching approval not found")
 
-    erp_order_id = f"SANDBOX-{draft.draft_id[:8].upper()}"
+    submit_result = await erp.submit_order(draft.draft_id, draft.payload_json, approval.approval_id, draft.payload_hash)
     draft.status = "SUBMITTED_SANDBOX"
     event = await log_audit_event(
         db,
@@ -119,16 +121,17 @@ async def submit_order_draft_sandbox(
         resource_type="order_draft",
         resource_id=draft.draft_id,
         payload_json={
-            "erp_order_id": erp_order_id,
+            "erp_order_id": submit_result.erp_order_id,
             "approval_id": approval.approval_id,
             "payload_hash": draft.payload_hash,
+            "submit_status": submit_result.status,
         },
     )
     await db.commit()
     return SandboxSubmitResponse(
         draft_id=draft.draft_id,
         status=draft.status,
-        erp_order_id=erp_order_id,
+        erp_order_id=submit_result.erp_order_id,
         submitted_at=event.created_at,
         approval_id=approval.approval_id,
         payload_hash=draft.payload_hash,

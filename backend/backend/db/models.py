@@ -99,6 +99,24 @@ class ApprovalRecord(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class ManagerTask(Base):
+    __tablename__ = "manager_tasks"
+
+    task_id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    territory_code: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    store_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    assigned_rep_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    created_by: Mapped[str] = mapped_column(String, nullable=False)
+    session_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    task_type: Mapped[str] = mapped_column(String, nullable=False)
+    priority: Mapped[str] = mapped_column(String, nullable=False)
+    due_date: Mapped[str | None] = mapped_column(String, nullable=True)
+    payload_json: Mapped[dict] = mapped_column(JsonType, nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=False, default="OPEN")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class IdempotencyRecord(Base):
     __tablename__ = "idempotency_records"
 

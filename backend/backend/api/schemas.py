@@ -194,6 +194,33 @@ class RGMRecommendationsResponse(BaseModel):
     audit_event_id: str
 
 
+class ShelfImageAnalysisRequest(BaseModel):
+    store_id: str
+    session_id: str
+    image_ref: str = Field(max_length=500)
+    alert_ids: list[str] | None = None
+
+
+class ShelfImageFinding(BaseModel):
+    finding_id: str
+    store_id: str
+    sku_id: str | None
+    finding_type: Literal["possible_oos", "phantom_inventory_signal", "promo_non_compliance", "unknown"]
+    confidence_label: ConfidenceLabel
+    evidence: str
+    recommended_action: str
+    grounded_alert_id: str | None = None
+
+
+class ShelfImageAnalysisResponse(BaseModel):
+    analysis_id: str
+    store_id: str
+    findings: list[ShelfImageFinding]
+    source_system: str
+    model_version: str
+    audit_event_id: str
+
+
 class OrderDraftItem(BaseModel):
     sku_id: str
     sku_name: str
@@ -322,6 +349,49 @@ class TerritorySummaryResponse(BaseModel):
     false_positive_count: int
     open_draft_count: int
     stores: list[TerritoryStoreSummary]
+
+
+class CreateManagerTaskRequest(BaseModel):
+    territory_code: str
+    store_id: str
+    assigned_rep_id: str
+    session_id: str
+    title: str = Field(min_length=3, max_length=160)
+    task_type: Literal["shelf_check", "follow_up", "promo_check", "order_review"]
+    priority: Literal["low", "medium", "high"]
+    due_date: str | None = None
+    notes: str | None = Field(default=None, max_length=1000)
+    linked_alert_ids: list[str] = Field(default_factory=list, max_length=20)
+
+
+class ManagerTaskResponse(BaseModel):
+    task_id: str
+    territory_code: str
+    store_id: str
+    store_name: str | None = None
+    assigned_rep_id: str
+    created_by: str
+    session_id: str
+    title: str
+    task_type: str
+    priority: str
+    due_date: str | None
+    status: str
+    payload_json: dict
+    created_at: datetime
+    audit_event_id: str | None = None
+
+
+class UpdateManagerTaskStatusRequest(BaseModel):
+    status: Literal["COMPLETED", "BLOCKED", "CANCELLED"]
+    session_id: str
+    notes: str | None = Field(default=None, max_length=1000)
+
+
+class ManagerTaskListResponse(BaseModel):
+    territory_code: str | None = None
+    assigned_rep_id: str | None = None
+    tasks: list[ManagerTaskResponse]
 
 
 class AdminAuditEventsResponse(BaseModel):

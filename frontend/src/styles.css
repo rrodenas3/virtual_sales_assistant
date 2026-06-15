@@ -53,7 +53,7 @@ button { font: inherit; }
   text-transform: uppercase;
 }
 
-.topbar__actions, .paneTitle, .address, .alertTitle, .alertRow__main, .feedbackButton, .secondaryButton, .primaryButton, .statusPill {
+.topbar__actions, .paneTitle, .address, .alertTitle, .alertRow__main, .feedbackButton, .secondaryButton, .primaryButton, .statusPill, .sectionActions {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -283,6 +283,66 @@ button { font: inherit; }
   gap: 16px;
   margin-bottom: 12px;
 }
+.sectionActions { flex-wrap: wrap; justify-content: flex-end; }
+.agentPanel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in oklch, var(--blue), white 90%);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.agentPanel__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 10px;
+}
+.agentPanel__top h3 { margin: 0; font-family: "Archivo", sans-serif; }
+.agentState {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: var(--muted);
+  background: color-mix(in oklch, var(--paper), white 30%);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.agentState--running {
+  color: oklch(0.31 0.08 235);
+  border-color: color-mix(in oklch, var(--blue), white 45%);
+}
+.agentTimeline { display: grid; gap: 8px; }
+.agentEvent {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 10px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: color-mix(in oklch, var(--paper), white 32%);
+}
+.agentEvent span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: capitalize;
+}
+.agentEvent strong {
+  font-weight: 700;
+  line-height: 1.45;
+}
+.agentEmpty {
+  margin: 0;
+  color: var(--muted);
+}
+.agentError {
+  margin-bottom: 10px;
+  border: 1px solid color-mix(in oklch, var(--risk), white 45%);
+  border-radius: 8px;
+  padding: 10px;
+  background: color-mix(in oklch, var(--risk), white 84%);
+}
 .summaryBox {
   white-space: pre-wrap;
   border: 1px solid var(--line);
@@ -371,6 +431,7 @@ button { font: inherit; }
   .managerRow, .auditRow, .approvalRow, .filterBar { grid-template-columns: 1fr; }
   .actionBand { grid-template-columns: 1fr; }
   .alertRow { grid-template-columns: 1fr; }
+  .agentEvent { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 560px) {
