@@ -95,12 +95,13 @@ This plan continues the MVP from the current public repository state. It hardens
 - Snowflake store-master adapter construction now uses the same token gate as `/health/data-platform` and the Snowflake SQL client, avoiding late credential failures.
 - Summary endpoint load testing now supports an approved runtime bearer-token override through `LOAD_TEST_BEARER_TOKEN` while keeping tokens out of reports.
 - Pilot readiness reports, readiness bundles, `/integrations/readiness`, and manager/admin readiness panels now include target-specific runtime validation commands for local, AI-demo, and final pilot handoff from a shared governance helper.
+- MLflow handoff now has a dry-run manifest mode that validates eval artifacts and writes `mlflow_handoff.json`/`mlflow_handoff.md` without requiring a managed MLflow server or local MLflow package.
 
 ## Deferred Spec Areas
 
 - CopilotKit client package integration after the custom SSE pilot surface proves useful.
 - Live Unity Catalog audit provisioning and credentialed smoke tests beyond the parameterized insert path.
-- LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts and optional logging.
+- LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts, dry-run handoff manifests, and optional logging.
 - Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
 - Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract and readiness endpoint.
 - Live Databricks, Snowflake, CRM, ERP, shelf-image, and device credentialed smoke tests after readiness gates pass.

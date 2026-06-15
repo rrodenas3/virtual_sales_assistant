@@ -95,10 +95,11 @@ The artifact directory is intentionally untracked. It contains:
 Optional MLflow handoff:
 
 ```powershell
+python scripts/log_eval_to_mlflow.py --artifact-dir artifacts/eval --experiment-name phantom-vsa-evals --dry-run --output-dir artifacts/eval
 python scripts/log_eval_to_mlflow.py --artifact-dir artifacts/eval --experiment-name phantom-vsa-evals
 ```
 
-`scripts/log_eval_to_mlflow.py` imports MLflow only at runtime, so CI does not require MLflow.
+The dry run writes `mlflow_handoff.json` and `mlflow_handoff.md` without importing MLflow. Use it as the local evidence gate before a managed tracking server is available. The live logging command imports MLflow only at runtime, so CI does not require MLflow.
 
 For AI-demo or pilot validation, require the configured AI provider explicitly:
 
