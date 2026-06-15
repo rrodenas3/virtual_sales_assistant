@@ -11,18 +11,123 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from backend.config import settings  # noqa: E402
 from backend.governance.discovery import readiness_blockers, selected_live_modes  # noqa: E402
+from backend.main import app  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 from tests.eval.run_eval import run_eval  # noqa: E402
 
 Target = Literal["local", "ai-demo", "pilot"]
+
+REP_TOKEN = (
+    "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0."
+    "eyJzdWIiOiJSRVAtMDAxIiwidGVycml0b3J5X2NvZGUiOiJXRVNULTAxIiwicm9sZSI6InJlcCJ9."
+)
+MANAGER_TOKEN = (
+    "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0."
+    "eyJzdWIiOiJNR1ItMDAxIiwidGVycml0b3J5X2NvZGUiOiJXRVNULTAxIiwicm9sZSI6Im1hbmFnZXIifQ."
+)
 
 
 def _gate(name: str, passed: bool, detail: str) -> dict[str, Any]:
     return {"name": name, "passed": passed, "detail": detail}
 
 
+def _client(token: str) -> TestClient:
+    client = TestClient(app)
+    client.headers.update({"Authorization": f"Bearer {token}"})
+    return client
+
+
+def run_scaffold_smoke() -> dict[str, Any]:
+    results: list[dict[str, Any]] = []
+
+    with _client(REP_TOKEN) as rep:
+        alerts_response = rep.get("/api/v1/stores/ST-001/alerts?limit=2")
+        alerts = alerts_response.json()["alerts"] if alerts_response.status_code == 200 else []
+        alert = alerts[0] if alerts else {}
+        draft_response = rep.post(
+            "/api/v1/orders/drafts",
+            json={
+                "store_id": "ST-001",
+                "session_id": "readiness_order",
+                "items": [
+                    {
+                        "sku_id": alert.get("sku_id", "SKU-4001"),
+                        "sku_name": alert.get("sku_name", "Core SKU 4001"),
+                        "quantity": 12,
+                        "reason": alert.get("recommended_action", "Readiness smoke"),
+                    }
+                ],
+            },
+        )
+        draft = draft_response.json() if draft_response.status_code == 200 else {}
+        approval_response = rep.post(f"/api/v1/approvals/{draft.get('draft_id', 'missing')}/approve", json={"notes": "ok"})
+        submit_response = rep.post(f"/api/v1/orders/drafts/{draft.get('draft_id', 'missing')}/submit-sandbox")
+        results.append(
+            _gate(
+                "hitl_order_smoke",
+                draft_response.status_code == 200
+                and approval_response.status_code == 200
+                and submit_response.status_code == 200,
+                f"draft={draft_response.status_code}; approval={approval_response.status_code}; submit={submit_response.status_code}",
+            )
+        )
+
+        shelf_response = rep.post(
+            "/api/v1/stores/ST-001/shelf-image-analysis",
+            json={
+                "store_id": "ST-001",
+                "session_id": "readiness_shelf",
+                "image_ref": "upload://readiness/image_1",
+                "alert_ids": [alert["alert_id"]] if alert else [],
+            },
+        )
+        shelf_body = shelf_response.json() if shelf_response.status_code == 200 else {}
+        results.append(
+            _gate(
+                "shelf_image_smoke",
+                shelf_response.status_code == 200 and bool(shelf_body.get("audit_event_id")),
+                f"status={shelf_response.status_code}; findings={len(shelf_body.get('findings', []))}",
+            )
+        )
+
+    with _client(MANAGER_TOKEN) as manager:
+        task_response = manager.post(
+            "/api/v1/manager/tasks",
+            json={
+                "territory_code": "WEST-01",
+                "store_id": "ST-001",
+                "assigned_rep_id": "REP-001",
+                "session_id": "readiness_manager_task",
+                "title": "Readiness shelf check",
+                "task_type": "shelf_check",
+                "priority": "medium",
+            },
+        )
+        task = task_response.json() if task_response.status_code == 200 else {}
+
+    with _client(REP_TOKEN) as rep:
+        task_status_response = rep.post(
+            f"/api/v1/manager/tasks/{task.get('task_id', 'missing')}/status",
+            json={"status": "COMPLETED", "session_id": "readiness_manager_task_done"},
+        )
+        results.append(
+            _gate(
+                "manager_task_smoke",
+                task_response.status_code == 200 and task_status_response.status_code == 200,
+                f"create={task_response.status_code}; status={task_status_response.status_code}",
+            )
+        )
+
+    return {
+        "passed": all(result["passed"] for result in results),
+        "checks": results,
+    }
+
+
 def build_report(target: Target) -> dict[str, Any]:
     required_provider = "anthropic" if target in {"ai-demo", "pilot"} else None
     eval_result = run_eval(require_provider=required_provider)
+    smoke_result = run_scaffold_smoke()
     modes = selected_live_modes()
     blockers = readiness_blockers()
     providers = eval_result["summary"]["providers"]
@@ -59,6 +164,11 @@ def build_report(target: Target) -> dict[str, Any]:
             target != "pilot" or settings.audit_sink == "unity_catalog" or settings.audit_dual_write_enabled,
             f"AUDIT_SINK={settings.audit_sink}; AUDIT_DUAL_WRITE_ENABLED={settings.audit_dual_write_enabled}",
         ),
+        _gate(
+            "scaffold_smoke",
+            smoke_result["passed"],
+            "; ".join(f"{check['name']}={check['passed']}" for check in smoke_result["checks"]),
+        ),
     ]
     return {
         "target": target,
@@ -66,6 +176,7 @@ def build_report(target: Target) -> dict[str, Any]:
         "selected_live_modes": sorted(modes),
         "discovery_blockers": blockers,
         "eval_summary": eval_result["summary"],
+        "scaffold_smoke": smoke_result,
         "gates": gates,
     }
 
