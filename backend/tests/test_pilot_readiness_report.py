@@ -26,6 +26,10 @@ def test_local_readiness_report_includes_scaffold_smoke() -> None:
     assert report["shelf_image"]["ready"] is True
     assert report["audit"]["ready"] is True
     assert report["observability"]["ready"] is True
+    targets = {target["target"]: target for target in report["activation_targets"]}
+    assert targets["local"]["ready"] is True
+    assert targets["ai-demo"]["ready"] is False
+    assert targets["pilot"]["ready"] is False
     assert any(gate["name"] == "scaffold_smoke" and gate["passed"] for gate in report["gates"])
     assert any(gate["name"] == "mcp_smoke" and gate["passed"] for gate in report["gates"])
     assert any(gate["name"] == "memory_provider" and gate["passed"] for gate in report["gates"])

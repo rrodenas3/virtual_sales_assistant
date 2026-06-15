@@ -12,13 +12,17 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from backend.auth.providers import auth_status  # noqa: E402
 from backend.config import settings  # noqa: E402
+from backend.governance.activation import build_activation_targets, flatten_provider_blockers  # noqa: E402
 from backend.governance.action_providers import action_provider_status  # noqa: E402
 from backend.governance.data_platform import data_platform_status  # noqa: E402
 from backend.governance.discovery import readiness_blockers, selected_live_modes  # noqa: E402
+from backend.governance.guardrails import guardrail_status  # noqa: E402
+from backend.governance.offline_agent import offline_agent_status  # noqa: E402
 from backend.governance.shelf_image import shelf_image_status  # noqa: E402
 from backend.main import app  # noqa: E402
 from backend.memory.adapters import memory_status  # noqa: E402
 from backend.services.audit_sinks import audit_sink_status  # noqa: E402
+from backend.services.summary_providers import summary_provider_status  # noqa: E402
 from backend.services.telemetry import observability_status  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 from scripts.mcp_smoke import build_report as build_mcp_smoke_report  # noqa: E402
@@ -145,9 +149,29 @@ def build_report(target: Target) -> dict[str, Any]:
     shelf_image = shelf_image_status()
     audit = audit_sink_status()
     observability = observability_status()
+    guardrails = guardrail_status()
+    offline_agent = offline_agent_status()
     modes = selected_live_modes()
     blockers = readiness_blockers()
     providers = eval_result["summary"]["providers"]
+    summary_status = summary_provider_status()
+    provider_readiness = {
+        "auth": auth,
+        "data_platform": data_platform,
+        "action_providers": action_providers,
+        "shelf_image": shelf_image,
+        "memory": memory,
+        "audit": audit,
+        "guardrails": guardrails,
+        "offline_agent": offline_agent,
+        "observability": observability,
+    }
+    activation_targets = build_activation_targets(
+        discovery_blockers=blockers,
+        provider_blockers=flatten_provider_blockers(provider_readiness),
+        provider_readiness=provider_readiness,
+        summary_status=summary_status,
+    )
     action_provider_detail = (
         f"crm={action_providers['crm']['provider']}; "
         f"erp={action_providers['erp']['provider']}; "
@@ -247,6 +271,7 @@ def build_report(target: Target) -> dict[str, Any]:
         "shelf_image": shelf_image,
         "audit": audit,
         "observability": observability,
+        "activation_targets": activation_targets,
         "gates": gates,
     }
 
@@ -264,9 +289,21 @@ def write_artifacts(report: dict[str, Any], output_dir: Path) -> None:
         f"- Passed: `{report['passed']}`",
         f"- Selected live modes: `{', '.join(report['selected_live_modes']) or 'none'}`",
         "",
-        "| Gate | Status | Detail |",
+        "| Activation target | Status | Blockers |",
         "|---|---:|---|",
     ]
+    for target in report["activation_targets"]:
+        status = "ready" if target["ready"] else "blocked"
+        blockers = ", ".join(target["blockers"]) or "none"
+        escaped_blockers = blockers.replace("|", "\\|")
+        lines.append(f"| {target['target']} | {status} | {escaped_blockers} |")
+    lines.extend(
+        [
+            "",
+            "| Gate | Status | Detail |",
+            "|---|---:|---|",
+        ]
+    )
     for gate in report["gates"]:
         status = "pass" if gate["passed"] else "fail"
         detail = str(gate["detail"]).replace("|", "\\|")
