@@ -63,9 +63,23 @@ def write_artifacts(bundle: dict[str, Any], output_dir: Path) -> None:
         f"| MCP smoke | {'pass' if bundle['mcp_smoke']['passed'] else 'fail'} |",
         f"| Contract manifest | {len(bundle['live_data_contract_manifest']['contracts'])} contracts |",
         "",
-        "## Manual Checks",
+        "## Activation Targets",
         "",
+        "| Target | Status | Blockers |",
+        "|---|---:|---|",
     ]
+    for target in bundle["pilot_readiness"]["activation_targets"]:
+        status = "ready" if target["ready"] else "blocked"
+        blockers = ", ".join(target["blockers"]) or "none"
+        escaped_blockers = blockers.replace("|", "\\|")
+        lines.append(f"| {target['target']} | {status} | {escaped_blockers} |")
+    lines.extend(
+        [
+            "",
+            "## Manual Checks",
+            "",
+        ]
+    )
     lines.extend(f"- {item}" for item in bundle["required_manual_checks"])
     (output_dir / "readiness_bundle.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 

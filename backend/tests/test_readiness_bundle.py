@@ -23,7 +23,10 @@ def test_readiness_bundle_writes_handoff_artifacts(tmp_path) -> None:
     write_artifacts(bundle, tmp_path)
 
     assert json.loads((tmp_path / "readiness_bundle.json").read_text(encoding="utf-8"))["passed"] is True
-    assert (tmp_path / "readiness_bundle.md").read_text(encoding="utf-8").startswith("# Readiness Bundle")
+    bundle_md = (tmp_path / "readiness_bundle.md").read_text(encoding="utf-8")
+    assert bundle_md.startswith("# Readiness Bundle")
+    assert "## Activation Targets" in bundle_md
+    assert "| ai-demo | blocked |" in bundle_md
     assert (tmp_path / "readiness" / "pilot_readiness_report.json").exists()
     assert (tmp_path / "mcp" / "mcp_smoke_report.json").exists()
     assert (tmp_path / "contracts" / "live_data_contract_manifest.json").exists()

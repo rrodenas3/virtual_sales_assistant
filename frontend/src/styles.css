@@ -163,7 +163,8 @@ button { font: inherit; }
   background: color-mix(in oklch, var(--risk), white 91%);
 }
 .activationTarget strong,
-.activationTarget span {
+.activationTarget span,
+.activationTarget small {
   display: block;
 }
 .activationTarget strong {
@@ -173,6 +174,13 @@ button { font: inherit; }
   color: var(--muted);
   font-size: 0.82rem;
   margin-top: 3px;
+}
+.activationTarget small {
+  color: color-mix(in oklch, var(--risk), black 12%);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
 }
 .activationTarget--ready {
   border-color: color-mix(in oklch, var(--success), white 55%);

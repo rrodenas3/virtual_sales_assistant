@@ -87,6 +87,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - The admin governance view now surfaces `/integrations/readiness` beside audit events, so provider blockers, discovery blockers, and live-contract status are visible during trace review.
 - `/integrations/readiness` now includes activation targets for local scaffold, AI demo, and final pilot readiness; manager/admin panels render those target states directly.
 - Activation target blockers are calculated in a shared governance service and reused by the readiness report script, keeping API/UI state aligned with generated pilot artifacts.
+- Manager/admin readiness panels and readiness bundle markdown now include activation blocker previews, so pilot owners can see the next blocking action without opening nested reports.
 
 ## Deferred Spec Areas
 

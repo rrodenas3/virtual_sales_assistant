@@ -56,6 +56,9 @@ function ActivationTargets({ readiness }: { readiness: IntegrationReadinessRespo
         <div key={target.target} className={target.ready ? "activationTarget activationTarget--ready" : "activationTarget"}>
           <strong>{target.target}</strong>
           <span>{target.ready ? "ready" : `${target.blockers.length} blockers`}</span>
+          {target.blockers.length > 0 && (
+            <small>{target.blockers.slice(0, 2).join("; ")}</small>
+          )}
         </div>
       ))}
     </div>
