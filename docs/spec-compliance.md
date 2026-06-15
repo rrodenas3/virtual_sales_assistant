@@ -14,7 +14,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes; summary routes can use graph routing behind `AGENT_GRAPH_ENABLED` with parity tests |
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs; Anthropic SDK provider is config-gated behind deterministic template fallback | Implemented: `SUMMARY_PROVIDER=template|anthropic`, grounded identifier validation, provider metadata in audit |
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services; FastMCP dependency deferred |
-| Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, fail-closed Mem0 scaffold |
+| Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, discovery-gated Mem0 HTTP contract, summary audit metadata |
 | Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, read-only policy stub, append-only Postgres audit behind `AuditSink`, parameterized Unity Catalog audit insert path |
 | Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness`, live-mode gate checks, owner model, and live data contract validation status fields |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
@@ -76,7 +76,7 @@ GET  /api/v1/audit/session/{session_id}
 These are not accidental gaps; they are deliberate corrections from the revised plan.
 
 - No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, and OSA summary routes can opt into graph routing with audited parity coverage. The client-pilot path explicitly defers adding LangGraph dependencies until multi-agent routing adds value beyond current services.
-- No active Mem0 memory yet. The memory port exists, but the default provider is `none`.
+- No active Mem0 memory by default. The memory port exists, `none` is the default provider, and Mem0 is discovery-gated behind retention/scope settings.
 - No live Snowflake/Databricks/MCP credentials yet. Current mock adapters enforce the corrected data contract; live adapters build parameterized query statements and `scripts/validate_live_data_contracts.py` is ready for view-contract validation in a credentialed environment.
 - No CopilotKit dependency in the core UI. The client-pilot path now uses the custom `/agent/run` SSE assistant panel first and defers CopilotKit package integration.
 - Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but final AI-assistant pilot validation must include an eval run with `SUMMARY_PROVIDER=anthropic`.
@@ -97,7 +97,7 @@ Highest priority:
 Later:
 
 - CopilotKit remains a later optional UI dependency after the custom SSE assistant panel.
-- Mem0 memory scopes, retention policy, and production provider wiring.
+- Mem0 workspace provisioning, retention approval, and credentialed smoke tests.
 - MLflow integration beyond the local eval harness.
 - Credentialed Unity Catalog audit smoke tests beyond the parameterized insert path.
 - LangSmith/OpenTelemetry exporters beyond structured local telemetry.

@@ -95,6 +95,20 @@ def discovery_gates(config: Settings = settings) -> list[DiscoveryGate]:
             "Required before broader offline write queues.",
             defaulted_values=("browser-feedback-queue",),
         ),
+        _gate(
+            "Memory retention policy",
+            "discovery_memory_retention_policy",
+            config.discovery_memory_retention_policy,
+            ("mem0",),
+            "Required before persistent rep/account/session memory.",
+        ),
+        _gate(
+            "Memory scopes",
+            "discovery_memory_scopes",
+            config.discovery_memory_scopes,
+            ("mem0",),
+            "Required before enabling rep, store, or session memory scopes.",
+        ),
     ]
 
 
@@ -112,6 +126,8 @@ def selected_live_modes(config: Settings = settings) -> set[str]:
         modes.add("crm_writeback")
     if config.erp_adapter == "external":
         modes.add("erp_submit")
+    if config.memory_provider == "mem0":
+        modes.add("mem0")
     return modes
 
 

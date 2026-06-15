@@ -118,7 +118,7 @@ Local/test startup can auto-create tables for developer convenience. Production 
 
 ### Step 6.5: Memory Boundary
 
-Memory is behind `MemoryPort`. `MEMORY_PROVIDER=none` is the default and returns no memories. `MEMORY_PROVIDER=mem0` fails closed until keys, retention policy, and memory scopes are confirmed.
+Memory is behind `MemoryPort`. `MEMORY_PROVIDER=none` is the default and returns no memories. `MEMORY_PROVIDER=mem0` is discovery-gated until keys, retention policy, and memory scopes are confirmed. Summary audit payloads record memory provider and memory count, but grounded facts still come from OOS alerts.
 
 ### Step 7: Governance
 
@@ -260,7 +260,7 @@ Deferred intentionally:
 - Live Databricks/Snowflake credentials, view contracts, and production smoke tests.
 - FastMCP dependency wiring. Mock-backed MCP tool functions use local JSON transport and share the backend adapter/service layer.
 - Production LangGraph supervisor mesh. A deterministic graph-style scaffold is present behind a feature flag and can route OSA summaries.
-- Active Mem0 memory layer. A null default and fail-closed Mem0 scaffold are implemented.
+- Active Mem0 memory by default. A null default and discovery-gated Mem0 HTTP contract are implemented.
 - CopilotKit/AG-UI runtime. The client-pilot path uses the custom `/agent/run` SSE bridge first.
 - MLflow/LangSmith/OpenTelemetry integrations beyond structured logs and local eval.
 - Hermes/Ollama local inference.

@@ -25,6 +25,8 @@ The endpoint is manager/admin-only. Local mock mode can remain ready with severa
 | SSO provider | `DISCOVERY_SSO_PROVIDER` | TBD | External JWT |
 | Data residency | `DISCOVERY_DATA_RESIDENCY` | TBD | Databricks, Snowflake, Unity Catalog |
 | Offline sync policy | `DISCOVERY_OFFLINE_SYNC_POLICY` | Defaulted to browser feedback queue | Offline write expansion |
+| Memory retention policy | `DISCOVERY_MEMORY_RETENTION_POLICY` | TBD | Mem0 |
+| Memory scopes | `DISCOVERY_MEMORY_SCOPES` | TBD | Mem0 |
 
 Live-mode selectors currently gated:
 
@@ -33,6 +35,7 @@ Live-mode selectors currently gated:
 - `RGM_ADAPTER=databricks`
 - `STORE_MASTER_ADAPTER=snowflake`
 - `AUDIT_SINK=unity_catalog`
+- `MEMORY_PROVIDER=mem0`
 
 Live data contract validation:
 

@@ -3,6 +3,12 @@ import { expect, test } from "@playwright/test";
 const alertId = "ST-001:SKU-4001:2026-06-15";
 
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+    window.localStorage.setItem("phantom.demoRole", "rep");
+  });
+
   await page.route("http://localhost:8000/api/v1/metrics/pilot", async (route) => {
     await route.fulfill({
       json: {
@@ -37,7 +43,7 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
-  await page.route("http://localhost:8000/api/v1/stores/ST-001", async (route) => {
+  await page.route(/http:\/\/localhost:8000\/api\/v1\/stores\/ST-001(?:\?.*)?$/, async (route) => {
     await route.fulfill({
       json: {
         store_id: "ST-001",
@@ -88,7 +94,7 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
-  await page.route("http://localhost:8000/api/v1/stores/ST-001/rgm-recommendations", async (route) => {
+  await page.route("http://localhost:8000/api/v1/stores/ST-001/rgm-recommendations**", async (route) => {
     await route.fulfill({
       json: {
         store_id: "ST-001",

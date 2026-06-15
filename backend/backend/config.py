@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     discovery_sso_provider: str | None = None
     discovery_data_residency: str | None = None
     discovery_offline_sync_policy: str | None = "browser-feedback-queue"
+    discovery_memory_retention_policy: str | None = None
+    discovery_memory_scopes: str | None = None
     live_data_contract_validated: bool = False
     live_data_contract_last_validation_at: str | None = None
     live_data_contract_validation_summary: str | None = None
@@ -58,6 +60,8 @@ class Settings(BaseSettings):
     agent_run_enabled: bool = False
     memory_provider: Literal["none", "mem0"] = "none"
     mem0_token_ref: str | None = None
+    mem0_endpoint: str = "https://api.mem0.ai/v1"
+    mem0_timeout_seconds: float = 5.0
     summary_provider: Literal["template", "anthropic"] = "template"
     llm_model_id: str = "grounded-template-v1"
     anthropic_token_ref: str | None = None

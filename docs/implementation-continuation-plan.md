@@ -57,6 +57,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - The rep workbench includes a feature-flagged custom SSE assistant panel backed by `POST /agent/run`; CopilotKit remains deferred.
 - Offline/PWA hardening now includes installability metadata, an app-shell service worker, static asset caching, and E2E registration coverage. API read fallback remains handled by IndexedDB in the app; writes are never service-worker cached.
 - CRM and ERP action boundaries now use provider-selected ports: local CRM drafts and sandbox ERP remain defaults, while external HTTP providers are discovery-gated.
+- Memory now has discovery-gated Mem0 HTTP read/write contracts, scoped metadata, and summary audit fields. `MEMORY_PROVIDER=none` remains the default.
 
 ## Deferred Spec Areas
 
@@ -64,6 +65,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Live Unity Catalog audit provisioning and credentialed smoke tests beyond the parameterized insert path.
 - OpenTelemetry, LangSmith, and MLflow production wiring.
 - Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
+- Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract.
 - Live Databricks, Snowflake, CRM, ERP, and device integrations.
 - Hermes/Ollama offline inference spike and offline local-agent tool calls.
 

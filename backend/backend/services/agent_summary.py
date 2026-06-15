@@ -10,6 +10,7 @@ from backend.auth.mock_jwt import CurrentUser
 from backend.config import settings
 from backend.governance.guardrails import check_guardrails
 from backend.governance.rbac import assert_territory_access
+from backend.memory.adapters import get_memory_adapter
 from backend.services.audit import log_audit_event
 from backend.services.summary_providers import (
     SummaryGroundingError,
@@ -61,6 +62,9 @@ async def create_osa_summary(
         if request.store_id:
             alerts = [alert for alert in alerts if alert.store_id == request.store_id]
 
+    memory = get_memory_adapter()
+    memory_context = await memory.get_context(rep_id=current_user.rep_id, store_id=request.store_id)
+    memory_count = len(memory_context.get("memories", []))
     try:
         summary_result = await get_summary_provider().summarize(alerts)
     except SummaryGroundingError as exc:
@@ -91,6 +95,8 @@ async def create_osa_summary(
             "grounding_result": summary_result.grounding_result,
             "fallback_used": summary_result.fallback_used,
             "orchestration_mode": orchestration_mode,
+            "memory_provider": memory_context.get("provider", "none"),
+            "memory_count": memory_count,
         },
         data_freshness_ts=alerts[0].data_freshness_ts if alerts else None,
     )
@@ -109,7 +115,30 @@ async def create_osa_summary(
         latency_ms=summary_result.latency_ms,
         fallback_used=summary_result.fallback_used,
         orchestration_mode=orchestration_mode,
+        memory_provider=memory_context.get("provider", "none"),
+        memory_count=memory_count,
     )
+    try:
+        await memory.record_interaction(
+            rep_id=current_user.rep_id,
+            session_id=request.session_id,
+            payload={
+                "event_type": "osa_summary_created",
+                "store_id": request.store_id,
+                "summary": summary_result.summary,
+                "audit_event_id": event.event_id,
+                "grounded_alert_count": len(alerts),
+            },
+        )
+    except Exception as exc:  # pragma: no cover - telemetry-only degradation path
+        log_structured_event(
+            "memory_record_failed",
+            audit_event_id=event.event_id,
+            rep_id=current_user.rep_id,
+            session_id=request.session_id,
+            memory_provider=memory_context.get("provider", "none"),
+            error_type=type(exc).__name__,
+        )
     return OSASummaryResponse(
         summary=summary_result.summary,
         grounded_alert_ids=[alert.alert_id for alert in alerts],
