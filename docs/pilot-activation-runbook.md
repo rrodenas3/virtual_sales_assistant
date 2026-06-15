@@ -50,6 +50,9 @@ SUMMARY_FAIL_OPEN=false
 Required command:
 
 ```powershell
+python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai
+python scripts/log_eval_to_mlflow.py --artifact-dir artifacts/eval-ai --experiment-name phantom-vsa-evals --dry-run --output-dir artifacts/eval-ai
+python scripts/ai_demo_eval_evidence.py --artifact-dir artifacts/eval-ai --output-dir artifacts/eval-ai
 python scripts/pilot_readiness_report.py --target ai-demo --output-dir artifacts/readiness/ai-demo
 ```
 
@@ -61,6 +64,7 @@ Exit gate:
 - Estimated cost stays below the configured `0.08 EUR` per interaction ceiling.
 - P95 summary latency remains below `5000 ms`.
 - `scripts/load_test.py` passes against the configured backend and writes load-test artifacts.
+- AI-demo eval artifacts exist: `ai_demo_eval_evidence.json`, `ai_demo_eval_env.json`, and `ai_demo_eval.env.snippet`.
 - When testing external identity, `LOAD_TEST_BEARER_TOKEN` is supplied from the approved runtime environment and is not written into artifacts.
 
 ## Phase 2: Live Data Contract Readiness
@@ -213,6 +217,7 @@ Required command:
 
 ```powershell
 python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/readiness/pilot
+python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json --live-data-env artifacts/contracts/live/readiness_env.json --output-dir artifacts/pilot-env
 ```
 
 Final outcome:
@@ -222,3 +227,4 @@ Final outcome:
 - A manager can assign auditable store tasks to reps, and reps can complete or block assigned work; full task workflow automation remains a later expansion.
 - An admin can inspect filtered audit events and linked feedback.
 - Every AI summary and write intent is grounded, audited, cost-tracked, and tied to the acting identity.
+- `pilot_validation.env.snippet` contains only non-secret validation evidence keys and is reviewed before runtime configuration is updated.

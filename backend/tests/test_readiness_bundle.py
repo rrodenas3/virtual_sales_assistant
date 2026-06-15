@@ -46,6 +46,7 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
     assert any(command["name"] == "mlflow_handoff_dry_run" for command in command_sets["ai-demo"])
     assert any(command["name"] == "ai_demo_eval_evidence" for command in command_sets["ai-demo"])
     assert any(command["name"] == "live_data_contracts" for command in command_sets["pilot"])
+    assert any(command["name"] == "pilot_env_handoff" for command in command_sets["pilot"])
 
 
 def test_readiness_bundle_writes_handoff_artifacts(tmp_path) -> None:

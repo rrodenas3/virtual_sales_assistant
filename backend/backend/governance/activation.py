@@ -85,6 +85,14 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
                     "notes": "Run only in an approved credentialed environment.",
                 },
                 {
+                    "name": "pilot_env_handoff",
+                    "command": (
+                        "python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json "
+                        "--live-data-env artifacts/contracts/live/readiness_env.json --output-dir artifacts/pilot-env"
+                    ),
+                    "notes": "Merges non-secret AI-demo and live-data validation env values for final pilot runtime setup.",
+                },
+                {
                     "name": "pilot_readiness",
                     "command": "python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/readiness/pilot",
                     "notes": (
