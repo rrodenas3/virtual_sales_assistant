@@ -92,6 +92,8 @@ Template-only eval success proves scaffold safety, not final AI-assistant readin
 
 Every HTTP response includes `x-request-id` and `x-response-time-ms`. When `OBSERVABILITY_PROVIDER=structured`, the backend emits structured `http_request` events to the `phantom.telemetry` logger with method, path, status, request ID, and duration.
 
+For collector integration, set `OBSERVABILITY_PROVIDER=otlp_http` and `OTEL_EXPORTER_OTLP_ENDPOINT` to the approved collector base URL. The exporter posts OTLP log records to `/v1/logs`, includes `service.name=phantom-vsa-backend`, and defaults to fail-open unless `OTEL_FAIL_CLOSED=true`.
+
 ## Cost Per Interaction
 
 Phase 3 starts with estimated local telemetry on `osa_summary_created`.

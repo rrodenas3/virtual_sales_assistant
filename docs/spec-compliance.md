@@ -22,7 +22,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects by default | Implemented: sandbox provider default plus discovery-gated external ERP HTTP adapter |
 | Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue, IndexedDB read cache, and PWA shell first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache, manifest, service worker app shell/static cache |
 | Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs |
-| Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, observability health, audit mirror failure telemetry |
+| Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, OTLP HTTP log export boundary, observability health, audit mirror failure telemetry |
 | Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented: workbench UI; custom feature-flagged `/agent/run` SSE assistant panel; CopilotKit package integration deferred |
 | Manager view | Manager dashboard with territory overview | Add leadership summary and approval queue before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, and manager UI mode |
 | Admin console | Governance and audit console | Add audit feed, filters, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, and admin UI mode |
@@ -101,7 +101,7 @@ Later:
 - Mem0 workspace provisioning, retention approval, and credentialed smoke tests.
 - MLflow integration beyond the local eval harness.
 - Credentialed Unity Catalog audit smoke tests beyond the parameterized insert path.
-- LangSmith/OpenTelemetry exporters beyond structured local telemetry.
+- LangSmith exporters and production collector wiring beyond the OTLP HTTP log boundary.
 - Live Haiku/Bedrock guardrail classifier implementation beyond the scaffold.
 - Hermes/Ollama offline agent spike and local tool-call accuracy testing.
 - Shelf image MCP.

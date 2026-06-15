@@ -31,4 +31,7 @@ async def observability_health() -> dict:
         "provider": settings.observability_provider,
         "trace_sample_rate": settings.trace_sample_rate,
         "structured_logger": "phantom.telemetry",
+        "otel_service_name": settings.otel_service_name,
+        "otlp_endpoint_configured": bool(settings.otel_exporter_otlp_endpoint),
+        "otel_fail_closed": settings.otel_fail_closed,
     }

@@ -12,8 +12,11 @@ class Settings(BaseSettings):
     app_env: Literal["local", "test", "production"] = "local"
     auto_create_tables: bool = True
     allowed_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
-    observability_provider: Literal["structured", "none"] = "structured"
+    observability_provider: Literal["structured", "otlp_http", "none"] = "structured"
     trace_sample_rate: float = Field(default=1.0, ge=0.0, le=1.0)
+    otel_service_name: str = "phantom-vsa-backend"
+    otel_exporter_otlp_endpoint: str | None = None
+    otel_fail_closed: bool = False
     auth_mode: Literal["mock_jwt"] = "mock_jwt"
     auth_provider: Literal["mock", "external_jwt"] = "mock"
     external_jwt_issuer: str | None = None
