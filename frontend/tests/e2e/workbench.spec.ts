@@ -395,6 +395,77 @@ test("rep can review route, generate summary, and submit alert feedback", async 
   await expect(page.getByTestId(`feedback-${alertId}-confirmed`)).toHaveClass(/feedbackButton--active/);
 });
 
+test("rep assigned work hides completed and cancelled task history", async ({ page }) => {
+  await page.unroute("**/api/v1/manager/my-tasks");
+  await page.route("**/api/v1/manager/my-tasks", async (route) => {
+    await route.fulfill({
+      json: {
+        assigned_rep_id: "REP-001",
+        tasks: [
+          {
+            task_id: "work_open",
+            territory_code: "WEST-01",
+            store_id: "ST-001",
+            store_name: "West Market 01",
+            assigned_rep_id: "REP-001",
+            created_by: "MGR-001",
+            session_id: "MGR-001:2026-06-15:manager_work",
+            title: "Verify shelf before noon",
+            task_type: "shelf_check",
+            priority: "high",
+            due_date: null,
+            status: "OPEN",
+            payload_json: { notes: "Confirm top OOS risks.", linked_alert_ids: [] },
+            created_at: "2026-06-15T00:00:00Z",
+            audit_event_id: "audit_work_open"
+          },
+          {
+            task_id: "work_done",
+            territory_code: "WEST-01",
+            store_id: "ST-001",
+            store_name: "West Market 01",
+            assigned_rep_id: "REP-001",
+            created_by: "MGR-001",
+            session_id: "MGR-001:2026-06-15:manager_work",
+            title: "Readiness shelf check",
+            task_type: "shelf_check",
+            priority: "medium",
+            due_date: null,
+            status: "COMPLETED",
+            payload_json: { notes: "Already handled.", linked_alert_ids: [] },
+            created_at: "2026-06-15T00:00:00Z",
+            audit_event_id: "audit_work_done"
+          },
+          {
+            task_id: "work_cancelled",
+            territory_code: "WEST-01",
+            store_id: "ST-001",
+            store_name: "West Market 01",
+            assigned_rep_id: "REP-001",
+            created_by: "MGR-001",
+            session_id: "MGR-001:2026-06-15:manager_work",
+            title: "Cancel this duplicate task",
+            task_type: "shelf_check",
+            priority: "medium",
+            due_date: null,
+            status: "CANCELLED",
+            payload_json: { notes: "Cancelled by manager.", linked_alert_ids: [] },
+            created_at: "2026-06-15T00:00:00Z",
+            audit_event_id: "audit_work_cancelled"
+          }
+        ]
+      }
+    });
+  });
+
+  await page.goto("/");
+
+  await expect(page.getByTestId("my-tasks")).toContainText("1 open tasks");
+  await expect(page.getByTestId("my-tasks")).toContainText("Verify shelf before noon");
+  await expect(page.getByTestId("my-tasks")).not.toContainText("Readiness shelf check");
+  await expect(page.getByTestId("my-tasks")).not.toContainText("Cancel this duplicate task");
+});
+
 test("app exposes PWA manifest and registers service worker", async ({ browser }) => {
   const context = await browser.newContext({ baseURL: "http://127.0.0.1:4173", serviceWorkers: "allow" });
   const page = await context.newPage();

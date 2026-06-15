@@ -270,6 +270,10 @@ export function App() {
     () => visits.find((visit) => visit.store_id === selectedStoreId) ?? null,
     [selectedStoreId, visits]
   );
+  const openMyTasks = useMemo(
+    () => myTasks?.tasks.filter((task) => task.status === "OPEN") ?? [],
+    [myTasks]
+  );
 
   async function handleFeedback(alertId: string, value: AlertFeedback) {
     setFeedback((current) => ({ ...current, [alertId]: value }));
@@ -584,14 +588,14 @@ export function App() {
 
       {role === "rep" && (
       <>
-      {myTasks && myTasks.tasks.length > 0 && (
+      {myTasks && openMyTasks.length > 0 && (
         <section className="taskStrip" data-testid="my-tasks">
           <div>
             <p className="eyebrow">Assigned work</p>
-            <h3>{myTasks.tasks.filter((task) => task.status === "OPEN").length} open tasks</h3>
+            <h3>{openMyTasks.length} open tasks</h3>
           </div>
           <div className="taskQueue">
-            {myTasks.tasks.map((task) => (
+            {openMyTasks.map((task) => (
               <article key={task.task_id} className="taskRow">
                 <div>
                   <strong>{task.title}</strong>
