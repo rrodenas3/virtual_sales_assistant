@@ -68,6 +68,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - AI-demo readiness is now exposed through `/health/ai` and `/integrations/readiness`, so template summaries cannot be confused with the required real-provider validation path.
 - Live data contract validation now supports `--output-dir` artifacts, including a readiness env JSON for recording the validated status after credentialed checks.
 - The frontend now exposes manager task assignment/cancel controls and rep task completion/block controls against the existing auditable task APIs.
+- Unity Catalog audit mirroring now validates three-part table identifiers and has automated DDL drift coverage against the runtime insert contract.
 
 ## Deferred Spec Areas
 

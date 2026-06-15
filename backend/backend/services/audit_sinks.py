@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime
 from typing import Any, Protocol
 from uuid import uuid4
@@ -12,6 +13,46 @@ from backend.config import settings
 from backend.db.models import AuditEvent, utcnow
 from backend.governance.discovery import assert_discovery_ready
 from backend.services.telemetry import log_structured_event
+
+
+UNITY_AUDIT_AGENT_ACTION_COLUMNS = (
+    "event_id",
+    "session_id",
+    "rep_id",
+    "territory_code",
+    "event_type",
+    "resource_type",
+    "resource_id",
+    "tool_name",
+    "tool_input",
+    "tool_output",
+    "reasoning_trace",
+    "model_id",
+    "model_version",
+    "requires_approval",
+    "approval_status",
+    "risk_level",
+    "source_system",
+    "data_freshness_ts",
+    "created_at",
+    "mlflow_run_id",
+)
+UNITY_AUDIT_APPROVAL_DECISION_COLUMNS = (
+    "approval_id",
+    "draft_id",
+    "approved",
+    "approved_by",
+    "draft_payload_hash",
+    "notes",
+    "created_at",
+)
+_UNITY_TABLE_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def validate_unity_table_name(table_name: str) -> str:
+    if not _UNITY_TABLE_RE.fullmatch(table_name):
+        raise ValueError("Unity Catalog audit table must be a three-part identifier")
+    return table_name
 
 
 class AuditSink(Protocol):
@@ -63,7 +104,7 @@ class PostgresAuditSink:
 class UnityCatalogAuditSink:
     def __init__(self, client: SQLClient | None = None, table_name: str | None = None) -> None:
         self.client = client or DatabricksSQLClient(settings)
-        self.table_name = table_name or settings.audit_unity_catalog_table
+        self.table_name = validate_unity_table_name(table_name or settings.audit_unity_catalog_table)
 
     async def write(
         self,
@@ -102,7 +143,7 @@ class UnityCatalogAuditSink:
 class UnityCatalogAuditMirror:
     def __init__(self, client: SQLClient | None = None, table_name: str | None = None) -> None:
         self.client = client or DatabricksSQLClient(settings)
-        self.table_name = table_name or settings.audit_unity_catalog_table
+        self.table_name = validate_unity_table_name(table_name or settings.audit_unity_catalog_table)
 
     async def write_mirror(
         self,
@@ -150,14 +191,12 @@ async def write_unity_catalog_event(
     risk_level = _risk_level(event.event_type, requires_approval)
     territory_code = payload_json.get("territory_code")
     source_system = event.source_system or settings.osa_source_system
+    columns = ", ".join(UNITY_AUDIT_AGENT_ACTION_COLUMNS)
     await client.execute(
         QueryStatement(
             statement=f"""
-INSERT INTO {table_name} (
-  event_id, session_id, rep_id, territory_code, event_type, resource_type, resource_id,
-  tool_name, tool_input, tool_output, reasoning_trace, model_id, model_version,
-  requires_approval, approval_status, risk_level, source_system, data_freshness_ts,
-  created_at, mlflow_run_id
+INSERT INTO {validate_unity_table_name(table_name)} (
+  {columns}
 ) VALUES (
   :event_id, :session_id, :rep_id, :territory_code, :event_type, :resource_type, :resource_id,
   :tool_name, parse_json(:tool_input), parse_json(:tool_output), :reasoning_trace, :model_id, :model_version,
