@@ -43,10 +43,11 @@ This plan continues the MVP from the current public repository state. It hardens
 - Structured request observability is implemented with request IDs, response timing, sampling controls, and `/health/observability`.
 - Client discovery readiness gates are implemented before live SSO, data, CRM, ERP, and audit integrations.
 - Store-master access is split behind a dedicated `StoreMasterPort`; OSA remains responsible for ranked territory and alert logic.
+- `/agent/run` is scaffolded as a feature-flagged SSE bridge that reuses grounded OSA summary services.
 
 ## Deferred Spec Areas
 
-- CopilotKit / AG-UI SSE `POST /agent/run`.
+- CopilotKit client package integration on top of the existing `/agent/run` SSE bridge.
 - Unity Catalog audit dual-write beyond the `AuditSink` interface.
 - OpenTelemetry, LangSmith, and MLflow production wiring.
 - Haiku-based guardrail classifier.

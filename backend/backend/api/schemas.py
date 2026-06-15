@@ -116,6 +116,15 @@ class OSASummaryResponse(BaseModel):
     audit_event_id: str
 
 
+class AgentRunRequest(BaseModel):
+    intent: Literal["osa_summary"] = "osa_summary"
+    run_id: str | None = None
+    territory_code: str
+    store_id: str | None = None
+    session_id: str
+    alert_ids: list[str] | None = None
+
+
 class AuditEventOut(BaseModel):
     event_id: str
     session_id: str
