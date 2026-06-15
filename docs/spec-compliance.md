@@ -11,7 +11,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active; Databricks/Snowflake parameterized query adapters scaffolded until credentials/contracts exist |
 | Priority scoring | Formula sketched in OSA MCP SQL | Deterministic service formula with explainable components | Implemented and tested |
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
-| Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes with parity tests; production routes still use services directly |
+| Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes; summary routes can use graph routing behind `AGENT_GRAPH_ENABLED` with parity tests |
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs | Implemented and tested |
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, fail-closed Mem0 scaffold |
@@ -75,7 +75,7 @@ GET  /api/v1/audit/session/{session_id}
 
 These are not accidental gaps; they are deliberate corrections from the revised plan.
 
-- No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, but routes still use deterministic services directly.
+- No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, and OSA summary routes can opt into graph routing with audited parity coverage.
 - No active Mem0 memory yet. The memory port exists, but the default provider is `none`.
 - No live Snowflake/Databricks/MCP credentials yet. Current mock adapters enforce the corrected data contract; live adapters build parameterized query statements and are ready for view-contract validation.
 - No CopilotKit dependency in the core UI. The MVP is an operational workbench first; `/agent/run` is a feature-flagged SSE bridge for later AG-UI wiring.
@@ -89,7 +89,7 @@ Highest priority:
 
 1. Validate Databricks/Snowflake query adapters against confirmed live view contracts and credentials.
 2. Replace local JSON MCP transport with FastMCP dependency once runtime requirements and data-source credentials are known.
-3. Promote graph routing only when multi-agent orchestration adds value beyond deterministic services.
+3. Replace the deterministic graph scaffold with production LangGraph only when multi-agent orchestration adds value beyond current services.
 4. Wire live CRM/ERP submit after discovery gates are answered.
 
 Later:

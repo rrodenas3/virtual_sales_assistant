@@ -49,6 +49,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - External JWT validation is implemented behind discovery gates with JWKS, issuer, audience, algorithm, role-claim, and territory-claim checks.
 - Guardrails support a provider boundary: default pattern checks plus fail-open/fail-closed external classifier scaffolding.
 - Databricks and Snowflake adapters build parameterized `QueryStatement` objects with injectable SQL clients and schema mappers.
+- OSA summary routes can use the graph scaffold behind `AGENT_GRAPH_ENABLED`; audit payloads record `orchestration_mode`.
 
 ## Deferred Spec Areas
 
