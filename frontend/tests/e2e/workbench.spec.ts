@@ -253,7 +253,14 @@ test.beforeEach(async ({ page }) => {
         summary_provider: "template",
         summary_model_id: "grounded-template-v1",
         ai_demo_ready: false,
-        ai_demo_blockers: ["SUMMARY_PROVIDER must be anthropic for AI-demo readiness"],
+        ai_demo_provider_ready: false,
+        ai_demo_eval_validated: false,
+        ai_demo_eval_last_validation_at: null,
+        ai_demo_eval_validation_summary: null,
+        ai_demo_blockers: [
+          "SUMMARY_PROVIDER must be anthropic for AI-demo readiness",
+          "AI-demo eval must pass with provider=anthropic before AI-demo readiness"
+        ],
         activation_targets: [
           {
             target: "local",
@@ -283,6 +290,16 @@ test.beforeEach(async ({ page }) => {
             }
           ],
           "ai-demo": [
+            {
+              name: "ai_summary_eval",
+              command: "python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai",
+              notes: "Must pass with the configured approved provider before claiming AI-assistant behavior."
+            },
+            {
+              name: "mlflow_handoff_dry_run",
+              command: "python scripts/log_eval_to_mlflow.py --artifact-dir artifacts/eval-ai --experiment-name phantom-vsa-evals --dry-run --output-dir artifacts/eval-ai",
+              notes: "Validates eval artifacts and produces local handoff manifests without a tracking server."
+            },
             {
               name: "summary_load_test",
               command: "python scripts/load_test.py --base-url http://localhost:8000 --requests 50 --concurrency 10 --threshold-p95-ms 5000 --output-dir artifacts/load/summary",
@@ -405,6 +422,8 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("readiness-panel")).toContainText("ai-demo");
   await expect(page.getByTestId("readiness-panel")).toContainText("pilot");
   await expect(page.getByTestId("readiness-panel")).toContainText("SUMMARY_PROVIDER must be anthropic");
+  await expect(page.getByTestId("readiness-panel")).toContainText("AI eval pending");
+  await expect(page.getByTestId("readiness-panel")).toContainText("ai_summary_eval");
   await expect(page.getByTestId("readiness-panel")).toContainText("summary_load_test");
   await expect(page.getByText("0 assigned tasks")).toBeVisible();
 
@@ -423,6 +442,8 @@ test("admin can review readiness and audit detail", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Governance audit view" })).toBeVisible();
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("Provider gates clear");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("mock contracts");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("AI provider blocked");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("AI eval pending");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("local");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("Live data contracts must be validated");

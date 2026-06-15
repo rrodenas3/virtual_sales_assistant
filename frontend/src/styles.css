@@ -150,6 +150,26 @@ button { font: inherit; }
   border-color: color-mix(in oklch, var(--risk), white 58%);
   color: color-mix(in oklch, var(--risk), black 12%);
 }
+.readinessEvidence {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.evidencePill {
+  border: 1px solid color-mix(in oklch, var(--risk), white 58%);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: color-mix(in oklch, var(--risk), black 12%);
+  background: color-mix(in oklch, var(--risk), white 93%);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.evidencePill--ready {
+  border-color: color-mix(in oklch, var(--success), white 52%);
+  color: color-mix(in oklch, var(--success), black 25%);
+  background: color-mix(in oklch, var(--success), white 92%);
+}
 .activationTargets {
   grid-column: 1 / -1;
   display: grid;

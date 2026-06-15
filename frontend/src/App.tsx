@@ -92,6 +92,20 @@ function discoveryOwnerSummary(readiness: IntegrationReadinessResponse): string 
   return parts.length ? `Discovery owners: ${parts.join(", ")}` : null;
 }
 
+function AIDemoEvidence({ readiness }: { readiness: IntegrationReadinessResponse }) {
+  return (
+    <div className="readinessEvidence" data-testid="ai-demo-evidence">
+      <span className={readiness.ai_demo_provider_ready ? "evidencePill evidencePill--ready" : "evidencePill"}>
+        {readiness.ai_demo_provider_ready ? "AI provider configured" : "AI provider blocked"}
+      </span>
+      <span className={readiness.ai_demo_eval_validated ? "evidencePill evidencePill--ready" : "evidencePill"}>
+        {readiness.ai_demo_eval_validated ? "AI eval validated" : "AI eval pending"}
+      </span>
+      {readiness.ai_demo_eval_validation_summary && <span className="evidencePill">{readiness.ai_demo_eval_validation_summary}</span>}
+    </div>
+  );
+}
+
 export function App() {
   const [visits, setVisits] = useState<VisitPriority[]>([]);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
@@ -125,6 +139,9 @@ export function App() {
   const identity = useMemo(() => getCurrentIdentity(), [role]);
   const sessionId = useMemo(() => buildSessionId("workbench"), [identity.sub]);
   const readinessOwnerSummary = readiness ? discoveryOwnerSummary(readiness) : null;
+  const readinessBlockers = readiness
+    ? [...readiness.blockers, ...readiness.provider_blockers, ...readiness.ai_demo_blockers]
+    : [];
 
   useEffect(() => {
     if (role !== "rep") return;
@@ -422,9 +439,10 @@ export function App() {
                 <span>{readiness.ai_demo_ready ? "AI demo ready" : `${readiness.summary_provider} summary`}</span>
                 {readinessOwnerSummary && <span>{readinessOwnerSummary}</span>}
               </div>
-              {(readiness.blockers.length > 0 || readiness.provider_blockers.length > 0) && (
+              <AIDemoEvidence readiness={readiness} />
+              {readinessBlockers.length > 0 && (
                 <div className="readinessPanel__blockers">
-                  {[...readiness.blockers, ...readiness.provider_blockers].slice(0, 4).map((blocker) => (
+                  {readinessBlockers.slice(0, 4).map((blocker) => (
                     <span key={blocker}>{blocker}</span>
                   ))}
                 </div>
@@ -526,9 +544,10 @@ export function App() {
                 <span>{readiness.view_contract_validated ? "live contracts validated" : "mock contracts"}</span>
                 {readinessOwnerSummary && <span>{readinessOwnerSummary}</span>}
               </div>
-              {(readiness.blockers.length > 0 || readiness.provider_blockers.length > 0) && (
+              <AIDemoEvidence readiness={readiness} />
+              {readinessBlockers.length > 0 && (
                 <div className="readinessPanel__blockers">
-                  {[...readiness.blockers, ...readiness.provider_blockers].slice(0, 4).map((blocker) => (
+                  {readinessBlockers.slice(0, 4).map((blocker) => (
                     <span key={blocker}>{blocker}</span>
                   ))}
                 </div>

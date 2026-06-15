@@ -201,6 +201,10 @@ export type IntegrationReadinessResponse = {
   summary_provider: string;
   summary_model_id: string;
   ai_demo_ready: boolean;
+  ai_demo_provider_ready: boolean;
+  ai_demo_eval_validated: boolean;
+  ai_demo_eval_last_validation_at: string | null;
+  ai_demo_eval_validation_summary: string | null;
   ai_demo_blockers: string[];
   activation_targets: {
     target: "local" | "ai-demo" | "pilot";
