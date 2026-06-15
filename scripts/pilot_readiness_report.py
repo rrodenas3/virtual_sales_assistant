@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from backend.auth.providers import auth_status  # noqa: E402
 from backend.config import settings  # noqa: E402
-from backend.governance.activation import build_activation_targets, flatten_provider_blockers  # noqa: E402
+from backend.governance.activation import build_activation_targets, flatten_provider_blockers, runtime_validation_commands  # noqa: E402
 from backend.governance.action_providers import action_provider_status  # noqa: E402
 from backend.governance.data_platform import data_platform_status  # noqa: E402
 from backend.governance.discovery import discovery_gates, readiness_blockers, selected_live_modes  # noqa: E402
@@ -283,6 +283,7 @@ def build_report(target: Target) -> dict[str, Any]:
         "audit": audit,
         "observability": observability,
         "activation_targets": activation_targets,
+        "runtime_validation_commands": runtime_validation_commands(target),
         "gates": gates,
     }
 
@@ -320,6 +321,19 @@ def write_artifacts(report: dict[str, Any], output_dir: Path) -> None:
         blockers = ", ".join(target["blockers"]) or "none"
         escaped_blockers = blockers.replace("|", "\\|")
         lines.append(f"| {target['target']} | {status} | {escaped_blockers} |")
+    lines.extend(
+        [
+            "",
+            "## Runtime Validation Commands",
+            "",
+            "| Name | Command | Notes |",
+            "|---|---|---|",
+        ]
+    )
+    for command in report["runtime_validation_commands"]:
+        escaped_command = str(command["command"]).replace("|", "\\|")
+        escaped_notes = str(command["notes"]).replace("|", "\\|")
+        lines.append(f"| {command['name']} | `{escaped_command}` | {escaped_notes} |")
     lines.extend(
         [
             "",

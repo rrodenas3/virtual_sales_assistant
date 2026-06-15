@@ -3,7 +3,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from scripts.pilot_readiness_report import _discovery_owner_blockers, build_report  # noqa: E402
+from scripts.pilot_readiness_report import _discovery_owner_blockers, build_report, write_artifacts  # noqa: E402
 
 
 def test_local_readiness_report_includes_scaffold_smoke() -> None:
@@ -27,6 +27,10 @@ def test_local_readiness_report_includes_scaffold_smoke() -> None:
     assert report["audit"]["ready"] is True
     assert report["observability"]["ready"] is True
     assert report["discovery_owner_blockers"] == {}
+    assert {command["name"] for command in report["runtime_validation_commands"]} == {
+        "public_safety_scan",
+        "local_readiness",
+    }
     targets = {target["target"]: target for target in report["activation_targets"]}
     assert targets["local"]["ready"] is True
     assert targets["ai-demo"]["ready"] is False
@@ -47,3 +51,13 @@ def test_discovery_owner_blockers_group_by_owner() -> None:
 
     assert owners["delivery"] == ["discovery_data_sharing_model"]
     assert owners["shared"] == ["guardrail_classifier_endpoint"]
+
+
+def test_readiness_report_writes_runtime_commands(tmp_path) -> None:
+    report = build_report("local")
+
+    write_artifacts(report, tmp_path)
+
+    report_md = (tmp_path / "pilot_readiness_report.md").read_text(encoding="utf-8")
+    assert "## Runtime Validation Commands" in report_md
+    assert "public_safety_scan" in report_md
