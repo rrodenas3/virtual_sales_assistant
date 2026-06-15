@@ -70,6 +70,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - The frontend now exposes manager task assignment/cancel controls and rep task completion/block controls against the existing auditable task APIs.
 - Unity Catalog audit mirroring now validates three-part table identifiers and has automated DDL drift coverage against the runtime insert contract.
 - Summary endpoint load testing now supports configurable concurrency, p95 threshold failure, and JSON/Markdown artifacts.
+- Local MCP transport now has a CI-backed manifest smoke script covering all seven MCP server modules and expected tool names.
 
 ## Deferred Spec Areas
 

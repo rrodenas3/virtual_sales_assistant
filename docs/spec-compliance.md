@@ -13,7 +13,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
 | Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes; summary routes can use graph routing behind `AGENT_GRAPH_ENABLED` with parity tests |
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs; Anthropic SDK provider is config-gated behind deterministic template fallback | Implemented: `SUMMARY_PROVIDER=template|anthropic`, grounded identifier validation, provider metadata in audit |
-| MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services; FastMCP dependency deferred |
+| MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services, and CI-backed manifest smoke; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, discovery-gated Mem0 HTTP contract, summary audit metadata |
 | Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, read-only policy stub, append-only Postgres audit behind `AuditSink`, parameterized Unity Catalog audit insert path, identifier validation, and DDL drift tests |
 | Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness`, live-mode gate checks, owner model, and live data contract validation status fields |
@@ -132,6 +132,7 @@ cd ..
 python scripts/run_eval.py
 python scripts/pilot_readiness_report.py --target local
 python scripts/validate_live_data_contracts.py --manifest-only
+python scripts/mcp_smoke.py
 bash ./scripts/public_safety_scan.sh
 ```
 
