@@ -30,6 +30,11 @@ def test_readiness_reports_default_local_mode() -> None:
     assert body["summary_provider"] == "template"
     assert body["summary_model_id"] == "grounded-template-v1"
     assert body["ai_demo_ready"] is False
+    assert body["provider_blockers"] == []
+    assert body["provider_readiness"]["auth"]["provider"] == "mock"
+    assert body["provider_readiness"]["data_platform"]["ready"] is True
+    assert body["provider_readiness"]["audit"]["primary_sink"] == "postgres"
+    assert body["provider_readiness"]["observability"]["provider"] == "structured"
     assert "SUMMARY_PROVIDER must be anthropic for AI-demo readiness" in body["ai_demo_blockers"]
     assert any(gate["setting_name"] == "discovery_sso_provider" for gate in body["gates"])
 
@@ -59,6 +64,23 @@ def test_readiness_reports_ai_demo_provider_state(monkeypatch) -> None:
     assert body["summary_model_id"] == "claude-haiku-4-5"
     assert body["ai_demo_ready"] is True
     assert body["ai_demo_blockers"] == []
+
+
+def test_readiness_reports_provider_configuration_blockers(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "crm_adapter", "external")
+    monkeypatch.setattr(settings, "crm_endpoint", "https://crm.example.test")
+    monkeypatch.setattr(settings, "crm_token_ref", None)
+    monkeypatch.setattr(settings, "discovery_crm_platform", "approved-crm")
+
+    with TestClient(app, headers={"Authorization": f"Bearer {MANAGER}"}) as client:
+        response = client.get("/api/v1/integrations/readiness")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ready"] is False
+    assert body["blockers"] == []
+    assert body["provider_readiness"]["action_providers"]["ready"] is False
+    assert body["provider_blockers"] == ["action_providers.crm.crm_token_ref"]
 
 
 def test_live_databricks_mode_is_blocked_by_missing_discovery(monkeypatch) -> None:

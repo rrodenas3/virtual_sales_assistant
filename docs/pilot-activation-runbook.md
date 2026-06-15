@@ -19,6 +19,7 @@ python scripts/pilot_readiness_report.py --target local --output-dir artifacts/r
 Exit gate:
 
 - Local readiness report passes.
+- `/api/v1/integrations/readiness` reports no discovery or provider blockers for selected local/default providers.
 - Backend tests, frontend build, Playwright smoke, eval harness, live-contract manifest check, and public-safety scan are green.
 - Observability readiness passes; `OBSERVABILITY_PROVIDER=otlp_http` must include an approved OTLP endpoint.
 - Readiness scaffold smoke passes for HITL sandbox submit, manager task status updates, and shelf-image analysis.

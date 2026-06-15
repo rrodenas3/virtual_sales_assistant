@@ -134,7 +134,7 @@ Implemented in `backend/backend/governance` and the audit service boundary.
 Controls:
 
 - RBAC: reps are scoped to assigned stores; managers are scoped to territory; admins can read audit.
-- Integration readiness blocks selected live providers until required discovery gates are answered.
+- Integration readiness blocks selected live providers until required discovery gates and provider-specific configuration gates are answered.
 - Data-platform readiness blocks selected Databricks/Snowflake modes until credentials, discovery answers, and live contract validation are present.
 - Auth readiness blocks selected external JWT mode until SSO discovery, issuer, audience, and algorithms are present.
 - Shelf-image readiness blocks selected external image analysis until endpoint, token-reference, device runtime, and data residency are present.

@@ -436,6 +436,8 @@ class IntegrationReadinessResponse(BaseModel):
     ready: bool
     selected_live_modes: list[str]
     blockers: list[str]
+    provider_blockers: list[str] = Field(default_factory=list)
+    provider_readiness: dict[str, dict] = Field(default_factory=dict)
     gates: list[DiscoveryGateOut]
     view_contract_validated: bool = False
     last_validation_at: str | None = None

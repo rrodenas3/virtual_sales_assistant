@@ -81,6 +81,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - External shelf-image activation now has `/health/shelf-image` status and a pilot-readiness gate for endpoint, token-reference, device, and data-residency blockers.
 - Unity Catalog audit activation now has `/health/audit-sink` status and a pilot-readiness gate for table identifier, Databricks credentials, discovery answers, and dual-write mode.
 - OTLP observability activation now has a pilot-readiness gate through `/health/observability`, requiring endpoint and service-name configuration when `OBSERVABILITY_PROVIDER=otlp_http`.
+- `/integrations/readiness` now aggregates provider readiness summaries and flattened provider blockers, so manager/admin users can see discovery gaps and selected-provider configuration gaps in one response.
 
 ## Deferred Spec Areas
 
