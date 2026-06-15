@@ -82,6 +82,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Unity Catalog audit activation now has `/health/audit-sink` status and a pilot-readiness gate for table identifier, Databricks credentials, discovery answers, and dual-write mode.
 - OTLP observability activation now has a pilot-readiness gate through `/health/observability`, requiring endpoint and service-name configuration when `OBSERVABILITY_PROVIDER=otlp_http`.
 - `/integrations/readiness` now aggregates provider readiness summaries and flattened provider blockers, so manager/admin users can see discovery gaps and selected-provider configuration gaps in one response.
+- `scripts/readiness_bundle.py` now generates a local-safe handoff bundle with pilot readiness, MCP smoke, live-contract manifest, and manual checks for public safety, live credentials, and AI-demo validation.
 
 ## Deferred Spec Areas
 

@@ -14,6 +14,7 @@ Required command:
 
 ```powershell
 python scripts/pilot_readiness_report.py --target local --output-dir artifacts/readiness/local
+python scripts/readiness_bundle.py --target local --output-dir artifacts/readiness/bundle-local
 ```
 
 Exit gate:
@@ -25,6 +26,7 @@ Exit gate:
 - Readiness scaffold smoke passes for HITL sandbox submit, manager task status updates, and shelf-image analysis.
 - Readiness MCP smoke passes for every local MCP server manifest.
 - Readiness memory gate passes with the disabled default provider or a fully configured selected provider.
+- Readiness bundle artifacts exist for handoff review.
 - `SUMMARY_PROVIDER=template` is acceptable only for this phase.
 
 ## Phase 1: Real AI Demo Readiness
