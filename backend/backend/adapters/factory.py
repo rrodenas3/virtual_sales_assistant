@@ -5,6 +5,7 @@ from backend.adapters.erp import ERPPort, ExternalERPAdapter, SandboxERPAdapter
 from backend.adapters.osa import MockOSAAdapter, OSADataPort
 from backend.adapters.real import DatabricksOSAAdapter, DatabricksRGMAdapter, SnowflakeStoreMasterAdapter
 from backend.adapters.rgm import MockRGMAdapter, RGMDataPort
+from backend.adapters.shelf_image import ExternalShelfImageAdapter, MockShelfImageAdapter, ShelfImagePort
 from backend.adapters.store_master import MockStoreMasterAdapter, StoreMasterPort
 from backend.config import settings
 from backend.governance.discovery import assert_discovery_ready
@@ -48,3 +49,11 @@ def get_erp_port() -> ERPPort:
         return SandboxERPAdapter()
     assert_discovery_ready("erp_submit")
     return ExternalERPAdapter(settings)
+
+
+@lru_cache
+def get_shelf_image_port() -> ShelfImagePort:
+    if settings.shelf_image_adapter == "mock":
+        return MockShelfImageAdapter()
+    assert_discovery_ready("shelf_image")
+    return ExternalShelfImageAdapter(settings)

@@ -13,6 +13,8 @@ from mcp.osa.server import TOOLS as OSA_TOOLS  # noqa: E402
 from mcp.osa.tools import get_oos_alerts, get_phantom_inventory, get_visit_priority  # noqa: E402
 from mcp.rgm.tools import get_rgm_recommendations  # noqa: E402
 from mcp.runtime import call_tool, tool_manifest  # noqa: E402
+from mcp.shelf_image.server import TOOLS as SHELF_IMAGE_TOOLS  # noqa: E402
+from mcp.shelf_image.tools import analyze_shelf_image  # noqa: E402
 from mcp.store_master.tools import get_store_health, get_territory_stores  # noqa: E402
 
 
@@ -60,6 +62,20 @@ def test_action_mcp_preview_tools_reuse_service_hashing() -> None:
 
 
 @pytest.mark.asyncio
+async def test_shelf_image_mcp_tool_returns_grounded_findings() -> None:
+    alerts = await get_oos_alerts("REP-001", "ST-001")
+    result = await analyze_shelf_image(
+        "ST-001",
+        "REP-001",
+        "WEST-01",
+        "upload://mcp/image-1",
+        [alerts["alerts"][0]["alert_id"]],
+    )
+    assert result["findings"][0]["grounded_alert_id"] == alerts["alerts"][0]["alert_id"]
+    assert result["source_system"] == "mock"
+
+
+@pytest.mark.asyncio
 async def test_mcp_runtime_manifest_and_call_tool() -> None:
     manifest = tool_manifest("osa", OSA_TOOLS)
     assert manifest["transport"] == "local-json"
@@ -71,6 +87,9 @@ async def test_mcp_runtime_manifest_and_call_tool() -> None:
         {"rep_id": "REP-001", "territory_code": "WEST-01", "visit_date": "2026-06-14"},
     )
     assert result[0]["store_id"]
+
+    shelf_manifest = tool_manifest("shelf_image", SHELF_IMAGE_TOOLS)
+    assert "analyze_shelf_image" in shelf_manifest["tools"]
 
 
 def test_mcp_server_cli_lists_tools() -> None:

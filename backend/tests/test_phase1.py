@@ -36,6 +36,7 @@ def test_backend_root_points_to_api() -> None:
         assert "POST /api/v1/sync/feedback-events" in api_index.json()["routes"]
         assert "POST /api/v1/orders/drafts/{draft_id}/submit-sandbox" in api_index.json()["routes"]
         assert "POST /api/v1/agent/run" in api_index.json()["routes"]
+        assert "POST /api/v1/stores/{store_id}/shelf-image-analysis" in api_index.json()["routes"]
 
 
 def test_unauthorized_store_access_returns_404() -> None:
@@ -105,3 +106,28 @@ def test_osa_summary_is_grounded_and_rejects_unknown_alerts() -> None:
             },
         )
         assert rejected.status_code == 400
+
+
+def test_shelf_image_analysis_is_grounded_and_audited() -> None:
+    with authorized_client() as c:
+        alert = c.get("/api/v1/stores/ST-001/alerts").json()["alerts"][0]
+        response = c.post(
+            "/api/v1/stores/ST-001/shelf-image-analysis",
+            json={
+                "store_id": "ST-001",
+                "session_id": "shelf-session",
+                "image_ref": "upload://shelf-session/image-1",
+                "alert_ids": [alert["alert_id"]],
+            },
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["store_id"] == "ST-001"
+        assert body["findings"][0]["grounded_alert_id"] == alert["alert_id"]
+        assert body["source_system"] == "mock"
+        assert body["audit_event_id"]
+
+        audit = c.get("/api/v1/audit/session/shelf-session")
+        assert audit.status_code == 200
+        event = next(event for event in audit.json()["events"] if event["event_type"] == "shelf_image_analysis_created")
+        assert event["payload_json"]["grounded_alert_ids"] == [alert["alert_id"]]

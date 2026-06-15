@@ -21,9 +21,9 @@ The endpoint is manager/admin-only. Local mock mode can remain ready with severa
 | CRM platform + OAuth | `DISCOVERY_CRM_PLATFORM` | TBD | CRM write-back |
 | ERP sandbox endpoint | `DISCOVERY_ERP_SANDBOX` | TBD | Real ERP submit |
 | Pilot territory | `DISCOVERY_PILOT_TERRITORY` | Defaulted to `WEST-01` | All live modes |
-| Rep device | `DISCOVERY_REP_DEVICE` | Defaulted to `PWA` | Offline runtime decisions |
+| Rep device | `DISCOVERY_REP_DEVICE` | Defaulted to `PWA` | Offline runtime decisions, shelf-image capture/runtime |
 | SSO provider | `DISCOVERY_SSO_PROVIDER` | TBD | External JWT |
-| Data residency | `DISCOVERY_DATA_RESIDENCY` | TBD | Databricks, Snowflake, Unity Catalog |
+| Data residency | `DISCOVERY_DATA_RESIDENCY` | TBD | Databricks, Snowflake, Unity Catalog, external shelf-image analysis |
 | Offline sync policy | `DISCOVERY_OFFLINE_SYNC_POLICY` | Defaulted to browser feedback queue | Offline write expansion |
 | Memory retention policy | `DISCOVERY_MEMORY_RETENTION_POLICY` | TBD | Mem0 |
 | Memory scopes | `DISCOVERY_MEMORY_SCOPES` | TBD | Mem0 |
@@ -36,6 +36,7 @@ Live-mode selectors currently gated:
 - `STORE_MASTER_ADAPTER=snowflake`
 - `AUDIT_SINK=unity_catalog`
 - `MEMORY_PROVIDER=mem0`
+- `SHELF_IMAGE_ADAPTER=external`
 
 Live data contract validation:
 

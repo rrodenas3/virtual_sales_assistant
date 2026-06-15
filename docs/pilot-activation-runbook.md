@@ -158,6 +158,31 @@ Exit gate:
 - Memory reads are scoped by rep/store and memory writes are non-blocking but telemetry-visible.
 - Hermes/Ollama local inference remains behind a separate spike gate with device RAM, latency, and tool-call accuracy criteria.
 
+## Phase 5b: Shelf Image Provider Readiness
+
+Estimated effort: 2-4 engineering days after device, image-retention, and data-residency decisions are confirmed.
+
+Owner: delivery owns image capture policy and provider approval; engineering owns adapter smoke tests and audit grounding.
+
+Goal: add image-assisted shelf review without allowing image-only replenishment decisions.
+
+Required configuration:
+
+```env
+SHELF_IMAGE_ADAPTER=external
+SHELF_IMAGE_ENDPOINT=<approved-provider-endpoint>
+SHELF_IMAGE_TOKEN_REF=<approved-token-reference>
+DISCOVERY_REP_DEVICE=<approved-device-runtime>
+DISCOVERY_DATA_RESIDENCY=<approved-region>
+```
+
+Exit gate:
+
+- External provider receives only approved image references plus grounded OOS alert context.
+- Findings either reference supplied alert IDs or are labeled `unknown`/`low`.
+- Every analysis emits `shelf_image_analysis_created` audit events.
+- Image findings cannot create orders without the existing HITL draft and approval flow.
+
 ## Phase 6: Final VSA Pilot Gate
 
 Estimated effort: 1-2 days after phases 1-5 are green.

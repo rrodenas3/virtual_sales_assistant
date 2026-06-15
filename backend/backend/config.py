@@ -46,10 +46,14 @@ class Settings(BaseSettings):
     store_master_adapter: Literal["mock", "snowflake"] = "mock"
     crm_adapter: Literal["local", "external"] = "local"
     erp_adapter: Literal["sandbox", "external"] = "sandbox"
+    shelf_image_adapter: Literal["mock", "external"] = "mock"
     crm_endpoint: str | None = None
     crm_token_ref: str | None = None
     erp_endpoint: str | None = None
     erp_token_ref: str | None = None
+    shelf_image_endpoint: str | None = None
+    shelf_image_token_ref: str | None = None
+    shelf_image_timeout_seconds: float = 8.0
     audit_sink: Literal["postgres", "unity_catalog"] = "postgres"
     audit_dual_write_enabled: bool = False
     audit_dual_write_fail_closed: bool = True

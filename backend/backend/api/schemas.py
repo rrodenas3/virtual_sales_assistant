@@ -194,6 +194,33 @@ class RGMRecommendationsResponse(BaseModel):
     audit_event_id: str
 
 
+class ShelfImageAnalysisRequest(BaseModel):
+    store_id: str
+    session_id: str
+    image_ref: str = Field(max_length=500)
+    alert_ids: list[str] | None = None
+
+
+class ShelfImageFinding(BaseModel):
+    finding_id: str
+    store_id: str
+    sku_id: str | None
+    finding_type: Literal["possible_oos", "phantom_inventory_signal", "promo_non_compliance", "unknown"]
+    confidence_label: ConfidenceLabel
+    evidence: str
+    recommended_action: str
+    grounded_alert_id: str | None = None
+
+
+class ShelfImageAnalysisResponse(BaseModel):
+    analysis_id: str
+    store_id: str
+    findings: list[ShelfImageFinding]
+    source_system: str
+    model_version: str
+    audit_event_id: str
+
+
 class OrderDraftItem(BaseModel):
     sku_id: str
     sku_name: str

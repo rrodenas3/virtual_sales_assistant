@@ -21,6 +21,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented: local draft provider default plus discovery-gated external CRM HTTP adapter |
 | ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects by default | Implemented: sandbox provider default plus discovery-gated external ERP HTTP adapter |
 | Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue, IndexedDB read cache, and PWA shell first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache, manifest, service worker app shell/static cache |
+| Shelf image | Image-based shelf recognition MCP | Mock-first image-analysis boundary; external provider only after device/data-residency discovery | Implemented: `POST /stores/{id}/shelf-image-analysis`, `mcp.shelf_image.analyze_shelf_image`, mock grounded findings from OOS alerts, external HTTP adapter scaffold |
 | Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs |
 | Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, OTLP HTTP log export boundary, observability health, audit mirror failure telemetry |
 | Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented: workbench UI; custom feature-flagged `/agent/run` SSE assistant panel; CopilotKit package integration deferred |
@@ -55,6 +56,7 @@ POST /api/v1/crm/visit-log-drafts
 POST /api/v1/sync/feedback-events
 POST /api/v1/agent/osa-summary
 POST /api/v1/agent/run
+POST /api/v1/stores/{store_id}/shelf-image-analysis
 GET  /api/v1/audit/session/{session_id}
 ```
 
@@ -70,6 +72,7 @@ GET  /api/v1/audit/session/{session_id}
 | `mcp.rgm.get_rgm_recommendations` | RGM and OSA adapter factories | `GET /stores/{id}/rgm-recommendations` |
 | `mcp.orders.preview_order_draft_payload` | Stable payload hash service | `POST /orders/drafts` preflight |
 | `mcp.crm.preview_visit_log_draft` | CRM draft payload contract | `POST /crm/visit-log-drafts` preflight |
+| `mcp.shelf_image.analyze_shelf_image` | Shelf image adapter factory + OSA adapter grounding | `POST /stores/{id}/shelf-image-analysis` |
 
 ## Intentional Deviations From Original Spec
 
@@ -83,7 +86,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 - External guardrail classifier behavior is implemented against an HTTP contract with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; production endpoint selection remains discovery/configuration work.
 - No real ERP submit by default. `submit-sandbox` validates HITL policy and payload hash; external ERP provider is discovery-gated and disabled unless configured.
 - No Hermes/Ollama inference yet. Browser offline feedback sync, IndexedDB read fallback, and PWA app-shell caching are implemented first.
-- No shelf image recognition, voice, digital shelf, manager-initiated tasks, or multi-tenant support.
+- No production shelf image recognition, voice, digital shelf, manager-initiated tasks, or multi-tenant support. Shelf-image analysis is currently a governed mock/external-provider boundary only.
 
 ## Remaining Work To Fully Meet The Original Spec
 
@@ -104,7 +107,7 @@ Later:
 - LangSmith exporters and production collector wiring beyond the OTLP HTTP log boundary.
 - Live Haiku/Bedrock guardrail classifier implementation beyond the scaffold.
 - Hermes/Ollama offline agent spike and local tool-call accuracy testing.
-- Shelf image MCP.
+- Credentialed shelf-image provider smoke tests after image policy and data residency gates are answered.
 - Credentialed CRM and ERP smoke tests after discovery gates are answered.
 
 ## Verification Commands

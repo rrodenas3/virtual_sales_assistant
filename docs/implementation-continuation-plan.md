@@ -61,6 +61,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Pilot activation gates now distinguish local scaffold readiness, AI demo readiness, and final pilot readiness through `scripts/pilot_readiness_report.py` and `docs/pilot-activation-runbook.md`.
 - Observability now has an OTLP HTTP export boundary behind `OBSERVABILITY_PROVIDER=otlp_http`, while structured local logging remains the default.
 - Eval artifacts now include MLflow-ready metrics/params plus an optional `scripts/log_eval_to_mlflow.py` handoff script.
+- Shelf-image analysis now has a mock-first REST and MCP boundary with external-provider discovery gates; no real image pixels are analyzed by default.
 
 ## Deferred Spec Areas
 
@@ -69,7 +70,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts and optional logging.
 - Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
 - Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract.
-- Live Databricks, Snowflake, CRM, ERP, and device integrations.
+- Live Databricks, Snowflake, CRM, ERP, shelf-image, and device integrations.
 - Hermes/Ollama offline inference spike and offline local-agent tool calls.
 
 ## Locked Forward Decisions

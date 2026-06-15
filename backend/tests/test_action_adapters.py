@@ -3,6 +3,8 @@ import pytest
 
 from backend.adapters.crm import ExternalCRMAdapter
 from backend.adapters.erp import ExternalERPAdapter
+from backend.adapters.shelf_image import ExternalShelfImageAdapter
+from backend.api.schemas import OOSAlert
 from backend.config import settings
 
 
@@ -63,3 +65,63 @@ def test_external_erp_adapter_requires_endpoint_and_token(monkeypatch) -> None:
 
     with pytest.raises(RuntimeError, match="erp_endpoint, erp_token_ref"):
         ExternalERPAdapter(settings)
+
+
+@pytest.mark.asyncio
+async def test_external_shelf_image_adapter_posts_grounded_alerts(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "shelf_image_endpoint", "https://vision.example.test")
+    monkeypatch.setattr(settings, "shelf_image_token_ref", "shelf-token-ref")
+    monkeypatch.setattr(settings, "shelf_image_timeout_seconds", 3.0)
+    _mock_async_client(
+        monkeypatch,
+        {
+            "analysis_id": "analysis-1",
+            "model_version": "vision-v1",
+            "findings": [
+                {
+                    "finding_id": "finding-1",
+                    "store_id": "ST-001",
+                    "sku_id": "SKU-4001",
+                    "finding_type": "possible_oos",
+                    "confidence_label": "medium",
+                    "evidence": "External provider returned a grounded finding.",
+                    "recommended_action": "Confirm on-shelf availability",
+                    "grounded_alert_id": "ST-001:SKU-4001:2026-06-15",
+                }
+            ],
+        },
+    )
+    alert = OOSAlert(
+        alert_id="ST-001:SKU-4001:2026-06-15",
+        prediction_row_id="PRED-1",
+        store_id="ST-001",
+        sku_id="SKU-4001",
+        sku_name="Core SKU 4001",
+        category="Beverages",
+        risk_score=0.8,
+        is_phantom_inventory=False,
+        predicted_stockout_date=None,
+        root_cause_label="low_inventory",
+        recommended_action="Confirm on-shelf availability",
+        confidence_label="medium",
+        data_freshness_ts="2026-06-15T00:00:00Z",
+        model_version="mock-v1",
+        source_system="mock",
+    )
+
+    analysis_id, findings = await ExternalShelfImageAdapter(settings).analyze(
+        store_id="ST-001",
+        image_ref="upload://session/image-1",
+        alerts=[alert],
+    )
+
+    assert analysis_id == "analysis-1"
+    assert findings[0].grounded_alert_id == alert.alert_id
+
+
+def test_external_shelf_image_adapter_requires_endpoint_and_token(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "shelf_image_endpoint", None)
+    monkeypatch.setattr(settings, "shelf_image_token_ref", None)
+
+    with pytest.raises(RuntimeError, match="shelf_image_endpoint, shelf_image_token_ref"):
+        ExternalShelfImageAdapter(settings)

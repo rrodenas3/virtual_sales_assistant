@@ -84,7 +84,7 @@ def discovery_gates(config: Settings = settings) -> list[DiscoveryGate]:
             "Data residency",
             "discovery_data_residency",
             config.discovery_data_residency,
-            ("databricks", "snowflake", "unity_catalog"),
+            ("databricks", "snowflake", "unity_catalog", "shelf_image"),
             "Required before production data movement.",
         ),
         _gate(
@@ -109,6 +109,14 @@ def discovery_gates(config: Settings = settings) -> list[DiscoveryGate]:
             ("mem0",),
             "Required before enabling rep, store, or session memory scopes.",
         ),
+        _gate(
+            "Shelf image policy",
+            "discovery_rep_device",
+            config.discovery_rep_device,
+            ("shelf_image",),
+            "Required before shelf-image capture or image-analysis runtime decisions.",
+            defaulted_values=("PWA",),
+        ),
     ]
 
 
@@ -128,6 +136,8 @@ def selected_live_modes(config: Settings = settings) -> set[str]:
         modes.add("erp_submit")
     if config.memory_provider == "mem0":
         modes.add("mem0")
+    if config.shelf_image_adapter == "external":
+        modes.add("shelf_image")
     return modes
 
 
