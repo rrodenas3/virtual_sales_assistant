@@ -59,6 +59,12 @@ services:
       dockerfile: mcp/Dockerfile
     command: ["python", "-m", "mcp.shelf_image.server", "--list"]
 
+  mcp-manager:
+    build:
+      context: .
+      dockerfile: mcp/Dockerfile
+    command: ["python", "-m", "mcp.manager.server", "--list"]
+
   postgres:
     image: postgres:16
     environment:

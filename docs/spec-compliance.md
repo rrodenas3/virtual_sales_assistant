@@ -77,6 +77,8 @@ GET  /api/v1/audit/session/{session_id}
 | `mcp.orders.preview_order_draft_payload` | Stable payload hash service | `POST /orders/drafts` preflight |
 | `mcp.crm.preview_visit_log_draft` | CRM draft payload contract | `POST /crm/visit-log-drafts` preflight |
 | `mcp.shelf_image.analyze_shelf_image` | Shelf image adapter factory + OSA adapter grounding | `POST /stores/{id}/shelf-image-analysis` |
+| `mcp.manager.preview_manager_task_payload` | Manager task payload service | `POST /manager/tasks` preflight |
+| `mcp.manager.preview_manager_task_status_update` | Manager task payload service | `POST /manager/tasks/{id}/status` preflight |
 
 ## Intentional Deviations From Original Spec
 

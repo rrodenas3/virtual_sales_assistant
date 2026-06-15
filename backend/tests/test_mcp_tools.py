@@ -8,6 +8,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from mcp.crm.tools import preview_visit_log_draft  # noqa: E402
+from mcp.manager.server import TOOLS as MANAGER_TOOLS  # noqa: E402
+from mcp.manager.tools import preview_manager_task_payload, preview_manager_task_status_update  # noqa: E402
 from mcp.orders.tools import preview_order_draft_payload  # noqa: E402
 from mcp.osa.server import TOOLS as OSA_TOOLS  # noqa: E402
 from mcp.osa.tools import get_oos_alerts, get_phantom_inventory, get_visit_priority  # noqa: E402
@@ -60,6 +62,33 @@ def test_action_mcp_preview_tools_reuse_service_hashing() -> None:
     assert visit["status"] == "DRAFT"
     assert visit["requires_approval"] is False
 
+    task = preview_manager_task_payload(
+        territory_code="WEST-01",
+        store_id="ST-001",
+        assigned_rep_id="REP-001",
+        created_by="MGR-001",
+        session_id="mcp_manager_task",
+        title="Check shelf",
+        task_type="shelf_check",
+        priority="medium",
+        notes="Confirm risk.",
+        linked_alert_ids=["ST-001:SKU-4001:2026-06-15"],
+    )
+    assert task["payload_json"]["linked_alert_ids"] == ["ST-001:SKU-4001:2026-06-15"]
+    assert task["requires_approval"] is False
+
+    status = preview_manager_task_status_update(
+        task_id="task_1",
+        updated_by="REP-001",
+        previous_status="OPEN",
+        next_status="COMPLETED",
+        session_id="mcp_manager_status",
+        existing_payload=task["payload_json"],
+        notes="Done.",
+    )
+    assert status["payload_json"]["previous_status"] == "OPEN"
+    assert status["payload_json"]["status_updated_by"] == "REP-001"
+
 
 @pytest.mark.asyncio
 async def test_shelf_image_mcp_tool_returns_grounded_findings() -> None:
@@ -90,6 +119,10 @@ async def test_mcp_runtime_manifest_and_call_tool() -> None:
 
     shelf_manifest = tool_manifest("shelf_image", SHELF_IMAGE_TOOLS)
     assert "analyze_shelf_image" in shelf_manifest["tools"]
+
+    manager_manifest = tool_manifest("manager", MANAGER_TOOLS)
+    assert "preview_manager_task_payload" in manager_manifest["tools"]
+    assert "preview_manager_task_status_update" in manager_manifest["tools"]
 
 
 def test_mcp_server_cli_lists_tools() -> None:

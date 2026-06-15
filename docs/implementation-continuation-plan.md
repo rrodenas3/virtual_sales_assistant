@@ -64,6 +64,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Shelf-image analysis now has a mock-first REST and MCP boundary with external-provider discovery gates; no real image pixels are analyzed by default.
 - Manager-initiated work is scaffolded through auditable task assignment/status endpoints and a deployable `manager_tasks` migration.
 - Local pilot readiness now includes scaffold smoke gates for HITL order submit, shelf-image analysis, and manager task transitions.
+- Manager task MCP preview tools now share the backend task payload service with REST routes.
 
 ## Deferred Spec Areas
 
