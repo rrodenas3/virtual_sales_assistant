@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
+from backend.auth.providers import auth_status  # noqa: E402
 from backend.config import settings  # noqa: E402
 from backend.governance.action_providers import action_provider_status  # noqa: E402
 from backend.governance.data_platform import data_platform_status  # noqa: E402
@@ -137,6 +138,7 @@ def build_report(target: Target) -> dict[str, Any]:
     memory = memory_status()
     action_providers = action_provider_status()
     data_platform = data_platform_status()
+    auth = auth_status()
     modes = selected_live_modes()
     blockers = readiness_blockers()
     providers = eval_result["summary"]["providers"]
@@ -208,6 +210,11 @@ def build_report(target: Target) -> dict[str, Any]:
             data_platform["ready"],
             data_platform_detail,
         ),
+        _gate(
+            "auth_provider",
+            auth["ready"],
+            f"provider={auth['provider']}; blockers={auth['blockers']}",
+        ),
     ]
     return {
         "target": target,
@@ -220,6 +227,7 @@ def build_report(target: Target) -> dict[str, Any]:
         "memory": memory,
         "action_providers": action_providers,
         "data_platform": data_platform,
+        "auth": auth,
         "gates": gates,
     }
 

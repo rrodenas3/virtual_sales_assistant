@@ -77,6 +77,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Memory provider activation now has `/health/memory` status, showing whether Mem0 is enabled and which token, retention, or scope gates still block activation.
 - External CRM/ERP write-back activation now has `/health/action-providers` status and a pilot-readiness gate for endpoint, token-reference, and discovery blockers.
 - Live Databricks/Snowflake activation now has `/health/data-platform` status and a pilot-readiness gate for credentials, discovery answers, and live contract validation.
+- External JWT activation now has `/health/auth` status and a pilot-readiness gate for SSO discovery, issuer, audience, and accepted algorithms.
 
 ## Deferred Spec Areas
 

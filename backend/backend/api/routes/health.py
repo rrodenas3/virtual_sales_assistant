@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from sqlalchemy import text
 
+from backend.auth.providers import auth_status
 from backend.config import settings
 from backend.db.session import engine
 from backend.governance.action_providers import action_provider_status
@@ -71,3 +72,8 @@ async def action_providers_health() -> dict:
 @router.get("/health/data-platform")
 async def data_platform_health() -> dict:
     return {"status": "ok", **data_platform_status()}
+
+
+@router.get("/health/auth")
+async def auth_health() -> dict:
+    return {"status": "ok", **auth_status()}

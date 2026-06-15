@@ -23,7 +23,7 @@ The internal architecture is organized into ten panels. The current repository i
 
 ### Step 1: Identity Boundary
 
-The browser sends a mock JWT in local/demo mode. Backend auth is provider-based: `AUTH_PROVIDER=mock` is active for demo, and `AUTH_PROVIDER=external_jwt` validates issuer, audience, JWKS key ID, algorithm, role claim, and territory claim after SSO discovery gates are answered.
+The browser sends a mock JWT in local/demo mode. Backend auth is provider-based: `AUTH_PROVIDER=mock` is active for demo, and `AUTH_PROVIDER=external_jwt` validates issuer, audience, JWKS key ID, algorithm, role claim, and territory claim after SSO discovery gates are answered. `/api/v1/health/auth` exposes the selected provider and missing external JWT configuration before pilot traffic uses it.
 
 Claims:
 
@@ -70,6 +70,7 @@ Primary route groups:
 - `/crm`: visit-log drafts.
 - `/health/action-providers`: selected CRM/ERP provider readiness.
 - `/health/data-platform`: selected Databricks/Snowflake provider readiness.
+- `/health/auth`: selected identity provider readiness.
 - `/sync`: idempotent offline feedback sync.
 - `/integrations`: discovery readiness for live integration gates.
 - `/metrics`: pilot KPI rollup.
@@ -133,6 +134,7 @@ Controls:
 - RBAC: reps are scoped to assigned stores; managers are scoped to territory; admins can read audit.
 - Integration readiness blocks selected live providers until required discovery gates are answered.
 - Data-platform readiness blocks selected Databricks/Snowflake modes until credentials, discovery answers, and live contract validation are present.
+- Auth readiness blocks selected external JWT mode until SSO discovery, issuer, audience, and algorithms are present.
 - Unauthorized store access returns `404` for anti-enumeration.
 - Summary guardrails use a provider boundary. Pattern blocking is active by default; external classifier mode is scaffolded with explicit fail-open/fail-closed behavior.
 - Write-like flows are draft-first and require explicit approval before sandbox submit.

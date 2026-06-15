@@ -7,7 +7,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Area | Original spec intent | Revised plan decision | Current status |
 |---|---|---|---|
 | Product UX | Field assistant with before/during/after visit support | Workbench-first MVP, chat secondary | Implemented: route workbench, store detail, OOS alerts, RGM/action band, trace drawer |
-| Auth / identity | SSO/CRM-mapped rep identity, unresolved in discovery | Mock JWT with `sub`, `territory_code`, `role`; ignore client rep IDs; validate external JWT after discovery | Implemented: provider boundary, mock JWT, JWKS-backed external JWT validation, rep/store RBAC, unauthorized store access returns `404` |
+| Auth / identity | SSO/CRM-mapped rep identity, unresolved in discovery | Mock JWT with `sub`, `territory_code`, `role`; ignore client rep IDs; validate external JWT after discovery | Implemented: provider boundary, mock JWT, JWKS-backed external JWT validation, auth readiness, rep/store RBAC, unauthorized store access returns `404` |
 | Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active; Databricks/Snowflake parameterized query adapters scaffolded; live contract manifest, validation script, and data-platform readiness added for credentialed environments |
 | Priority scoring | Formula sketched in OSA MCP SQL | Deterministic service formula with explainable components | Implemented and tested |
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
@@ -42,6 +42,7 @@ GET  /api/v1/health/guardrails
 GET  /api/v1/health/memory
 GET  /api/v1/health/action-providers
 GET  /api/v1/health/data-platform
+GET  /api/v1/health/auth
 GET  /api/v1/integrations/readiness
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
