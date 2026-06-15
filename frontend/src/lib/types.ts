@@ -227,6 +227,36 @@ export type ApprovalQueueResponse = {
   items: ApprovalQueueItem[];
 };
 
+export type ManagerTask = {
+  task_id: string;
+  territory_code: string;
+  store_id: string;
+  store_name: string | null;
+  assigned_rep_id: string;
+  created_by: string;
+  session_id: string;
+  title: string;
+  task_type: "shelf_check" | "follow_up" | "promo_check" | "order_review";
+  priority: "low" | "medium" | "high";
+  due_date: string | null;
+  status: string;
+  payload_json: {
+    notes?: string | null;
+    linked_alert_ids?: string[];
+    status_notes?: string | null;
+    status_updated_by?: string;
+    previous_status?: string;
+  };
+  created_at: string;
+  audit_event_id: string | null;
+};
+
+export type ManagerTaskListResponse = {
+  territory_code?: string | null;
+  assigned_rep_id?: string | null;
+  tasks: ManagerTask[];
+};
+
 export type AuditEvent = {
   event_id: string;
   session_id: string;

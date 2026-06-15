@@ -3,11 +3,14 @@ import { AlertTriangle, Bot, CheckCircle2, Clock, Database, MapPin, PackageCheck
 import {
   AGENT_RUN_ENABLED,
   approveOrderDraft,
+  createManagerTask,
   createOrderDraft,
   getAdminAuditEvent,
   getAlerts,
   getAdminAuditEvents,
   getApprovalQueue,
+  getManagerTasks,
+  getMyManagerTasks,
   getRGMRecommendations,
   getPilotMetrics,
   getStore,
@@ -17,7 +20,8 @@ import {
   sendFeedback,
   runAgentSummary,
   syncFeedbackEvents,
-  submitOrderDraftSandbox
+  submitOrderDraftSandbox,
+  updateManagerTaskStatus
 } from "./lib/api";
 import { buildSessionId, getCurrentIdentity, getDemoRole, setDemoRole } from "./lib/api";
 import { clearQueuedFeedback, getQueuedFeedback, queueFeedback } from "./lib/offlineQueue";
@@ -30,6 +34,8 @@ import type {
   ApprovalResponse,
   ApprovalQueueResponse,
   DemoRole,
+  ManagerTask,
+  ManagerTaskListResponse,
   OOSAlert,
   OrderDraftResponse,
   OSASummaryResponse,
@@ -64,6 +70,9 @@ export function App() {
   const [role, setRole] = useState<DemoRole>(getDemoRole());
   const [territorySummary, setTerritorySummary] = useState<TerritorySummaryResponse | null>(null);
   const [approvalQueue, setApprovalQueue] = useState<ApprovalQueueResponse | null>(null);
+  const [managerTasks, setManagerTasks] = useState<ManagerTaskListResponse | null>(null);
+  const [myTasks, setMyTasks] = useState<ManagerTaskListResponse | null>(null);
+  const [taskNotice, setTaskNotice] = useState<string | null>(null);
   const [adminAudit, setAdminAudit] = useState<AdminAuditEventsResponse | null>(null);
   const [auditDetail, setAuditDetail] = useState<AdminAuditEventDetailResponse | null>(null);
   const [auditFilters, setAuditFilters] = useState({ event_type: "", rep_id: "", resource_type: "" });
@@ -163,12 +172,20 @@ export function App() {
 
   useEffect(() => {
     if (role !== "manager") return;
-    Promise.all([getTerritorySummary(), getApprovalQueue()])
-      .then(([summaryRows, queueRows]) => {
+    Promise.all([getTerritorySummary(), getApprovalQueue(), getManagerTasks()])
+      .then(([summaryRows, queueRows, taskRows]) => {
         setTerritorySummary(summaryRows);
         setApprovalQueue(queueRows);
+        setManagerTasks(taskRows);
       })
       .catch((err: Error) => setError(err.message));
+  }, [role]);
+
+  useEffect(() => {
+    if (role !== "rep") return;
+    getMyManagerTasks()
+      .then(setMyTasks)
+      .catch(() => setMyTasks(null));
   }, [role]);
 
   useEffect(() => {
@@ -260,6 +277,27 @@ export function App() {
     setApprovalQueue(queueRows);
   }
 
+  async function assignShelfCheck(row: { store_id: string; store_name: string; rep_id: string }) {
+    const created = await createManagerTask({
+      store_id: row.store_id,
+      assigned_rep_id: row.rep_id,
+      session_id: buildSessionId("manager_work"),
+      title: `Verify shelf at ${row.store_name}`,
+      task_type: "shelf_check",
+      priority: "medium",
+      notes: "Confirm top OOS risks before the next replenishment decision."
+    });
+    setTaskNotice(`Assigned ${created.title}`);
+    setManagerTasks(await getManagerTasks());
+  }
+
+  async function changeTaskStatus(task: ManagerTask, status: "COMPLETED" | "BLOCKED" | "CANCELLED") {
+    const updated = await updateManagerTaskStatus(task.task_id, status, buildSessionId("manager_work_status"));
+    setTaskNotice(`${updated.title} marked ${updated.status.toLowerCase()}`);
+    if (role === "manager") setManagerTasks(await getManagerTasks());
+    if (role === "rep") setMyTasks(await getMyManagerTasks());
+  }
+
   async function openAuditDetail(eventId: string) {
     const detail = await getAdminAuditEvent(eventId);
     setAuditDetail(detail);
@@ -278,6 +316,9 @@ export function App() {
     setError(null);
     setTerritorySummary(null);
     setApprovalQueue(null);
+    setManagerTasks(null);
+    setMyTasks(null);
+    setTaskNotice(null);
     setAdminAudit(null);
     setAuditDetail(null);
   }
@@ -310,6 +351,7 @@ export function App() {
 
       {error && <div className="errorBanner">{error}</div>}
       {cacheNotice && <div className="cacheBanner">{cacheNotice}</div>}
+      {taskNotice && <div className="cacheBanner">{taskNotice}</div>}
 
       {role === "manager" && territorySummary && (
         <section className="leadershipPane">
@@ -329,6 +371,43 @@ export function App() {
                 <span>{row.confirmed_feedback_count} confirmed</span>
               </button>
             ))}
+          </div>
+          <div className="queueBlock">
+            <div className="sectionHead">
+              <div>
+                <p className="eyebrow">Manager tasks</p>
+                <h3>{managerTasks?.tasks.length ?? 0} assigned tasks</h3>
+              </div>
+            </div>
+            <div className="taskQueue">
+              {territorySummary.stores.map((row) => (
+                <article key={`assign-${row.store_id}`} className="taskRow">
+                  <div>
+                    <strong>{row.store_name}</strong>
+                    <span>{row.rep_id} / {row.oos_sku_count} OOS risks</span>
+                  </div>
+                  <button className="secondaryButton" data-testid={`assign-work-${row.store_id}`} onClick={() => assignShelfCheck(row)}>
+                    Assign shelf check
+                  </button>
+                </article>
+              ))}
+              {managerTasks?.tasks.map((task) => (
+                <article key={task.task_id} className="taskRow">
+                  <div>
+                    <strong>{task.title}</strong>
+                    <span>{task.store_name ?? task.store_id} / {task.assigned_rep_id} / {task.status}</span>
+                  </div>
+                  <button
+                    className="secondaryButton"
+                    data-testid={`cancel-work-${task.task_id}`}
+                    disabled={task.status === "CANCELLED"}
+                    onClick={() => changeTaskStatus(task, "CANCELLED")}
+                  >
+                    Cancel
+                  </button>
+                </article>
+              ))}
+            </div>
           </div>
           {approvalQueue && (
             <div className="queueBlock">
@@ -384,6 +463,42 @@ export function App() {
       )}
 
       {role === "rep" && (
+      <>
+      {myTasks && myTasks.tasks.length > 0 && (
+        <section className="taskStrip" data-testid="my-tasks">
+          <div>
+            <p className="eyebrow">Assigned work</p>
+            <h3>{myTasks.tasks.filter((task) => task.status === "OPEN").length} open tasks</h3>
+          </div>
+          <div className="taskQueue">
+            {myTasks.tasks.map((task) => (
+              <article key={task.task_id} className="taskRow">
+                <div>
+                  <strong>{task.title}</strong>
+                  <span>{task.store_name ?? task.store_id} / {task.priority} / {task.status}</span>
+                </div>
+                <div className="taskActions">
+                  <button
+                    className="secondaryButton"
+                    data-testid={`complete-work-${task.task_id}`}
+                    disabled={task.status !== "OPEN"}
+                    onClick={() => changeTaskStatus(task, "COMPLETED")}
+                  >
+                    Complete
+                  </button>
+                  <button
+                    className="secondaryButton"
+                    disabled={task.status !== "OPEN"}
+                    onClick={() => changeTaskStatus(task, "BLOCKED")}
+                  >
+                    Block
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
       <section className="layout">
         <aside className="routePane">
           <div className="paneTitle">
@@ -554,6 +669,7 @@ export function App() {
           )}
         </section>
       </section>
+      </>
       )}
 
       <TraceDrawer

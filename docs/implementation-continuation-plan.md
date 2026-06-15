@@ -67,6 +67,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Manager task MCP preview tools now share the backend task payload service with REST routes.
 - AI-demo readiness is now exposed through `/health/ai` and `/integrations/readiness`, so template summaries cannot be confused with the required real-provider validation path.
 - Live data contract validation now supports `--output-dir` artifacts, including a readiness env JSON for recording the validated status after credentialed checks.
+- The frontend now exposes manager task assignment/cancel controls and rep task completion/block controls against the existing auditable task APIs.
 
 ## Deferred Spec Areas
 
