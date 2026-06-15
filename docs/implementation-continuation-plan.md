@@ -97,15 +97,22 @@ This plan continues the MVP from the current public repository state. It hardens
 - Pilot readiness reports, readiness bundles, `/integrations/readiness`, and manager/admin readiness panels now include target-specific runtime validation commands for local, AI-demo, and final pilot handoff from a shared governance helper.
 - MLflow handoff now has a dry-run manifest mode that validates eval artifacts and writes `mlflow_handoff.json`/`mlflow_handoff.md` without requiring a managed MLflow server or local MLflow package.
 - AI-demo readiness now requires explicit approved-provider eval evidence through `AI_DEMO_EVAL_VALIDATED`, with runtime commands, generated env snippets, and readiness bundle env keys documenting how to generate and record the proof.
+- Final pilot validation now has a public-safe env handoff script that merges AI-demo and live-data validation evidence into `pilot_validation.env.snippet` without secrets.
+- Final local API smoke now writes handoff artifacts for the complete rep-manager-admin workflow, including HITL submit, CRM draft, audit, metrics, and readiness paths.
+- API contract validation now detects stale running backends that expose an old route set before frontend smoke or pilot handoff.
+- Unity Catalog audit activation now has a dry-run smoke artifact that verifies the parameterized insert and DDL contract before any credentialed mirror write.
+- CRM/ERP write-back activation now has a dry-run action provider smoke artifact that verifies outbound request shape, approval ID, and payload-hash binding without live endpoints.
+- Guardrail classifier activation now has a dry-run smoke artifact covering below-threshold allow, threshold block, and fail-open pattern fallback behavior.
+- Memory activation now has a dry-run smoke artifact covering default no-memory mode plus scoped Mem0 read/write payloads.
 
 ## Deferred Spec Areas
 
 - CopilotKit client package integration after the custom SSE pilot surface proves useful.
-- Live Unity Catalog audit provisioning and credentialed smoke tests beyond the parameterized insert path.
+- Live Unity Catalog audit provisioning and credentialed smoke tests beyond the parameterized insert path and dry-run smoke artifact.
 - LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts, dry-run handoff manifests, and optional logging.
-- Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
-- Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract and readiness endpoint.
-- Live Databricks, Snowflake, CRM, ERP, shelf-image, and device credentialed smoke tests after readiness gates pass.
+- Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract and dry-run classifier smoke.
+- Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract, readiness endpoint, and dry-run memory smoke.
+- Live Databricks, Snowflake, CRM, ERP, shelf-image, and device credentialed smoke tests after readiness gates pass; CRM/ERP now has a dry-run payload smoke first.
 - Hermes/Ollama offline inference spike and offline local-agent tool calls.
 
 ## Locked Forward Decisions

@@ -112,6 +112,12 @@ python scripts/pilot_readiness_report.py --target ai-demo --output-dir artifacts
 
 Template-only eval success proves scaffold safety, not final AI-assistant readiness. After the approved provider eval passes, use `ai_demo_eval.env.snippet` to record `AI_DEMO_EVAL_VALIDATED=true`, `AI_DEMO_EVAL_LAST_VALIDATION_AT`, and `AI_DEMO_EVAL_VALIDATION_SUMMARY` in the approved runtime environment so `/health/ai` and `/integrations/readiness` can distinguish configured AI from validated AI.
 
+After live data contract validation also passes, merge the non-secret validation values for final runtime setup:
+
+```powershell
+python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json --live-data-env artifacts/contracts/live/readiness_env.json --output-dir artifacts/pilot-env
+```
+
 Every HTTP response includes `x-request-id` and `x-response-time-ms`. When `OBSERVABILITY_PROVIDER=structured`, the backend emits structured `http_request` events to the `phantom.telemetry` logger with method, path, status, request ID, and duration.
 
 For collector integration, set `OBSERVABILITY_PROVIDER=otlp_http` and `OTEL_EXPORTER_OTLP_ENDPOINT` to the approved collector base URL. The exporter posts OTLP log records to `/v1/logs`, includes `service.name=phantom-vsa-backend`, and defaults to fail-open unless `OTEL_FAIL_CLOSED=true`.

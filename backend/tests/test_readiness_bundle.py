@@ -18,7 +18,7 @@ def test_readiness_bundle_combines_local_safe_artifacts() -> None:
     assert "contracts" in bundle["live_data_contract_manifest"]
     assert "LIVE_DATA_CONTRACT_VALIDATED" in bundle["live_data_readiness_env_manifest"]
     command_names = {command["name"] for command in bundle["runtime_validation_commands"]}
-    assert command_names == {"public_safety_scan", "local_readiness"}
+    assert command_names == {"public_safety_scan", "local_readiness", "api_contract", "final_api_smoke"}
     assert bundle["required_manual_checks"]
 
 
@@ -29,6 +29,8 @@ def test_readiness_bundle_includes_pilot_runtime_commands() -> None:
     assert {
         "public_safety_scan",
         "local_readiness",
+        "api_contract",
+        "final_api_smoke",
         "ai_demo_readiness",
         "summary_load_test",
         "live_data_contracts",
@@ -41,11 +43,18 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
 
     assert set(command_sets) == {"local", "ai-demo", "pilot"}
     assert command_sets["local"][0]["name"] == "public_safety_scan"
+    assert any(command["name"] == "api_contract" for command in command_sets["local"])
+    assert any(command["name"] == "final_api_smoke" for command in command_sets["local"])
     assert any(command["name"] == "summary_load_test" for command in command_sets["ai-demo"])
     assert any(command["name"] == "ai_summary_eval" for command in command_sets["ai-demo"])
     assert any(command["name"] == "mlflow_handoff_dry_run" for command in command_sets["ai-demo"])
     assert any(command["name"] == "ai_demo_eval_evidence" for command in command_sets["ai-demo"])
     assert any(command["name"] == "live_data_contracts" for command in command_sets["pilot"])
+    assert any(command["name"] == "unity_audit_smoke" for command in command_sets["pilot"])
+    assert any(command["name"] == "action_provider_smoke" for command in command_sets["pilot"])
+    assert any(command["name"] == "guardrail_classifier_smoke" for command in command_sets["pilot"])
+    assert any(command["name"] == "memory_provider_smoke" for command in command_sets["pilot"])
+    assert any(command["name"] == "pilot_env_handoff" for command in command_sets["pilot"])
 
 
 def test_readiness_bundle_writes_handoff_artifacts(tmp_path) -> None:

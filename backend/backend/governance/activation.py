@@ -33,6 +33,16 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
             "command": "python scripts/pilot_readiness_report.py --target local --output-dir artifacts/readiness/local",
             "notes": "Safe local scaffold gate using mock/default providers.",
         },
+        {
+            "name": "api_contract",
+            "command": "python scripts/validate_api_contract.py --base-url http://localhost:8000 --output-dir artifacts/api-contract",
+            "notes": "Detects stale backend processes missing current manager/readiness routes.",
+        },
+        {
+            "name": "final_api_smoke",
+            "command": "python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke",
+            "notes": "End-to-end local API smoke covering rep, manager, admin, HITL, audit, and metrics paths.",
+        },
     ]
     if target in {"ai-demo", "pilot"}:
         commands.extend(
@@ -83,6 +93,34 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
                     "name": "live_data_contracts",
                     "command": "python scripts/validate_live_data_contracts.py --output-dir artifacts/contracts/live",
                     "notes": "Run only in an approved credentialed environment.",
+                },
+                {
+                    "name": "unity_audit_smoke",
+                    "command": "python scripts/unity_audit_smoke.py --output-dir artifacts/unity-audit-smoke",
+                    "notes": "Dry-run parameterized audit insert and DDL drift check before credentialed Unity Catalog smoke.",
+                },
+                {
+                    "name": "action_provider_smoke",
+                    "command": "python scripts/action_provider_smoke.py --output-dir artifacts/action-provider-smoke",
+                    "notes": "Dry-run CRM/ERP payload contract with approval ID and payload-hash binding.",
+                },
+                {
+                    "name": "guardrail_classifier_smoke",
+                    "command": "python scripts/guardrail_classifier_smoke.py --output-dir artifacts/guardrail-classifier-smoke",
+                    "notes": "Dry-run external classifier allow/block/fallback behavior at the configured risk threshold.",
+                },
+                {
+                    "name": "memory_provider_smoke",
+                    "command": "python scripts/memory_provider_smoke.py --output-dir artifacts/memory-provider-smoke",
+                    "notes": "Dry-run Mem0 read/write payloads and verifies default no-memory mode.",
+                },
+                {
+                    "name": "pilot_env_handoff",
+                    "command": (
+                        "python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json "
+                        "--live-data-env artifacts/contracts/live/readiness_env.json --output-dir artifacts/pilot-env"
+                    ),
+                    "notes": "Merges non-secret AI-demo and live-data validation env values for final pilot runtime setup.",
                 },
                 {
                     "name": "pilot_readiness",

@@ -14,6 +14,8 @@ Required command:
 
 ```powershell
 python scripts/pilot_readiness_report.py --target local --output-dir artifacts/readiness/local
+python scripts/validate_api_contract.py --base-url http://localhost:8000 --output-dir artifacts/api-contract
+python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke
 python scripts/readiness_bundle.py --target local --output-dir artifacts/readiness/bundle-local
 ```
 
@@ -22,8 +24,10 @@ Exit gate:
 - Local readiness report passes.
 - `/api/v1/integrations/readiness` reports no discovery or provider blockers for selected local/default providers.
 - Backend tests, frontend build, Playwright smoke, eval harness, live-contract manifest check, and public-safety scan are green.
+- API contract validation passes against the running backend, proving the browser is not pointed at a stale API process.
 - Observability readiness passes; `OBSERVABILITY_PROVIDER=otlp_http` must include an approved OTLP endpoint.
 - Readiness scaffold smoke passes for HITL sandbox submit, manager task status updates, and shelf-image analysis.
+- Final API smoke passes for rep, manager, admin, HITL, audit, CRM draft, RGM, feedback, and metrics paths.
 - Readiness MCP smoke passes for every local MCP server manifest.
 - Readiness memory gate passes with the disabled default provider or a fully configured selected provider.
 - Readiness bundle artifacts exist for handoff review.
@@ -50,6 +54,9 @@ SUMMARY_FAIL_OPEN=false
 Required command:
 
 ```powershell
+python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai
+python scripts/log_eval_to_mlflow.py --artifact-dir artifacts/eval-ai --experiment-name phantom-vsa-evals --dry-run --output-dir artifacts/eval-ai
+python scripts/ai_demo_eval_evidence.py --artifact-dir artifacts/eval-ai --output-dir artifacts/eval-ai
 python scripts/pilot_readiness_report.py --target ai-demo --output-dir artifacts/readiness/ai-demo
 ```
 
@@ -61,6 +68,7 @@ Exit gate:
 - Estimated cost stays below the configured `0.08 EUR` per interaction ceiling.
 - P95 summary latency remains below `5000 ms`.
 - `scripts/load_test.py` passes against the configured backend and writes load-test artifacts.
+- AI-demo eval artifacts exist: `ai_demo_eval_evidence.json`, `ai_demo_eval_env.json`, and `ai_demo_eval.env.snippet`.
 - When testing external identity, `LOAD_TEST_BEARER_TOKEN` is supplied from the approved runtime environment and is not written into artifacts.
 
 ## Phase 2: Live Data Contract Readiness
@@ -121,8 +129,9 @@ Exit gate:
 - Mutating routes still ignore client-supplied rep identity.
 - `/api/v1/health/auth` reports `ready=true` before `AUTH_PROVIDER=external_jwt` is used for pilot traffic.
 - `/api/v1/health/audit-sink` reports `ready=true` before Unity Catalog audit primary or dual-write mode is used.
+- `scripts/unity_audit_smoke.py` passes as a dry run before any credentialed audit mirror smoke is attempted.
 - Audit mirror smoke test writes a parameterized row to the approved table.
-- Guardrail classifier is either explicitly deferred or enabled with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; `/health/guardrails` must show the selected mode as ready.
+- Guardrail classifier is either explicitly deferred or enabled with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; `/health/guardrails` must show the selected mode as ready, and `scripts/guardrail_classifier_smoke.py` must pass before credentialed classifier smoke.
 
 ## Phase 4: CRM, ERP, And HITL Write-Back
 
@@ -147,6 +156,7 @@ Exit gate:
 - Approval payload hash must match at submit time.
 - Rejected or modified drafts cannot be submitted.
 - `/api/v1/health/action-providers` reports `ready=true` before external CRM or ERP providers are used.
+- `scripts/action_provider_smoke.py` passes as a dry run before any credentialed CRM/ERP smoke is attempted.
 - External write failures are audited and do not mutate draft approval history.
 
 ## Phase 5: Offline And Memory Expansion
@@ -175,6 +185,7 @@ Exit gate:
 - Feedback sync remains idempotent with `{rep_id}:{client_event_uuid}`.
 - Memory reads are scoped by rep/store and memory writes are non-blocking but telemetry-visible.
 - `/api/v1/health/memory` reports `ready=true` for the selected memory provider before a pilot uses persistent memory.
+- `scripts/memory_provider_smoke.py` passes as a dry run before any credentialed memory-provider smoke is attempted.
 - Hermes/Ollama local inference remains behind a separate spike gate with device RAM, latency, tool-call accuracy criteria, and an explicit kill switch.
 
 ## Phase 5b: Shelf Image Provider Readiness
@@ -213,6 +224,12 @@ Required command:
 
 ```powershell
 python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/readiness/pilot
+python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke
+python scripts/unity_audit_smoke.py --output-dir artifacts/unity-audit-smoke
+python scripts/action_provider_smoke.py --output-dir artifacts/action-provider-smoke
+python scripts/guardrail_classifier_smoke.py --output-dir artifacts/guardrail-classifier-smoke
+python scripts/memory_provider_smoke.py --output-dir artifacts/memory-provider-smoke
+python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json --live-data-env artifacts/contracts/live/readiness_env.json --output-dir artifacts/pilot-env
 ```
 
 Final outcome:
@@ -222,3 +239,4 @@ Final outcome:
 - A manager can assign auditable store tasks to reps, and reps can complete or block assigned work; full task workflow automation remains a later expansion.
 - An admin can inspect filtered audit events and linked feedback.
 - Every AI summary and write intent is grounded, audited, cost-tracked, and tied to the acting identity.
+- `pilot_validation.env.snippet` contains only non-secret validation evidence keys and is reviewed before runtime configuration is updated.
