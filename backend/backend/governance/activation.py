@@ -95,6 +95,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
                     "notes": "Run only in an approved credentialed environment.",
                 },
                 {
+                    "name": "unity_audit_smoke",
+                    "command": "python scripts/unity_audit_smoke.py --output-dir artifacts/unity-audit-smoke",
+                    "notes": "Dry-run parameterized audit insert and DDL drift check before credentialed Unity Catalog smoke.",
+                },
+                {
                     "name": "pilot_env_handoff",
                     "command": (
                         "python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json "

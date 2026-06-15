@@ -100,11 +100,12 @@ This plan continues the MVP from the current public repository state. It hardens
 - Final pilot validation now has a public-safe env handoff script that merges AI-demo and live-data validation evidence into `pilot_validation.env.snippet` without secrets.
 - Final local API smoke now writes handoff artifacts for the complete rep-manager-admin workflow, including HITL submit, CRM draft, audit, metrics, and readiness paths.
 - API contract validation now detects stale running backends that expose an old route set before frontend smoke or pilot handoff.
+- Unity Catalog audit activation now has a dry-run smoke artifact that verifies the parameterized insert and DDL contract before any credentialed mirror write.
 
 ## Deferred Spec Areas
 
 - CopilotKit client package integration after the custom SSE pilot surface proves useful.
-- Live Unity Catalog audit provisioning and credentialed smoke tests beyond the parameterized insert path.
+- Live Unity Catalog audit provisioning and credentialed smoke tests beyond the parameterized insert path and dry-run smoke artifact.
 - LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts, dry-run handoff manifests, and optional logging.
 - Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
 - Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract and readiness endpoint.
