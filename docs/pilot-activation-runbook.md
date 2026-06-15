@@ -137,6 +137,7 @@ Exit gate:
 - Agents can draft but cannot submit.
 - Approval payload hash must match at submit time.
 - Rejected or modified drafts cannot be submitted.
+- `/api/v1/health/action-providers` reports `ready=true` before external CRM or ERP providers are used.
 - External write failures are audited and do not mutate draft approval history.
 
 ## Phase 5: Offline And Memory Expansion

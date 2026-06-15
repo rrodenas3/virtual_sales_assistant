@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
 from backend.config import settings  # noqa: E402
+from backend.governance.action_providers import action_provider_status  # noqa: E402
 from backend.governance.discovery import readiness_blockers, selected_live_modes  # noqa: E402
 from backend.main import app  # noqa: E402
 from backend.memory.adapters import memory_status  # noqa: E402
@@ -133,9 +134,15 @@ def build_report(target: Target) -> dict[str, Any]:
     smoke_result = run_scaffold_smoke()
     mcp_smoke = build_mcp_smoke_report()
     memory = memory_status()
+    action_providers = action_provider_status()
     modes = selected_live_modes()
     blockers = readiness_blockers()
     providers = eval_result["summary"]["providers"]
+    action_provider_detail = (
+        f"crm={action_providers['crm']['provider']}; "
+        f"erp={action_providers['erp']['provider']}; "
+        f"blockers={action_providers['blockers']}"
+    )
 
     gates = [
         _gate("eval", eval_result["passed"], f"providers={providers}; failures={eval_result['failures']}"),
@@ -184,6 +191,11 @@ def build_report(target: Target) -> dict[str, Any]:
             memory["ready"],
             f"provider={memory['provider']}; blockers={memory['blockers']}",
         ),
+        _gate(
+            "action_providers",
+            action_providers["ready"],
+            action_provider_detail,
+        ),
     ]
     return {
         "target": target,
@@ -194,6 +206,7 @@ def build_report(target: Target) -> dict[str, Any]:
         "scaffold_smoke": smoke_result,
         "mcp_smoke": mcp_smoke,
         "memory": memory,
+        "action_providers": action_providers,
         "gates": gates,
     }
 

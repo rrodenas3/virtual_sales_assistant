@@ -137,6 +137,7 @@ async def api_index() -> dict:
             "GET /api/v1/health/offline-agent",
             "GET /api/v1/health/guardrails",
             "GET /api/v1/health/memory",
+            "GET /api/v1/health/action-providers",
             "GET /api/v1/integrations/readiness",
             "GET /api/v1/metrics/pilot",
             "GET /api/v1/manager/territory-summary?territory_code=WEST-01",

@@ -68,6 +68,7 @@ Primary route groups:
 - `/orders`: draft creation, retrieval, sandbox submit.
 - `/approvals`: approve/reject draft.
 - `/crm`: visit-log drafts.
+- `/health/action-providers`: selected CRM/ERP provider readiness.
 - `/sync`: idempotent offline feedback sync.
 - `/integrations`: discovery readiness for live integration gates.
 - `/metrics`: pilot KPI rollup.
@@ -134,6 +135,7 @@ Controls:
 - Summary guardrails use a provider boundary. Pattern blocking is active by default; external classifier mode is scaffolded with explicit fail-open/fail-closed behavior.
 - Write-like flows are draft-first and require explicit approval before sandbox submit.
 - Sandbox submit requires an approved draft and matching payload hash.
+- CRM/ERP external-provider activation exposes endpoint, token-reference, and discovery blockers through `/health/action-providers`.
 - Audit writes go through `AuditSink`; Postgres is active locally and Unity Catalog mirror dual-write is scaffolded behind discovery-gated settings.
 - Unity Catalog audit table names are constrained to safe three-part identifiers, and tests assert the DDL artifact matches the runtime insert contract.
 
