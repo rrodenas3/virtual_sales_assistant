@@ -136,6 +136,18 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
+  await page.route("http://localhost:8000/api/v1/agent/run", async (route) => {
+    await route.fulfill({
+      contentType: "text/event-stream",
+      body: [
+        `event: run_started\ndata: {"run_id":"run-1","session_id":"REP-001:2026-06-15:workbench","intent":"osa_summary"}`,
+        `event: message\ndata: {"run_id":"run-1","role":"assistant","content":"Core SKU 4001 has high grounded OOS risk from the agent stream.","grounded_alert_ids":["${alertId}"]}`,
+        `event: audit\ndata: {"run_id":"run-1","audit_event_id":"audit-agent-1","model_id":"grounded-template-v1"}`,
+        `event: run_completed\ndata: {"run_id":"run-1","session_id":"REP-001:2026-06-15:workbench"}`
+      ].join("\n\n") + "\n\n"
+    });
+  });
+
   await page.route(`http://localhost:8000/api/v1/alerts/${encodeURIComponent(alertId)}/feedback`, async (route) => {
     await route.fulfill({
       json: {
@@ -164,6 +176,11 @@ test("rep can review route, generate summary, and submit alert feedback", async 
 
   await page.getByTestId("generate-summary").click();
   await expect(page.getByTestId("summary-box")).toContainText("Core SKU 4001 has high grounded OOS risk");
+
+  await page.getByTestId("run-agent").click();
+  await expect(page.getByTestId("agent-panel")).toContainText("message");
+  await expect(page.getByTestId("agent-panel")).toContainText("audit");
+  await expect(page.getByTestId("summary-box")).toContainText("agent stream");
 
   await page.getByTestId(`feedback-${alertId}-confirmed`).click();
   await expect(page.getByTestId(`feedback-${alertId}-confirmed`)).toHaveClass(/feedbackButton--active/);

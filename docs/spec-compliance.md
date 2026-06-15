@@ -23,7 +23,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue and IndexedDB read cache first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache |
 | Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs |
 | Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, observability health, audit mirror failure telemetry |
-| Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented: workbench UI; feature-flagged `/agent/run` SSE scaffold; CopilotKit package integration deferred |
+| Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented: workbench UI; custom feature-flagged `/agent/run` SSE assistant panel; CopilotKit package integration deferred |
 | Manager view | Manager dashboard with territory overview | Add leadership summary and approval queue before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, and manager UI mode |
 | Admin console | Governance and audit console | Add audit feed, filters, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, and admin UI mode |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
@@ -78,7 +78,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 - No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, and OSA summary routes can opt into graph routing with audited parity coverage. The client-pilot path explicitly defers adding LangGraph dependencies until multi-agent routing adds value beyond current services.
 - No active Mem0 memory yet. The memory port exists, but the default provider is `none`.
 - No live Snowflake/Databricks/MCP credentials yet. Current mock adapters enforce the corrected data contract; live adapters build parameterized query statements and `scripts/validate_live_data_contracts.py` is ready for view-contract validation in a credentialed environment.
-- No CopilotKit dependency in the core UI. The client-pilot path uses the custom `/agent/run` SSE bridge first and defers CopilotKit package integration.
+- No CopilotKit dependency in the core UI. The client-pilot path now uses the custom `/agent/run` SSE assistant panel first and defers CopilotKit package integration.
 - Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but final AI-assistant pilot validation must include an eval run with `SUMMARY_PROVIDER=anthropic`.
 - External guardrail classifier behavior is implemented against an HTTP contract with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; production endpoint selection remains discovery/configuration work.
 - No real ERP submit. `submit-sandbox` validates HITL policy and payload hash but has no external side effects.
@@ -96,7 +96,7 @@ Highest priority:
 
 Later:
 
-- Custom frontend SSE assistant panel on top of `/agent/run`; CopilotKit remains a later optional UI dependency.
+- CopilotKit remains a later optional UI dependency after the custom SSE assistant panel.
 - Mem0 memory scopes, retention policy, and production provider wiring.
 - MLflow integration beyond the local eval harness.
 - Credentialed Unity Catalog audit smoke tests beyond the parameterized insert path.

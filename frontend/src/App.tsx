@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, Clock, Database, MapPin, PackageCheck, Route, ShieldCheck, Tag } from "lucide-react";
+import { AlertTriangle, Bot, CheckCircle2, Clock, Database, MapPin, PackageCheck, Route, ShieldCheck, Tag } from "lucide-react";
 import {
+  AGENT_RUN_ENABLED,
   approveOrderDraft,
   createOrderDraft,
   getAdminAuditEvent,
@@ -14,6 +15,7 @@ import {
   getTerritorySummary,
   getTodayVisits,
   sendFeedback,
+  runAgentSummary,
   syncFeedbackEvents,
   submitOrderDraftSandbox
 } from "./lib/api";
@@ -24,6 +26,7 @@ import type {
   AlertFeedback,
   AdminAuditEventDetailResponse,
   AdminAuditEventsResponse,
+  AgentRunEvent,
   ApprovalResponse,
   ApprovalQueueResponse,
   DemoRole,
@@ -45,6 +48,9 @@ export function App() {
   const [alerts, setAlerts] = useState<OOSAlert[]>([]);
   const [rgm, setRgm] = useState<RGMRecommendationsResponse | null>(null);
   const [summary, setSummary] = useState<OSASummaryResponse | null>(null);
+  const [agentEvents, setAgentEvents] = useState<AgentRunEvent[]>([]);
+  const [agentRunning, setAgentRunning] = useState(false);
+  const [agentError, setAgentError] = useState<string | null>(null);
   const [draft, setDraft] = useState<OrderDraftResponse | null>(null);
   const [approval, setApproval] = useState<ApprovalResponse | null>(null);
   const [submission, setSubmission] = useState<SandboxSubmitResponse | null>(null);
@@ -121,6 +127,8 @@ export function App() {
   useEffect(() => {
     if (role !== "rep" || !selectedStoreId) return;
     setSummary(null);
+    setAgentEvents([]);
+    setAgentError(null);
     setDraft(null);
     setApproval(null);
     setSubmission(null);
@@ -194,6 +202,42 @@ export function App() {
     if (!selectedStoreId) return;
     const result = await getSummary(selectedStoreId, sessionId, alerts.map((alert) => alert.alert_id));
     setSummary(result);
+  }
+
+  async function runAssistant() {
+    if (!selectedStoreId || !AGENT_RUN_ENABLED) return;
+    setAgentEvents([]);
+    setAgentError(null);
+    setAgentRunning(true);
+    try {
+      await runAgentSummary(selectedStoreId, sessionId, alerts.map((alert) => alert.alert_id), (event) => {
+        setAgentEvents((current) => [...current, event]);
+        if (event.event === "message") {
+          setSummary({
+            summary: event.data.content,
+            grounded_alert_ids: event.data.grounded_alert_ids,
+            session_id: sessionId,
+            model_id: "",
+            audit_event_id: ""
+          });
+        }
+        if (event.event === "audit") {
+          setSummary((current) =>
+            current
+              ? {
+                  ...current,
+                  audit_event_id: event.data.audit_event_id,
+                  model_id: event.data.model_id
+                }
+              : current
+          );
+        }
+      });
+    } catch (err) {
+      setAgentError(err instanceof Error ? err.message : "Agent run failed");
+    } finally {
+      setAgentRunning(false);
+    }
   }
 
   async function draftTopAlert() {
@@ -431,8 +475,45 @@ export function App() {
                   <p className="eyebrow">OSA alerts</p>
                   <h3 data-testid="alert-count">{alerts.length} grounded shelf risks</h3>
                 </div>
-                <button className="primaryButton" data-testid="generate-summary" onClick={summarize}>Generate summary</button>
+                <div className="sectionActions">
+                  {AGENT_RUN_ENABLED && (
+                    <button className="primaryButton" data-testid="run-agent" onClick={runAssistant} disabled={agentRunning || alerts.length === 0}>
+                      <Bot size={16} /> {agentRunning ? "Running" : "Run agent"}
+                    </button>
+                  )}
+                  <button className="secondaryButton" data-testid="generate-summary" onClick={summarize}>Generate summary</button>
+                </div>
               </div>
+
+              {AGENT_RUN_ENABLED && (
+                <section className="agentPanel" data-testid="agent-panel">
+                  <div className="agentPanel__top">
+                    <div>
+                      <p className="eyebrow">Agent stream</p>
+                      <h3>Grounded OSA assistant</h3>
+                    </div>
+                    <span className={agentRunning ? "agentState agentState--running" : "agentState"}>
+                      {agentRunning ? "Streaming" : agentEvents.length ? "Ready" : "Idle"}
+                    </span>
+                  </div>
+                  {agentError && <div className="agentError">{agentError}</div>}
+                  <div className="agentTimeline">
+                    {agentEvents.length === 0 && <p className="agentEmpty">Run the agent to stream a grounded summary and trace event for this store.</p>}
+                    {agentEvents.map((event, index) => (
+                      <div key={`${event.event}-${index}`} className="agentEvent">
+                        <span>{event.event.replace(/_/g, " ")}</span>
+                        <strong>
+                          {event.event === "message"
+                            ? event.data.content
+                            : event.event === "audit"
+                              ? `${event.data.model_id} / audit ${event.data.audit_event_id.slice(0, 8)}`
+                              : event.data.run_id}
+                        </strong>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               {summary && <pre className="summaryBox" data-testid="summary-box">{summary.summary}</pre>}
 

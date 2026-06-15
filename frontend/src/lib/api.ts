@@ -2,6 +2,7 @@ import type {
   AlertFeedback,
   AdminAuditEventsResponse,
   AdminAuditEventDetailResponse,
+  AgentRunEvent,
   ApprovalQueueResponse,
   ApprovalResponse,
   DemoIdentity,
@@ -19,6 +20,7 @@ import type {
 } from "./types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+export const AGENT_RUN_ENABLED = import.meta.env.VITE_AGENT_RUN_ENABLED !== "false";
 const ROLE_KEY = "phantom.demoRole";
 const DEFAULT_TERRITORY = "WEST-01";
 
@@ -111,6 +113,59 @@ export function getSummary(storeId: string, sessionId: string, alertIds: string[
       alert_ids: alertIds
     })
   });
+}
+
+export async function runAgentSummary(
+  storeId: string,
+  sessionId: string,
+  alertIds: string[],
+  onEvent: (event: AgentRunEvent) => void
+): Promise<void> {
+  const response = await fetch(`${API_URL}/api/v1/agent/run`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${mockTokenForRole(getDemoRole())}`
+    },
+    body: JSON.stringify({
+      intent: "osa_summary",
+      territory_code: getCurrentTerritory(),
+      store_id: storeId,
+      session_id: sessionId,
+      alert_ids: alertIds
+    })
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({ message: response.statusText }));
+    throw new Error(body.message ?? body.detail ?? "Agent run failed");
+  }
+  if (!response.body) throw new Error("Agent run stream is unavailable");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split("\n\n");
+    buffer = events.pop() ?? "";
+    for (const rawEvent of events) {
+      const parsed = parseSSE(rawEvent);
+      if (parsed) onEvent(parsed);
+    }
+  }
+  const parsed = parseSSE(buffer);
+  if (parsed) onEvent(parsed);
+}
+
+function parseSSE(rawEvent: string): AgentRunEvent | null {
+  const eventLine = rawEvent.split("\n").find((line) => line.startsWith("event: "));
+  const dataLine = rawEvent.split("\n").find((line) => line.startsWith("data: "));
+  if (!eventLine || !dataLine) return null;
+  return {
+    event: eventLine.slice("event: ".length),
+    data: JSON.parse(dataLine.slice("data: ".length))
+  } as AgentRunEvent;
 }
 
 export function getRGMRecommendations(storeId: string): Promise<RGMRecommendationsResponse> {
