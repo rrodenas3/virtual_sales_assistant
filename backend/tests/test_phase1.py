@@ -37,6 +37,7 @@ def test_backend_root_points_to_api() -> None:
         assert "POST /api/v1/orders/drafts/{draft_id}/submit-sandbox" in api_index.json()["routes"]
         assert "POST /api/v1/agent/run" in api_index.json()["routes"]
         assert "POST /api/v1/stores/{store_id}/shelf-image-analysis" in api_index.json()["routes"]
+        assert "GET /api/v1/health/memory" in api_index.json()["routes"]
 
 
 def test_unauthorized_store_access_returns_404() -> None:

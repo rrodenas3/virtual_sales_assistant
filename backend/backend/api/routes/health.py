@@ -5,6 +5,7 @@ from backend.config import settings
 from backend.db.session import engine
 from backend.governance.guardrails import guardrail_status
 from backend.governance.offline_agent import offline_agent_status
+from backend.memory.adapters import memory_status
 from backend.services.summary_providers import summary_provider_status
 
 router = APIRouter(tags=["health"])
@@ -53,3 +54,8 @@ async def offline_agent_health() -> dict:
 @router.get("/health/guardrails")
 async def guardrails_health() -> dict:
     return {"status": "ok", **guardrail_status()}
+
+
+@router.get("/health/memory")
+async def memory_health() -> dict:
+    return {"status": "ok", **memory_status()}

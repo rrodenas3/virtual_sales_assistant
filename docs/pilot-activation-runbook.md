@@ -22,6 +22,7 @@ Exit gate:
 - Backend tests, frontend build, Playwright smoke, eval harness, live-contract manifest check, and public-safety scan are green.
 - Readiness scaffold smoke passes for HITL sandbox submit, manager task status updates, and shelf-image analysis.
 - Readiness MCP smoke passes for every local MCP server manifest.
+- Readiness memory gate passes with the disabled default provider or a fully configured selected provider.
 - `SUMMARY_PROVIDER=template` is acceptable only for this phase.
 
 ## Phase 1: Real AI Demo Readiness
@@ -163,6 +164,7 @@ Exit gate:
 - Browser IndexedDB read cache works for route, store, alerts, and RGM data.
 - Feedback sync remains idempotent with `{rep_id}:{client_event_uuid}`.
 - Memory reads are scoped by rep/store and memory writes are non-blocking but telemetry-visible.
+- `/api/v1/health/memory` reports `ready=true` for the selected memory provider before a pilot uses persistent memory.
 - Hermes/Ollama local inference remains behind a separate spike gate with device RAM, latency, tool-call accuracy criteria, and an explicit kill switch.
 
 ## Phase 5b: Shelf Image Provider Readiness

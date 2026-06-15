@@ -120,7 +120,7 @@ Local/test startup can auto-create tables for developer convenience. Production 
 
 ### Step 6.5: Memory Boundary
 
-Memory is behind `MemoryPort`. `MEMORY_PROVIDER=none` is the default and returns no memories. `MEMORY_PROVIDER=mem0` is discovery-gated until keys, retention policy, and memory scopes are confirmed. Summary audit payloads record memory provider and memory count, but grounded facts still come from OOS alerts.
+Memory is behind `MemoryPort`. `MEMORY_PROVIDER=none` is the default and returns no memories. `MEMORY_PROVIDER=mem0` is discovery-gated until keys, retention policy, and memory scopes are confirmed. `/api/v1/health/memory` exposes the selected provider, active blockers, and readiness state. Summary audit payloads record memory provider and memory count, but grounded facts still come from OOS alerts.
 
 ### Step 7: Governance
 

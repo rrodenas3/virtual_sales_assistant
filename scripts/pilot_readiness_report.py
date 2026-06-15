@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 from backend.config import settings  # noqa: E402
 from backend.governance.discovery import readiness_blockers, selected_live_modes  # noqa: E402
 from backend.main import app  # noqa: E402
+from backend.memory.adapters import memory_status  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 from scripts.mcp_smoke import build_report as build_mcp_smoke_report  # noqa: E402
 from tests.eval.run_eval import run_eval  # noqa: E402
@@ -131,6 +132,7 @@ def build_report(target: Target) -> dict[str, Any]:
     eval_result = run_eval(require_provider=required_provider)
     smoke_result = run_scaffold_smoke()
     mcp_smoke = build_mcp_smoke_report()
+    memory = memory_status()
     modes = selected_live_modes()
     blockers = readiness_blockers()
     providers = eval_result["summary"]["providers"]
@@ -177,6 +179,11 @@ def build_report(target: Target) -> dict[str, Any]:
             mcp_smoke["passed"],
             f"servers={mcp_smoke['server_count']}",
         ),
+        _gate(
+            "memory_provider",
+            memory["ready"],
+            f"provider={memory['provider']}; blockers={memory['blockers']}",
+        ),
     ]
     return {
         "target": target,
@@ -186,6 +193,7 @@ def build_report(target: Target) -> dict[str, Any]:
         "eval_summary": eval_result["summary"],
         "scaffold_smoke": smoke_result,
         "mcp_smoke": mcp_smoke,
+        "memory": memory,
         "gates": gates,
     }
 

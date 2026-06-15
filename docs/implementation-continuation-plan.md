@@ -74,6 +74,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Pilot readiness reports now include the MCP manifest smoke result as a local scaffold gate.
 - Offline local-agent inference now has a disabled-by-default governance scaffold with provider setting, kill switch, device RAM, latency, and tool-accuracy thresholds exposed through `/health/offline-agent`.
 - External guardrail classifier mode now has `/health/guardrails` status and discovery gates for endpoint and data residency.
+- Memory provider activation now has `/health/memory` status, showing whether Mem0 is enabled and which token, retention, or scope gates still block activation.
 
 ## Deferred Spec Areas
 
@@ -81,7 +82,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Live Unity Catalog audit provisioning and credentialed smoke tests beyond the parameterized insert path.
 - LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts and optional logging.
 - Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
-- Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract.
+- Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract and readiness endpoint.
 - Live Databricks, Snowflake, CRM, ERP, shelf-image, and device integrations.
 - Hermes/Ollama offline inference spike and offline local-agent tool calls.
 

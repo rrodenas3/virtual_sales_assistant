@@ -1,9 +1,14 @@
 import pytest
 import httpx
+from fastapi.testclient import TestClient
 
 from backend.config import settings
 from backend.memory import adapters
-from backend.memory.adapters import Mem0Adapter, NullMemoryAdapter, get_memory_adapter
+from backend.memory.adapters import Mem0Adapter, NullMemoryAdapter, get_memory_adapter, memory_status
+from backend.main import app
+
+
+REP_001 = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJSRVAtMDAxIiwidGVycml0b3J5X2NvZGUiOiJXRVNULTAxIiwicm9sZSI6InJlcCJ9."
 
 
 @pytest.mark.asyncio
@@ -33,6 +38,69 @@ def test_mem0_adapter_is_blocked_by_discovery(monkeypatch) -> None:
 
     with pytest.raises(RuntimeError, match="discovery_memory_retention_policy"):
         get_memory_adapter()
+
+
+def test_memory_status_reports_disabled_default(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "memory_provider", "none")
+    monkeypatch.setattr(settings, "mem0_token_ref", None)
+    monkeypatch.setattr(settings, "discovery_memory_retention_policy", None)
+    monkeypatch.setattr(settings, "discovery_memory_scopes", None)
+
+    status = memory_status()
+
+    assert status["provider"] == "none"
+    assert status["enabled"] is False
+    assert status["ready"] is True
+    assert status["blockers"] == []
+
+
+def test_memory_status_reports_mem0_blockers(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "memory_provider", "mem0")
+    monkeypatch.setattr(settings, "mem0_token_ref", None)
+    monkeypatch.setattr(settings, "discovery_memory_retention_policy", None)
+    monkeypatch.setattr(settings, "discovery_memory_scopes", None)
+
+    status = memory_status()
+
+    assert status["enabled"] is True
+    assert status["ready"] is False
+    assert status["blockers"] == [
+        "mem0_token_ref",
+        "discovery_memory_retention_policy",
+        "discovery_memory_scopes",
+    ]
+
+
+def test_memory_status_reports_mem0_ready(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "memory_provider", "mem0")
+    monkeypatch.setattr(settings, "mem0_token_ref", "approved-token-reference")
+    monkeypatch.setattr(settings, "discovery_memory_retention_policy", "30 days")
+    monkeypatch.setattr(settings, "discovery_memory_scopes", "rep,store,session")
+
+    status = memory_status()
+
+    assert status["enabled"] is True
+    assert status["ready"] is True
+    assert status["token_ref_configured"] is True
+    assert status["retention_policy_configured"] is True
+    assert status["scopes_configured"] is True
+    assert status["blockers"] == []
+
+
+def test_memory_health_endpoint_reports_selected_provider(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "memory_provider", "mem0")
+    monkeypatch.setattr(settings, "mem0_token_ref", None)
+    monkeypatch.setattr(settings, "discovery_memory_retention_policy", "30 days")
+    monkeypatch.setattr(settings, "discovery_memory_scopes", "rep,store,session")
+
+    with TestClient(app, headers={"Authorization": f"Bearer {REP_001}"}) as client:
+        response = client.get("/api/v1/health/memory")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["provider"] == "mem0"
+    assert body["ready"] is False
+    assert body["blockers"] == ["mem0_token_ref"]
 
 
 def _mock_mem0(monkeypatch, responses: list[dict]) -> list[dict]:
