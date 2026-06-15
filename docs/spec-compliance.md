@@ -20,7 +20,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented: local draft provider default plus discovery-gated external CRM HTTP adapter |
 | ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects by default | Implemented: sandbox provider default plus discovery-gated external ERP HTTP adapter |
-| Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue, IndexedDB read cache, and PWA shell first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache, manifest, service worker app shell/static cache |
+| Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue, IndexedDB read cache, and PWA shell first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache, manifest, service worker app shell/static cache, and disabled-by-default offline-agent kill-switch scaffold |
 | Shelf image | Image-based shelf recognition MCP | Mock-first image-analysis boundary; external provider only after device/data-residency discovery | Implemented: `POST /stores/{id}/shelf-image-analysis`, `mcp.shelf_image.analyze_shelf_image`, mock grounded findings from OOS alerts, external HTTP adapter scaffold |
 | Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs, eval artifacts, and thresholded summary endpoint load-test artifacts |
 | Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, OTLP HTTP log export boundary, observability health, audit mirror failure telemetry |
@@ -37,6 +37,7 @@ GET  /api/v1/health
 GET  /api/v1/health/db
 GET  /api/v1/health/observability
 GET  /api/v1/health/ai
+GET  /api/v1/health/offline-agent
 GET  /api/v1/integrations/readiness
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
@@ -92,7 +93,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 - Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but `/health/ai`, `/integrations/readiness`, and final AI-assistant pilot validation make template-only mode visibly not AI-demo-ready.
 - External guardrail classifier behavior is implemented against an HTTP contract with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; production endpoint selection remains discovery/configuration work.
 - No real ERP submit by default. `submit-sandbox` validates HITL policy and payload hash; external ERP provider is discovery-gated and disabled unless configured.
-- No Hermes/Ollama inference yet. Browser offline feedback sync, IndexedDB read fallback, and PWA app-shell caching are implemented first.
+- No Hermes/Ollama inference yet. Browser offline feedback sync, IndexedDB read fallback, PWA app-shell caching, and a disabled-by-default offline-agent governance scaffold are implemented first.
 - No production shelf image recognition, voice, digital shelf execution, or multi-tenant support. Shelf-image analysis is currently a governed mock/external-provider boundary only. Manager-initiated tasks support auditable assignment plus completion/block/cancel transitions, not a full workflow engine.
 
 ## Remaining Work To Fully Meet The Original Spec

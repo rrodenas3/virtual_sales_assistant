@@ -69,7 +69,7 @@ def discovery_gates(config: Settings = settings) -> list[DiscoveryGate]:
             "Rep device",
             "discovery_rep_device",
             config.discovery_rep_device,
-            ("offline",),
+            ("offline", "offline_agent"),
             "Required before native/offline runtime decisions.",
             defaulted_values=("PWA",),
         ),
@@ -91,7 +91,7 @@ def discovery_gates(config: Settings = settings) -> list[DiscoveryGate]:
             "Offline sync policy",
             "discovery_offline_sync_policy",
             config.discovery_offline_sync_policy,
-            ("offline",),
+            ("offline", "offline_agent"),
             "Required before broader offline write queues.",
             defaulted_values=("browser-feedback-queue",),
         ),
@@ -138,6 +138,8 @@ def selected_live_modes(config: Settings = settings) -> set[str]:
         modes.add("mem0")
     if config.shelf_image_adapter == "external":
         modes.add("shelf_image")
+    if config.offline_agent_enabled or config.offline_agent_provider != "none":
+        modes.add("offline_agent")
     return modes
 
 

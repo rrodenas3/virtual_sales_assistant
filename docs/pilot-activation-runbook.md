@@ -153,6 +153,9 @@ MEMORY_PROVIDER=mem0
 DISCOVERY_MEMORY_RETENTION_POLICY=<approved-retention>
 DISCOVERY_MEMORY_SCOPES=<approved-scopes>
 MEM0_TOKEN_REF=<approved-token-reference>
+OFFLINE_AGENT_PROVIDER=none
+OFFLINE_AGENT_ENABLED=false
+OFFLINE_AGENT_KILL_SWITCH=true
 ```
 
 Exit gate:
@@ -160,7 +163,7 @@ Exit gate:
 - Browser IndexedDB read cache works for route, store, alerts, and RGM data.
 - Feedback sync remains idempotent with `{rep_id}:{client_event_uuid}`.
 - Memory reads are scoped by rep/store and memory writes are non-blocking but telemetry-visible.
-- Hermes/Ollama local inference remains behind a separate spike gate with device RAM, latency, and tool-call accuracy criteria.
+- Hermes/Ollama local inference remains behind a separate spike gate with device RAM, latency, tool-call accuracy criteria, and an explicit kill switch.
 
 ## Phase 5b: Shelf Image Provider Readiness
 

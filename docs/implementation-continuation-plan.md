@@ -72,6 +72,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Summary endpoint load testing now supports configurable concurrency, p95 threshold failure, and JSON/Markdown artifacts.
 - Local MCP transport now has a CI-backed manifest smoke script covering all seven MCP server modules and expected tool names.
 - Pilot readiness reports now include the MCP manifest smoke result as a local scaffold gate.
+- Offline local-agent inference now has a disabled-by-default governance scaffold with provider setting, kill switch, device RAM, latency, and tool-accuracy thresholds exposed through `/health/offline-agent`.
 
 ## Deferred Spec Areas
 
