@@ -3,6 +3,8 @@ from __future__ import annotations
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.adapters.osa import OSADataPort
+from backend.agents.graph import run_osa_summary_graph
+from backend.agents.state import AgentState
 from backend.api.schemas import OSASummaryRequest, OSASummaryResponse
 from backend.auth.mock_jwt import CurrentUser
 from backend.config import settings
@@ -32,13 +34,30 @@ async def create_osa_summary(
     if guardrail.blocked:
         raise SummaryGuardrailError(guardrail.reason)
 
-    alerts = await osa.get_alerts_by_ids(current_user.rep_id, request.territory_code, request.alert_ids)
-    if request.alert_ids is not None and len(alerts) != len(set(request.alert_ids)):
-        raise SummaryValidationError("Unknown alert_id in grounded set")
-    if request.store_id:
-        alerts = [alert for alert in alerts if alert.store_id == request.store_id]
+    orchestration_mode = "graph" if settings.agent_graph_enabled else "service"
+    if settings.agent_graph_enabled:
+        graph_state = AgentState(
+            session_id=request.session_id,
+            rep_id=current_user.rep_id,
+            role=current_user.role,
+            territory_code=request.territory_code,
+            store_id=request.store_id,
+            alert_ids=request.alert_ids,
+        )
+        try:
+            graph_state = await run_osa_summary_graph(graph_state, osa)
+        except ValueError as exc:
+            raise SummaryValidationError(str(exc)) from exc
+        alerts = graph_state.alerts
+        summary = graph_state.summary or build_grounded_summary(alerts)
+    else:
+        alerts = await osa.get_alerts_by_ids(current_user.rep_id, request.territory_code, request.alert_ids)
+        if request.alert_ids is not None and len(alerts) != len(set(request.alert_ids)):
+            raise SummaryValidationError("Unknown alert_id in grounded set")
+        if request.store_id:
+            alerts = [alert for alert in alerts if alert.store_id == request.store_id]
+        summary = build_grounded_summary(alerts)
 
-    summary = build_grounded_summary(alerts)
     estimated_input_tokens = max(1, sum(len(alert.model_dump_json()) for alert in alerts) // 4)
     estimated_output_tokens = max(1, len(summary) // 4)
     estimated_cost_eur = round((estimated_input_tokens + estimated_output_tokens) * 0.000002, 6)
@@ -55,6 +74,7 @@ async def create_osa_summary(
             "estimated_input_tokens": estimated_input_tokens,
             "estimated_output_tokens": estimated_output_tokens,
             "estimated_cost_eur": estimated_cost_eur,
+            "orchestration_mode": orchestration_mode,
         },
         data_freshness_ts=alerts[0].data_freshness_ts if alerts else None,
     )
@@ -69,6 +89,7 @@ async def create_osa_summary(
         estimated_input_tokens=estimated_input_tokens,
         estimated_output_tokens=estimated_output_tokens,
         estimated_cost_eur=estimated_cost_eur,
+        orchestration_mode=orchestration_mode,
     )
     return OSASummaryResponse(
         summary=summary,
