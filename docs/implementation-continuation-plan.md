@@ -76,15 +76,36 @@ This plan continues the MVP from the current public repository state. It hardens
 - External guardrail classifier mode now has `/health/guardrails` status and discovery gates for endpoint and data residency.
 - Memory provider activation now has `/health/memory` status, showing whether Mem0 is enabled and which token, retention, or scope gates still block activation.
 - External CRM/ERP write-back activation now has `/health/action-providers` status and a pilot-readiness gate for endpoint, token-reference, and discovery blockers.
+- Live Databricks/Snowflake activation now has `/health/data-platform` status and a pilot-readiness gate for credentials, discovery answers, and live contract validation.
+- External JWT activation now has `/health/auth` status and a pilot-readiness gate for SSO discovery, issuer, audience, and accepted algorithms.
+- External shelf-image activation now has `/health/shelf-image` status and a pilot-readiness gate for endpoint, token-reference, device, and data-residency blockers.
+- Unity Catalog audit activation now has `/health/audit-sink` status and a pilot-readiness gate for table identifier, Databricks credentials, discovery answers, and dual-write mode.
+- OTLP observability activation now has a pilot-readiness gate through `/health/observability`, requiring endpoint and service-name configuration when `OBSERVABILITY_PROVIDER=otlp_http`.
+- `/integrations/readiness` now aggregates provider readiness summaries and flattened provider blockers, so manager/admin users can see discovery gaps and selected-provider configuration gaps in one response.
+- `scripts/readiness_bundle.py` now generates a local-safe handoff bundle with pilot readiness, MCP smoke, live-contract manifest, and manual checks for public safety, live credentials, and AI-demo validation.
+- The manager command view now surfaces `/integrations/readiness` with selected live modes, provider blockers, and AI-demo posture.
+- The admin governance view now surfaces `/integrations/readiness` beside audit events, so provider blockers, discovery blockers, and live-contract status are visible during trace review.
+- `/integrations/readiness` now includes activation targets for local scaffold, AI demo, and final pilot readiness; manager/admin panels render those target states directly.
+- Activation target blockers are calculated in a shared governance service and reused by the readiness report script, keeping API/UI state aligned with generated pilot artifacts.
+- Manager/admin readiness panels and readiness bundle markdown now include activation blocker previews, so pilot owners can see the next blocking action without opening nested reports.
+- Discovery gates now carry machine-readable owner metadata (`delivery`, `engineering`, or `shared`), and readiness reports group live-mode discovery blockers by owner.
+- Readiness bundles now include the live-data readiness env-key manifest required to record credentialed contract validation results after approved runs.
+- Databricks and Snowflake live-data access now have HTTP SQL API client contracts with token readiness gating and local payload/response tests; credentialed smoke remains discovery-gated.
+- The Databricks bearer credential is intentionally omitted from public `.env.example`; it maps to the backend `databricks_token` setting through an approved secret channel.
+- Snowflake store-master adapter construction now uses the same token gate as `/health/data-platform` and the Snowflake SQL client, avoiding late credential failures.
+- Summary endpoint load testing now supports an approved runtime bearer-token override through `LOAD_TEST_BEARER_TOKEN` while keeping tokens out of reports.
+- Pilot readiness reports, readiness bundles, `/integrations/readiness`, and manager/admin readiness panels now include target-specific runtime validation commands for local, AI-demo, and final pilot handoff from a shared governance helper.
+- MLflow handoff now has a dry-run manifest mode that validates eval artifacts and writes `mlflow_handoff.json`/`mlflow_handoff.md` without requiring a managed MLflow server or local MLflow package.
+- AI-demo readiness now requires explicit approved-provider eval evidence through `AI_DEMO_EVAL_VALIDATED`, with runtime commands, generated env snippets, and readiness bundle env keys documenting how to generate and record the proof.
 
 ## Deferred Spec Areas
 
 - CopilotKit client package integration after the custom SSE pilot surface proves useful.
 - Live Unity Catalog audit provisioning and credentialed smoke tests beyond the parameterized insert path.
-- LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts and optional logging.
+- LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts, dry-run handoff manifests, and optional logging.
 - Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
 - Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract and readiness endpoint.
-- Live Databricks, Snowflake, CRM, ERP, shelf-image, and device credentialed smoke tests.
+- Live Databricks, Snowflake, CRM, ERP, shelf-image, and device credentialed smoke tests after readiness gates pass.
 - Hermes/Ollama offline inference spike and offline local-agent tool calls.
 
 ## Locked Forward Decisions
@@ -93,5 +114,5 @@ This plan continues the MVP from the current public repository state. It hardens
 - Pilot model setting: `ANTHROPIC_MODEL=claude-haiku-4-5`, configurable by environment.
 - LangGraph: defer production dependency; keep current graph-style scaffold as a parity/migration harness.
 - CopilotKit: defer for pilot; use the existing custom `/agent/run` SSE bridge first.
-- Real AI gate: pilot validation must run the summary eval path once with `SUMMARY_PROVIDER=anthropic`; template-only pilot mode is not sufficient for AI-assistant validation.
+- Real AI gate: pilot validation must run the summary eval path once with `SUMMARY_PROVIDER=anthropic` and record `AI_DEMO_EVAL_VALIDATED=true`; template-only pilot mode is not sufficient for AI-assistant validation.
 - Client discovery owner: delivery owns platform answers and approved secret provisioning; engineering owns readiness gates, validation scripts, and adapter code.

@@ -14,15 +14,20 @@ Required command:
 
 ```powershell
 python scripts/pilot_readiness_report.py --target local --output-dir artifacts/readiness/local
+python scripts/readiness_bundle.py --target local --output-dir artifacts/readiness/bundle-local
 ```
 
 Exit gate:
 
 - Local readiness report passes.
+- `/api/v1/integrations/readiness` reports no discovery or provider blockers for selected local/default providers.
 - Backend tests, frontend build, Playwright smoke, eval harness, live-contract manifest check, and public-safety scan are green.
+- Observability readiness passes; `OBSERVABILITY_PROVIDER=otlp_http` must include an approved OTLP endpoint.
 - Readiness scaffold smoke passes for HITL sandbox submit, manager task status updates, and shelf-image analysis.
 - Readiness MCP smoke passes for every local MCP server manifest.
 - Readiness memory gate passes with the disabled default provider or a fully configured selected provider.
+- Readiness bundle artifacts exist for handoff review.
+- Readiness bundle includes runtime validation commands for the selected activation target.
 - `SUMMARY_PROVIDER=template` is acceptable only for this phase.
 
 ## Phase 1: Real AI Demo Readiness
@@ -56,6 +61,7 @@ Exit gate:
 - Estimated cost stays below the configured `0.08 EUR` per interaction ceiling.
 - P95 summary latency remains below `5000 ms`.
 - `scripts/load_test.py` passes against the configured backend and writes load-test artifacts.
+- When testing external identity, `LOAD_TEST_BEARER_TOKEN` is supplied from the approved runtime environment and is not written into artifacts.
 
 ## Phase 2: Live Data Contract Readiness
 
@@ -87,6 +93,7 @@ Exit gate:
 - Required columns, non-null columns, normalized score columns, rep filters, territory filters, and alert business keys validate.
 - Contract artifacts exist: `live_data_contract_report.json`, `live_data_contract_report.md`, and `readiness_env.json`.
 - `LIVE_DATA_CONTRACT_LAST_VALIDATION_AT` and `LIVE_DATA_CONTRACT_VALIDATION_SUMMARY` are populated.
+- `/api/v1/health/data-platform` reports `ready=true` for the selected Databricks/Snowflake adapters.
 - No SQL string interpolation is introduced in live adapters.
 
 ## Phase 3: Identity And Governance Readiness
@@ -112,6 +119,8 @@ Exit gate:
 
 - Unauthorized store access still returns `404`.
 - Mutating routes still ignore client-supplied rep identity.
+- `/api/v1/health/auth` reports `ready=true` before `AUTH_PROVIDER=external_jwt` is used for pilot traffic.
+- `/api/v1/health/audit-sink` reports `ready=true` before Unity Catalog audit primary or dual-write mode is used.
 - Audit mirror smoke test writes a parameterized row to the approved table.
 - Guardrail classifier is either explicitly deferred or enabled with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; `/health/guardrails` must show the selected mode as ready.
 
@@ -189,6 +198,7 @@ DISCOVERY_DATA_RESIDENCY=<approved-region>
 Exit gate:
 
 - External provider receives only approved image references plus grounded OOS alert context.
+- `/api/v1/health/shelf-image` reports `ready=true` before external image analysis is used.
 - Findings either reference supplied alert IDs or are labeled `unknown`/`low`.
 - Every analysis emits `shelf_image_analysis_created` audit events.
 - Image findings cannot create orders without the existing HITL draft and approval flow.

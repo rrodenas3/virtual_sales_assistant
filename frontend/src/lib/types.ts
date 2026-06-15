@@ -178,6 +178,50 @@ export type PilotMetricsResponse = {
   trace_event_counts: Record<string, number>;
 };
 
+export type DiscoveryGate = {
+  topic: string;
+  setting_name: string;
+  status: "answered" | "defaulted" | "missing";
+  value: string | null;
+  required_for: string[];
+  notes: string;
+  owner: "delivery" | "engineering" | "shared";
+};
+
+export type IntegrationReadinessResponse = {
+  ready: boolean;
+  selected_live_modes: string[];
+  blockers: string[];
+  provider_blockers: string[];
+  provider_readiness: Record<string, Record<string, unknown>>;
+  gates: DiscoveryGate[];
+  view_contract_validated: boolean;
+  last_validation_at: string | null;
+  validation_summary: string | null;
+  summary_provider: string;
+  summary_model_id: string;
+  ai_demo_ready: boolean;
+  ai_demo_provider_ready: boolean;
+  ai_demo_eval_validated: boolean;
+  ai_demo_eval_last_validation_at: string | null;
+  ai_demo_eval_validation_summary: string | null;
+  ai_demo_blockers: string[];
+  activation_targets: {
+    target: "local" | "ai-demo" | "pilot";
+    ready: boolean;
+    description: string;
+    blockers: string[];
+  }[];
+  runtime_validation_commands: Record<
+    "local" | "ai-demo" | "pilot",
+    {
+      name: string;
+      command: string;
+      notes: string;
+    }[]
+  >;
+};
+
 export type DemoRole = "rep" | "manager" | "admin";
 
 export type DemoIdentity = {

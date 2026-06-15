@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from scripts.validate_live_data_contracts import write_artifacts  # noqa: E402
+from scripts.validate_live_data_contracts import readiness_env_manifest, write_artifacts  # noqa: E402
 
 
 def test_live_contract_script_writes_readiness_artifacts(tmp_path) -> None:
@@ -42,3 +42,13 @@ def test_live_contract_script_writes_readiness_artifacts(tmp_path) -> None:
     }
     assert "databricks_osa_alerts" in (tmp_path / "live_data_contract_report.md").read_text(encoding="utf-8")
     assert json.loads((tmp_path / "live_data_contract_report.json").read_text(encoding="utf-8"))["valid"] is True
+
+
+def test_readiness_env_manifest_declares_operator_keys() -> None:
+    manifest = readiness_env_manifest()
+
+    assert set(manifest) == {
+        "LIVE_DATA_CONTRACT_VALIDATED",
+        "LIVE_DATA_CONTRACT_LAST_VALIDATION_AT",
+        "LIVE_DATA_CONTRACT_VALIDATION_SUMMARY",
+    }

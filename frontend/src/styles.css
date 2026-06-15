@@ -118,6 +118,121 @@ button { font: inherit; }
   border-radius: 8px;
   padding: 20px;
 }
+.readinessPanel {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(0, 1.4fr);
+  gap: 14px;
+  align-items: center;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.readinessPanel h3 { margin: 0; font-family: "Archivo", sans-serif; }
+.readinessPanel__meta, .readinessPanel__blockers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.readinessPanel__meta span, .readinessPanel__blockers span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.readinessPanel__blockers {
+  grid-column: 1 / -1;
+  justify-content: flex-start;
+}
+.readinessPanel__blockers span {
+  border-color: color-mix(in oklch, var(--risk), white 58%);
+  color: color-mix(in oklch, var(--risk), black 12%);
+}
+.readinessEvidence {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.evidencePill {
+  border: 1px solid color-mix(in oklch, var(--risk), white 58%);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: color-mix(in oklch, var(--risk), black 12%);
+  background: color-mix(in oklch, var(--risk), white 93%);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.evidencePill--ready {
+  border-color: color-mix(in oklch, var(--success), white 52%);
+  color: color-mix(in oklch, var(--success), black 25%);
+  background: color-mix(in oklch, var(--success), white 92%);
+}
+.activationTargets {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.activationTarget {
+  border: 1px solid color-mix(in oklch, var(--risk), white 60%);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: color-mix(in oklch, var(--risk), white 91%);
+}
+.activationTarget strong,
+.activationTarget span,
+.activationTarget small {
+  display: block;
+}
+.activationTarget strong {
+  font-family: "Archivo", sans-serif;
+}
+.activationTarget span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-top: 3px;
+}
+.activationTarget small {
+  color: color-mix(in oklch, var(--risk), black 12%);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+.activationTarget--ready {
+  border-color: color-mix(in oklch, var(--success), white 55%);
+  background: color-mix(in oklch, var(--success), white 91%);
+}
+.runtimeCommands {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.runtimeCommandGroup {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 9px 11px;
+  background: color-mix(in oklch, var(--paper), white 45%);
+}
+.runtimeCommandGroup strong,
+.runtimeCommandGroup span {
+  display: block;
+}
+.runtimeCommandGroup strong {
+  font-family: "Archivo", sans-serif;
+  font-size: 0.84rem;
+}
+.runtimeCommandGroup span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
 .managerTable, .auditFeed, .approvalQueue, .taskQueue {
   display: grid;
   gap: 8px;
@@ -455,6 +570,9 @@ button { font: inherit; }
   .layout { grid-template-columns: 1fr; }
   .routePane { position: static; }
   .metricStrip { grid-template-columns: 1fr 1fr; }
+  .readinessPanel { grid-template-columns: 1fr; }
+  .readinessPanel__meta { justify-content: flex-start; }
+  .activationTargets, .runtimeCommands { grid-template-columns: 1fr; }
   .managerRow, .auditRow, .approvalRow, .taskRow, .filterBar { grid-template-columns: 1fr; }
   .actionBand { grid-template-columns: 1fr; }
   .alertRow { grid-template-columns: 1fr; }

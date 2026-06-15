@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from scripts.load_test import build_report, percentile, write_artifacts  # noqa: E402
+from scripts.load_test import MOCK_TOKEN, build_report, load_test_token, percentile, write_artifacts  # noqa: E402
 
 
 def test_load_test_report_enforces_p95_and_status_budget() -> None:
@@ -28,6 +28,18 @@ def test_load_test_report_enforces_p95_and_status_budget() -> None:
     assert failing["error_count"] == 1
 
 
+def test_load_test_token_uses_environment_without_reporting_secret(monkeypatch) -> None:
+    token, source = load_test_token()
+    assert token == MOCK_TOKEN
+    assert source == "mock"
+
+    monkeypatch.setenv("LOAD_TEST_BEARER_TOKEN", "approved-runtime-token")
+    token, source = load_test_token()
+
+    assert token == "approved-runtime-token"
+    assert source == "environment"
+
+
 def test_percentile_handles_empty_and_bounds() -> None:
     assert percentile([], 0.95) == 0.0
     assert percentile([3, 1, 2], 0.0) == 1
@@ -45,4 +57,6 @@ def test_load_test_writes_artifacts(tmp_path) -> None:
     write_artifacts(report, tmp_path)
 
     assert json.loads((tmp_path / "load_test_report.json").read_text(encoding="utf-8"))["passed"] is True
-    assert "P95" in (tmp_path / "load_test_report.md").read_text(encoding="utf-8")
+    report_md = (tmp_path / "load_test_report.md").read_text(encoding="utf-8")
+    assert "P95" in report_md
+    assert "Auth source" in report_md

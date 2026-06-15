@@ -12,6 +12,7 @@ from backend.services.audit_sinks import (
     UNITY_AUDIT_AGENT_ACTION_COLUMNS,
     UNITY_AUDIT_APPROVAL_DECISION_COLUMNS,
     UnityCatalogAuditMirror,
+    audit_sink_status,
     get_audit_sink,
     validate_unity_table_name,
 )
@@ -30,6 +31,91 @@ def test_default_audit_sink_is_postgres(monkeypatch) -> None:
     monkeypatch.setattr(settings, "audit_sink", "postgres")
     monkeypatch.setattr(settings, "audit_dual_write_enabled", False)
     assert isinstance(get_audit_sink(), PostgresAuditSink)
+
+
+def test_audit_sink_status_reports_postgres_default_ready(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "audit_sink", "postgres")
+    monkeypatch.setattr(settings, "audit_dual_write_enabled", False)
+    monkeypatch.setattr(settings, "audit_unity_catalog_table", "phantom.audit.agent_actions")
+
+    status = audit_sink_status()
+
+    assert status["primary_sink"] == "postgres"
+    assert status["unity_selected"] is False
+    assert status["ready"] is True
+    assert status["blockers"] == []
+
+
+def test_audit_sink_status_reports_invalid_unity_table(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "audit_sink", "postgres")
+    monkeypatch.setattr(settings, "audit_dual_write_enabled", False)
+    monkeypatch.setattr(settings, "audit_unity_catalog_table", "phantom.audit.agent_actions;drop")
+
+    status = audit_sink_status()
+
+    assert status["unity_table_valid"] is False
+    assert status["ready"] is False
+    assert status["blockers"] == ["audit_unity_catalog_table"]
+
+
+def test_audit_sink_status_reports_unity_blockers(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "audit_sink", "unity_catalog")
+    monkeypatch.setattr(settings, "audit_dual_write_enabled", False)
+    monkeypatch.setattr(settings, "audit_unity_catalog_table", "phantom.audit.agent_actions")
+    monkeypatch.setattr(settings, "databricks_host", None)
+    monkeypatch.setattr(settings, "databricks_token", None)
+    monkeypatch.setattr(settings, "databricks_sql_warehouse_id", None)
+    monkeypatch.setattr(settings, "discovery_data_sharing_model", None)
+    monkeypatch.setattr(settings, "discovery_data_residency", None)
+
+    status = audit_sink_status()
+
+    assert status["unity_selected"] is True
+    assert status["ready"] is False
+    assert status["blockers"] == [
+        "databricks_host",
+        "databricks_token",
+        "databricks_sql_warehouse_id",
+        "discovery_data_sharing_model",
+        "discovery_data_residency",
+    ]
+
+
+def test_audit_sink_status_reports_unity_ready(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "audit_sink", "postgres")
+    monkeypatch.setattr(settings, "audit_dual_write_enabled", True)
+    monkeypatch.setattr(settings, "audit_unity_catalog_table", "phantom.audit.agent_actions")
+    monkeypatch.setattr(settings, "databricks_host", "https://dbc.example.test")
+    monkeypatch.setattr(settings, "databricks_token", "approved-token-reference")
+    monkeypatch.setattr(settings, "databricks_sql_warehouse_id", "warehouse-1")
+    monkeypatch.setattr(settings, "discovery_data_sharing_model", "approved-sharing")
+    monkeypatch.setattr(settings, "discovery_data_residency", "approved-region")
+
+    status = audit_sink_status()
+
+    assert status["unity_selected"] is True
+    assert status["dual_write_enabled"] is True
+    assert status["ready"] is True
+    assert status["blockers"] == []
+
+
+def test_audit_sink_health_endpoint_reports_selected_provider(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "audit_sink", "unity_catalog")
+    monkeypatch.setattr(settings, "audit_unity_catalog_table", "phantom.audit.agent_actions")
+    monkeypatch.setattr(settings, "databricks_host", "https://dbc.example.test")
+    monkeypatch.setattr(settings, "databricks_token", None)
+    monkeypatch.setattr(settings, "databricks_sql_warehouse_id", "warehouse-1")
+    monkeypatch.setattr(settings, "discovery_data_sharing_model", "approved-sharing")
+    monkeypatch.setattr(settings, "discovery_data_residency", "approved-region")
+
+    with authorized_client() as c:
+        response = c.get("/api/v1/health/audit-sink")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["primary_sink"] == "unity_catalog"
+    assert body["ready"] is False
+    assert body["blockers"] == ["databricks_token"]
 
 
 def test_audit_dual_write_is_a_unity_catalog_live_mode(monkeypatch) -> None:

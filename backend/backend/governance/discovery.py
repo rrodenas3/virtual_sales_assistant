@@ -6,6 +6,7 @@ from typing import Literal
 from backend.config import Settings, settings
 
 GateStatus = Literal["answered", "defaulted", "missing"]
+GateOwner = Literal["delivery", "engineering", "shared"]
 
 
 @dataclass(frozen=True)
@@ -16,6 +17,7 @@ class DiscoveryGate:
     value: str | None
     required_for: tuple[str, ...]
     notes: str
+    owner: GateOwner
 
 
 def _gate(
@@ -26,12 +28,13 @@ def _gate(
     notes: str,
     *,
     defaulted_values: tuple[str, ...] = (),
+    owner: GateOwner = "delivery",
 ) -> DiscoveryGate:
     if value:
         status: GateStatus = "defaulted" if value in defaulted_values else "answered"
     else:
         status = "missing"
-    return DiscoveryGate(topic, setting_name, status, value, required_for, notes)
+    return DiscoveryGate(topic, setting_name, status, value, required_for, notes, owner)
 
 
 def discovery_gates(config: Settings = settings) -> list[DiscoveryGate]:
@@ -93,6 +96,7 @@ def discovery_gates(config: Settings = settings) -> list[DiscoveryGate]:
             config.guardrail_classifier_endpoint,
             ("guardrail_classifier",),
             "Required before external classifier guardrails.",
+            owner="shared",
         ),
         _gate(
             "Offline sync policy",
@@ -101,6 +105,7 @@ def discovery_gates(config: Settings = settings) -> list[DiscoveryGate]:
             ("offline", "offline_agent"),
             "Required before broader offline write queues.",
             defaulted_values=("browser-feedback-queue",),
+            owner="shared",
         ),
         _gate(
             "Memory retention policy",

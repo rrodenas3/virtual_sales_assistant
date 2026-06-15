@@ -41,6 +41,7 @@ def summary_provider_status() -> dict:
     blockers: list[str] = []
     anthropic_sdk_available = find_spec("anthropic") is not None
     anthropic_token_configured = bool(settings.anthropic_token_ref)
+    provider_ready = settings.summary_provider == "anthropic" and anthropic_token_configured and anthropic_sdk_available
 
     if settings.summary_provider != "anthropic":
         blockers.append("SUMMARY_PROVIDER must be anthropic for AI-demo readiness")
@@ -48,6 +49,8 @@ def summary_provider_status() -> dict:
         blockers.append("ANTHROPIC_TOKEN_REF is required for anthropic summaries")
     if not anthropic_sdk_available:
         blockers.append("anthropic SDK is not installed")
+    if not settings.ai_demo_eval_validated:
+        blockers.append("AI-demo eval must pass with provider=anthropic before AI-demo readiness")
 
     active_model = settings.anthropic_model if settings.summary_provider == "anthropic" else settings.llm_model_id
     return {
@@ -57,8 +60,12 @@ def summary_provider_status() -> dict:
         "anthropic_model": settings.anthropic_model,
         "anthropic_sdk_available": anthropic_sdk_available,
         "anthropic_token_configured": anthropic_token_configured,
+        "ai_demo_provider_ready": provider_ready,
+        "ai_demo_eval_validated": settings.ai_demo_eval_validated,
+        "ai_demo_eval_last_validation_at": settings.ai_demo_eval_last_validation_at,
+        "ai_demo_eval_validation_summary": settings.ai_demo_eval_validation_summary,
         "summary_fail_open": settings.summary_fail_open,
-        "ai_demo_ready": settings.summary_provider == "anthropic" and anthropic_token_configured and anthropic_sdk_available,
+        "ai_demo_ready": provider_ready and settings.ai_demo_eval_validated,
         "ai_demo_blockers": blockers,
     }
 

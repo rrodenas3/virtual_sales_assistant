@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from backend.config import settings
 from backend.main import app
 from backend.services import telemetry
+from backend.services.telemetry import observability_status
 
 
 REP_001 = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJSRVAtMDAxIiwidGVycml0b3J5X2NvZGUiOiJXRVNULTAxIiwicm9sZSI6InJlcCJ9."
@@ -21,6 +22,41 @@ def test_observability_health_reports_structured_mode(monkeypatch) -> None:
     assert response.json()["provider"] == "structured"
     assert response.json()["trace_sample_rate"] == 1.0
     assert response.json()["otel_service_name"] == "phantom-vsa-backend"
+    assert response.json()["ready"] is True
+
+
+def test_observability_status_reports_structured_default_ready(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "observability_provider", "structured")
+    monkeypatch.setattr(settings, "otel_exporter_otlp_endpoint", None)
+
+    status = observability_status()
+
+    assert status["provider"] == "structured"
+    assert status["ready"] is True
+    assert status["blockers"] == []
+
+
+def test_observability_status_reports_otlp_blockers(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "observability_provider", "otlp_http")
+    monkeypatch.setattr(settings, "otel_exporter_otlp_endpoint", None)
+    monkeypatch.setattr(settings, "otel_service_name", "")
+
+    status = observability_status()
+
+    assert status["ready"] is False
+    assert status["blockers"] == ["otel_exporter_otlp_endpoint", "otel_service_name"]
+
+
+def test_observability_status_reports_otlp_ready(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "observability_provider", "otlp_http")
+    monkeypatch.setattr(settings, "otel_exporter_otlp_endpoint", "https://otel.example.test")
+    monkeypatch.setattr(settings, "otel_service_name", "phantom-vsa-backend")
+
+    status = observability_status()
+
+    assert status["ready"] is True
+    assert status["otlp_endpoint_configured"] is True
+    assert status["blockers"] == []
 
 
 def test_ai_health_reports_template_mode_as_not_ai_demo_ready(monkeypatch) -> None:

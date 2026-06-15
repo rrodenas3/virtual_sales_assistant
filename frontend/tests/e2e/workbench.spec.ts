@@ -2,6 +2,18 @@ import { expect, test, type Route } from "@playwright/test";
 
 const alertId = "ST-001:SKU-4001:2026-06-15";
 const managerTaskId = "work_001";
+const adminAuditEvent = {
+  event_id: "audit-admin-1",
+  session_id: "session-admin",
+  rep_id: "REP-001",
+  event_type: "osa_summary_created",
+  resource_type: "agent_summary",
+  resource_id: "ST-001",
+  payload_json: { summary_provider: "template" },
+  source_system: "mock",
+  data_freshness_ts: "2026-06-15T00:00:00Z",
+  created_at: "2026-06-15T00:00:00Z"
+};
 
 test.use({ serviceWorkers: "block" });
 
@@ -216,6 +228,117 @@ test.beforeEach(async ({ page }) => {
     await route.fulfill({ json: { territory_code: "WEST-01", pending_count: 0, items: [] } });
   });
 
+  await page.route("**/api/v1/integrations/readiness", async (route) => {
+    await route.fulfill({
+      json: {
+        ready: true,
+        selected_live_modes: [],
+        blockers: [],
+        provider_blockers: [],
+        provider_readiness: {
+          auth: { provider: "mock", ready: true },
+          data_platform: { ready: true },
+          action_providers: { ready: true },
+          shelf_image: { provider: "mock", ready: true },
+          memory: { provider: "none", ready: true },
+          audit: { primary_sink: "postgres", ready: true },
+          guardrails: { provider: "pattern", ready: true },
+          offline_agent: { provider: "none", enabled: false, ready: false },
+          observability: { provider: "structured", ready: true }
+        },
+        gates: [],
+        view_contract_validated: false,
+        last_validation_at: null,
+        validation_summary: null,
+        summary_provider: "template",
+        summary_model_id: "grounded-template-v1",
+        ai_demo_ready: false,
+        ai_demo_provider_ready: false,
+        ai_demo_eval_validated: false,
+        ai_demo_eval_last_validation_at: null,
+        ai_demo_eval_validation_summary: null,
+        ai_demo_blockers: [
+          "SUMMARY_PROVIDER must be anthropic for AI-demo readiness",
+          "AI-demo eval must pass with provider=anthropic before AI-demo readiness"
+        ],
+        activation_targets: [
+          {
+            target: "local",
+            ready: true,
+            description: "Local scaffold with mock/default providers",
+            blockers: []
+          },
+          {
+            target: "ai-demo",
+            ready: false,
+            description: "Real summary provider validation with the SSE assistant enabled",
+            blockers: ["SUMMARY_PROVIDER must be anthropic for AI-demo readiness"]
+          },
+          {
+            target: "pilot",
+            ready: false,
+            description: "Credentialed pilot with live contracts, live modes, and audit mirror",
+            blockers: ["Live data contracts must be validated for pilot readiness"]
+          }
+        ],
+        runtime_validation_commands: {
+          local: [
+            {
+              name: "public_safety_scan",
+              command: "bash ./scripts/public_safety_scan.sh",
+              notes: "Required before sharing or publishing artifacts."
+            }
+          ],
+          "ai-demo": [
+            {
+              name: "ai_summary_eval",
+              command: "python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai",
+              notes: "Must pass with the configured approved provider before claiming AI-assistant behavior."
+            },
+            {
+              name: "mlflow_handoff_dry_run",
+              command: "python scripts/log_eval_to_mlflow.py --artifact-dir artifacts/eval-ai --experiment-name phantom-vsa-evals --dry-run --output-dir artifacts/eval-ai",
+              notes: "Validates eval artifacts and produces local handoff manifests without a tracking server."
+            },
+            {
+              name: "ai_demo_eval_evidence",
+              command: "python scripts/ai_demo_eval_evidence.py --artifact-dir artifacts/eval-ai --output-dir artifacts/eval-ai",
+              notes: "Writes the exact AI_DEMO_EVAL_* values to record after the approved eval passes."
+            },
+            {
+              name: "summary_load_test",
+              command: "python scripts/load_test.py --base-url http://localhost:8000 --requests 50 --concurrency 10 --threshold-p95-ms 5000 --output-dir artifacts/load/summary",
+              notes: "Set LOAD_TEST_BEARER_TOKEN only in the approved runtime environment when validating external identity."
+            }
+          ],
+          pilot: [
+            {
+              name: "pilot_readiness",
+              command: "python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/readiness/pilot",
+              notes: "Final gate after approved decisions."
+            }
+          ]
+        }
+      }
+    });
+  });
+
+  await page.route("**/api/v1/admin/audit-events?**", async (route) => {
+    await route.fulfill({
+      json: {
+        events: [adminAuditEvent],
+        limit: 75,
+        next_cursor: null
+      }
+    });
+  });
+
+  await page.route("**/api/v1/admin/audit-events/audit-admin-1", async (route) => {
+    await route.fulfill({
+      json: { event: adminAuditEvent }
+    });
+  });
+
   await page.route("**/api/v1/agent/run", async (route) => {
     await route.fulfill({
       contentType: "text/event-stream",
@@ -299,6 +422,15 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
 
   await page.getByRole("button", { name: "manager" }).click();
   await expect(page.getByRole("heading", { name: "Territory command view" })).toBeVisible();
+  await expect(page.getByTestId("readiness-panel")).toContainText("Local scaffold ready");
+  await expect(page.getByTestId("readiness-panel")).toContainText("mock/local modes");
+  await expect(page.getByTestId("readiness-panel")).toContainText("ai-demo");
+  await expect(page.getByTestId("readiness-panel")).toContainText("pilot");
+  await expect(page.getByTestId("readiness-panel")).toContainText("SUMMARY_PROVIDER must be anthropic");
+  await expect(page.getByTestId("readiness-panel")).toContainText("AI eval pending");
+  await expect(page.getByTestId("readiness-panel")).toContainText("ai_summary_eval");
+  await expect(page.getByTestId("readiness-panel")).toContainText("ai_demo_eval_evidence");
+  await expect(page.getByTestId("readiness-panel")).toContainText("summary_load_test");
   await expect(page.getByText("0 assigned tasks")).toBeVisible();
 
   await page.getByRole("button", { name: "Assign shelf check" }).click();
@@ -307,4 +439,23 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
 
   await page.getByTestId(`cancel-work-${managerTaskId}`).click();
   await expect(page.getByText("marked cancelled")).toBeVisible();
+});
+
+test("admin can review readiness and audit detail", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "admin" }).click();
+  await expect(page.getByRole("heading", { name: "Governance audit view" })).toBeVisible();
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("Provider gates clear");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("mock contracts");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("AI provider blocked");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("AI eval pending");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("local");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("Live data contracts must be validated");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot_readiness");
+  await expect(page.getByText("1 recent events")).toBeVisible();
+
+  await page.getByRole("button", { name: /osa_summary_created/ }).click();
+  await expect(page.locator(".auditDetail")).toContainText("audit-admin-1");
 });

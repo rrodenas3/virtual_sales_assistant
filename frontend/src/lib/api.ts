@@ -7,6 +7,7 @@ import type {
   ApprovalResponse,
   DemoIdentity,
   DemoRole,
+  IntegrationReadinessResponse,
   ManagerTask,
   ManagerTaskListResponse,
   OOSAlert,
@@ -216,6 +217,10 @@ export function syncFeedbackEvents(events: OfflineFeedbackEvent[]): Promise<unkn
 
 export function getPilotMetrics(): Promise<PilotMetricsResponse> {
   return request("/api/v1/metrics/pilot");
+}
+
+export function getIntegrationReadiness(): Promise<IntegrationReadinessResponse> {
+  return request("/api/v1/integrations/readiness");
 }
 
 export function getTerritorySummary(): Promise<TerritorySummaryResponse> {

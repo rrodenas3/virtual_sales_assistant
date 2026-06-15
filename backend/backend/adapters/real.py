@@ -363,7 +363,14 @@ class SnowflakeStoreMasterAdapter:
 
     def __init__(self, settings: Settings, client: SQLClient | None = None) -> None:
         missing = _missing(
-            ["snowflake_account", "snowflake_user", "snowflake_warehouse", "snowflake_database", "snowflake_schema"],
+            [
+                "snowflake_account",
+                "snowflake_user",
+                "snowflake_token",
+                "snowflake_warehouse",
+                "snowflake_database",
+                "snowflake_schema",
+            ],
             settings,
         )
         if missing:

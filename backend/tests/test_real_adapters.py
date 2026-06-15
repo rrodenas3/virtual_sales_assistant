@@ -29,6 +29,7 @@ def _configure_databricks(monkeypatch: pytest.MonkeyPatch) -> None:
 def _configure_snowflake(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(settings, "snowflake_account", "acct")
     monkeypatch.setattr(settings, "snowflake_user", "user")
+    monkeypatch.setattr(settings, "snowflake_token", "approved-token-reference")
     monkeypatch.setattr(settings, "snowflake_warehouse", "wh")
     monkeypatch.setattr(settings, "snowflake_database", "db")
     monkeypatch.setattr(settings, "snowflake_schema", "schema")

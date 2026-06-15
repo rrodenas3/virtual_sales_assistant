@@ -6,6 +6,7 @@ from jose.utils import base64url_encode
 from backend.config import settings
 from backend.main import app
 from backend.auth import providers
+from backend.auth.providers import auth_status
 
 
 REP_001 = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJSRVAtMDAxIiwidGVycml0b3J5X2NvZGUiOiJXRVNULTAxIiwicm9sZSI6InJlcCJ9."
@@ -32,6 +33,69 @@ def test_external_jwt_provider_fails_closed_when_unconfigured(monkeypatch) -> No
     with TestClient(app, headers={"Authorization": f"Bearer {REP_001}"}) as client:
         response = client.get("/api/v1/visits/today?territory_code=WEST-01")
     assert response.status_code == 503
+
+
+def test_auth_status_reports_mock_default_ready(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "auth_provider", "mock")
+    monkeypatch.setattr(settings, "discovery_sso_provider", None)
+    monkeypatch.setattr(settings, "external_jwt_issuer", None)
+    monkeypatch.setattr(settings, "external_jwt_audience", None)
+
+    status = auth_status()
+
+    assert status["provider"] == "mock"
+    assert status["ready"] is True
+    assert status["blockers"] == []
+
+
+def test_auth_status_reports_external_jwt_blockers(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "auth_provider", "external_jwt")
+    monkeypatch.setattr(settings, "discovery_sso_provider", None)
+    monkeypatch.setattr(settings, "external_jwt_issuer", None)
+    monkeypatch.setattr(settings, "external_jwt_audience", None)
+    monkeypatch.setattr(settings, "external_jwt_algorithms", [])
+
+    status = auth_status()
+
+    assert status["external_enabled"] is True
+    assert status["ready"] is False
+    assert status["blockers"] == [
+        "discovery_sso_provider",
+        "external_jwt_issuer",
+        "external_jwt_audience",
+        "external_jwt_algorithms",
+    ]
+
+
+def test_auth_status_reports_external_jwt_ready(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "auth_provider", "external_jwt")
+    monkeypatch.setattr(settings, "discovery_sso_provider", "approved-sso")
+    monkeypatch.setattr(settings, "external_jwt_issuer", "https://idp.example.test")
+    monkeypatch.setattr(settings, "external_jwt_audience", "phantom-vsa")
+    monkeypatch.setattr(settings, "external_jwt_jwks_url", None)
+    monkeypatch.setattr(settings, "external_jwt_algorithms", ["RS256"])
+
+    status = auth_status()
+
+    assert status["ready"] is True
+    assert status["jwks_url_derived_from_issuer"] is True
+    assert status["blockers"] == []
+
+
+def test_auth_health_endpoint_reports_selected_provider(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "auth_provider", "external_jwt")
+    monkeypatch.setattr(settings, "discovery_sso_provider", "approved-sso")
+    monkeypatch.setattr(settings, "external_jwt_issuer", None)
+    monkeypatch.setattr(settings, "external_jwt_audience", "phantom-vsa")
+
+    with TestClient(app, headers={"Authorization": f"Bearer {REP_001}"}) as client:
+        response = client.get("/api/v1/health/auth")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["provider"] == "external_jwt"
+    assert body["ready"] is False
+    assert body["blockers"] == ["external_jwt_issuer"]
 
 
 def _rsa_jwk_and_private_key(kid: str = "test-key-1") -> tuple[dict, str]:

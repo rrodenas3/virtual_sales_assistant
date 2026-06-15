@@ -10,11 +10,20 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
+from backend.auth.providers import auth_status  # noqa: E402
 from backend.config import settings  # noqa: E402
+from backend.governance.activation import build_activation_targets, flatten_provider_blockers, runtime_validation_commands  # noqa: E402
 from backend.governance.action_providers import action_provider_status  # noqa: E402
-from backend.governance.discovery import readiness_blockers, selected_live_modes  # noqa: E402
+from backend.governance.data_platform import data_platform_status  # noqa: E402
+from backend.governance.discovery import discovery_gates, readiness_blockers, selected_live_modes  # noqa: E402
+from backend.governance.guardrails import guardrail_status  # noqa: E402
+from backend.governance.offline_agent import offline_agent_status  # noqa: E402
+from backend.governance.shelf_image import shelf_image_status  # noqa: E402
 from backend.main import app  # noqa: E402
 from backend.memory.adapters import memory_status  # noqa: E402
+from backend.services.audit_sinks import audit_sink_status  # noqa: E402
+from backend.services.summary_providers import summary_provider_status  # noqa: E402
+from backend.services.telemetry import observability_status  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 from scripts.mcp_smoke import build_report as build_mcp_smoke_report  # noqa: E402
 from tests.eval.run_eval import run_eval  # noqa: E402
@@ -128,6 +137,15 @@ def run_scaffold_smoke() -> dict[str, Any]:
     }
 
 
+def _discovery_owner_blockers(blockers: list[str]) -> dict[str, list[str]]:
+    blocker_set = set(blockers)
+    owner_map: dict[str, list[str]] = {"delivery": [], "engineering": [], "shared": []}
+    for gate in discovery_gates():
+        if gate.setting_name in blocker_set:
+            owner_map[gate.owner].append(gate.setting_name)
+    return {owner: settings for owner, settings in owner_map.items() if settings}
+
+
 def build_report(target: Target) -> dict[str, Any]:
     required_provider = "anthropic" if target in {"ai-demo", "pilot"} else None
     eval_result = run_eval(require_provider=required_provider)
@@ -135,13 +153,60 @@ def build_report(target: Target) -> dict[str, Any]:
     mcp_smoke = build_mcp_smoke_report()
     memory = memory_status()
     action_providers = action_provider_status()
+    data_platform = data_platform_status()
+    auth = auth_status()
+    shelf_image = shelf_image_status()
+    audit = audit_sink_status()
+    observability = observability_status()
+    guardrails = guardrail_status()
+    offline_agent = offline_agent_status()
     modes = selected_live_modes()
     blockers = readiness_blockers()
+    owner_blockers = _discovery_owner_blockers(blockers)
     providers = eval_result["summary"]["providers"]
+    summary_status = summary_provider_status()
+    if required_provider is not None:
+        current_eval_validated = eval_result["passed"] and required_provider in providers
+        summary_status = {
+            **summary_status,
+            "ai_demo_eval_validated": current_eval_validated,
+            "ai_demo_ready": summary_status["ai_demo_provider_ready"] and current_eval_validated,
+            "ai_demo_blockers": [
+                blocker
+                for blocker in summary_status["ai_demo_blockers"]
+                if blocker != "AI-demo eval must pass with provider=anthropic before AI-demo readiness"
+            ],
+        }
+        if not current_eval_validated:
+            summary_status["ai_demo_blockers"].append(
+                "AI-demo eval must pass with provider=anthropic before AI-demo readiness"
+            )
+    provider_readiness = {
+        "auth": auth,
+        "data_platform": data_platform,
+        "action_providers": action_providers,
+        "shelf_image": shelf_image,
+        "memory": memory,
+        "audit": audit,
+        "guardrails": guardrails,
+        "offline_agent": offline_agent,
+        "observability": observability,
+    }
+    activation_targets = build_activation_targets(
+        discovery_blockers=blockers,
+        provider_blockers=flatten_provider_blockers(provider_readiness),
+        provider_readiness=provider_readiness,
+        summary_status=summary_status,
+    )
     action_provider_detail = (
         f"crm={action_providers['crm']['provider']}; "
         f"erp={action_providers['erp']['provider']}; "
         f"blockers={action_providers['blockers']}"
+    )
+    data_platform_detail = (
+        f"databricks_selected={data_platform['databricks']['selected']}; "
+        f"snowflake_selected={data_platform['snowflake']['selected']}; "
+        f"blockers={data_platform['blockers']}"
     )
 
     gates = [
@@ -150,6 +215,11 @@ def build_report(target: Target) -> dict[str, Any]:
             "real_ai",
             required_provider is None or required_provider in providers,
             "not required for local scaffold" if required_provider is None else f"requires provider={required_provider}",
+        ),
+        _gate(
+            "ai_demo_eval_evidence",
+            required_provider is None or (eval_result["passed"] and required_provider in providers),
+            "not required for local scaffold" if required_provider is None else "current eval run must pass with provider=anthropic",
         ),
         _gate(
             "discovery",
@@ -173,8 +243,8 @@ def build_report(target: Target) -> dict[str, Any]:
         ),
         _gate(
             "audit_sink",
-            target != "pilot" or settings.audit_sink == "unity_catalog" or settings.audit_dual_write_enabled,
-            f"AUDIT_SINK={settings.audit_sink}; AUDIT_DUAL_WRITE_ENABLED={settings.audit_dual_write_enabled}",
+            audit["ready"] and (target != "pilot" or audit["unity_selected"]),
+            f"primary={audit['primary_sink']}; unity_selected={audit['unity_selected']}; blockers={audit['blockers']}",
         ),
         _gate(
             "scaffold_smoke",
@@ -196,17 +266,48 @@ def build_report(target: Target) -> dict[str, Any]:
             action_providers["ready"],
             action_provider_detail,
         ),
+        _gate(
+            "data_platform",
+            data_platform["ready"],
+            data_platform_detail,
+        ),
+        _gate(
+            "auth_provider",
+            auth["ready"],
+            f"provider={auth['provider']}; blockers={auth['blockers']}",
+        ),
+        _gate(
+            "shelf_image_provider",
+            shelf_image["ready"],
+            f"provider={shelf_image['provider']}; blockers={shelf_image['blockers']}",
+        ),
+        _gate(
+            "observability",
+            observability["ready"],
+            f"provider={observability['provider']}; blockers={observability['blockers']}",
+        ),
     ]
     return {
         "target": target,
         "passed": all(gate["passed"] for gate in gates),
         "selected_live_modes": sorted(modes),
         "discovery_blockers": blockers,
+        "discovery_owner_blockers": owner_blockers,
         "eval_summary": eval_result["summary"],
+        "ai_demo_eval_validated": bool(summary_status["ai_demo_eval_validated"]),
+        "ai_demo_eval_last_validation_at": summary_status["ai_demo_eval_last_validation_at"],
+        "ai_demo_eval_validation_summary": summary_status["ai_demo_eval_validation_summary"],
         "scaffold_smoke": smoke_result,
         "mcp_smoke": mcp_smoke,
         "memory": memory,
         "action_providers": action_providers,
+        "data_platform": data_platform,
+        "auth": auth,
+        "shelf_image": shelf_image,
+        "audit": audit,
+        "observability": observability,
+        "activation_targets": activation_targets,
+        "runtime_validation_commands": runtime_validation_commands(target),
         "gates": gates,
     }
 
@@ -224,9 +325,46 @@ def write_artifacts(report: dict[str, Any], output_dir: Path) -> None:
         f"- Passed: `{report['passed']}`",
         f"- Selected live modes: `{', '.join(report['selected_live_modes']) or 'none'}`",
         "",
-        "| Gate | Status | Detail |",
-        "|---|---:|---|",
+        "## Discovery Blocker Owners",
+        "",
     ]
+    if report["discovery_owner_blockers"]:
+        for owner, owner_blockers in report["discovery_owner_blockers"].items():
+            lines.append(f"- `{owner}`: {', '.join(owner_blockers)}")
+    else:
+        lines.append("- None")
+    lines.extend(
+        [
+            "",
+            "| Activation target | Status | Blockers |",
+            "|---|---:|---|",
+        ]
+    )
+    for target in report["activation_targets"]:
+        status = "ready" if target["ready"] else "blocked"
+        blockers = ", ".join(target["blockers"]) or "none"
+        escaped_blockers = blockers.replace("|", "\\|")
+        lines.append(f"| {target['target']} | {status} | {escaped_blockers} |")
+    lines.extend(
+        [
+            "",
+            "## Runtime Validation Commands",
+            "",
+            "| Name | Command | Notes |",
+            "|---|---|---|",
+        ]
+    )
+    for command in report["runtime_validation_commands"]:
+        escaped_command = str(command["command"]).replace("|", "\\|")
+        escaped_notes = str(command["notes"]).replace("|", "\\|")
+        lines.append(f"| {command['name']} | `{escaped_command}` | {escaped_notes} |")
+    lines.extend(
+        [
+            "",
+            "| Gate | Status | Detail |",
+            "|---|---:|---|",
+        ]
+    )
     for gate in report["gates"]:
         status = "pass" if gate["passed"] else "fail"
         detail = str(gate["detail"]).replace("|", "\\|")

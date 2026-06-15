@@ -151,5 +151,33 @@ def get_auth_provider() -> AuthProvider:
     return ExternalJWTProvider()
 
 
+def auth_status() -> dict:
+    blockers: list[str] = []
+    if settings.auth_provider == "external_jwt":
+        if not settings.discovery_sso_provider:
+            blockers.append("discovery_sso_provider")
+        if not settings.external_jwt_issuer:
+            blockers.append("external_jwt_issuer")
+        if not settings.external_jwt_audience:
+            blockers.append("external_jwt_audience")
+        if not settings.external_jwt_algorithms:
+            blockers.append("external_jwt_algorithms")
+
+    return {
+        "provider": settings.auth_provider,
+        "external_enabled": settings.auth_provider == "external_jwt",
+        "issuer_configured": bool(settings.external_jwt_issuer),
+        "audience_configured": bool(settings.external_jwt_audience),
+        "jwks_url_configured": bool(settings.external_jwt_jwks_url),
+        "jwks_url_derived_from_issuer": bool(settings.external_jwt_issuer and not settings.external_jwt_jwks_url),
+        "role_claim": settings.external_jwt_role_claim,
+        "territory_claim": settings.external_jwt_territory_claim,
+        "algorithms_configured": bool(settings.external_jwt_algorithms),
+        "discovery_configured": bool(settings.discovery_sso_provider),
+        "ready": not blockers,
+        "blockers": blockers,
+    }
+
+
 async def get_current_user(request: Request) -> CurrentUser:
     return await get_auth_provider().authenticate(request)

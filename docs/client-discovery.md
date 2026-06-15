@@ -13,7 +13,7 @@ The backend exposes the current gate state at:
 GET /api/v1/integrations/readiness
 ```
 
-The endpoint is manager/admin-only. Local mock mode can remain ready with several unanswered gates because no live integration is selected. When a live mode is selected, the relevant gates become blockers before provider setup or query execution.
+The endpoint is manager/admin-only. Local mock mode can remain ready with several unanswered gates because no live integration is selected. When a live mode is selected, the relevant gates become blockers before provider setup or query execution. Each gate includes an `owner` field (`delivery`, `engineering`, or `shared`) so unresolved blockers can be routed without interpreting free-form notes.
 
 | Topic | Setting | Status | Blocks |
 |---|---|---|---|
@@ -45,7 +45,7 @@ python scripts/validate_live_data_contracts.py --manifest-only
 python scripts/validate_live_data_contracts.py --territory-code WEST-01 --rep-id REP-001 --store-id ST-001 --output-dir artifacts/contracts/live
 ```
 
-The manifest command is safe for CI and public review. The live command must only run in a client-approved environment with credentials supplied outside the repository. It writes `live_data_contract_report.json`, `live_data_contract_report.md`, and `readiness_env.json`. Results can be summarized in:
+The manifest command is safe for CI and public review. The live command must only run in a client-approved environment with credentials supplied outside the repository. It writes `live_data_contract_report.json`, `live_data_contract_report.md`, and `readiness_env.json`. The readiness bundle also lists these env keys before any live run so operators know what must be recorded after validation:
 
 - `LIVE_DATA_CONTRACT_VALIDATED`
 - `LIVE_DATA_CONTRACT_LAST_VALIDATION_AT`

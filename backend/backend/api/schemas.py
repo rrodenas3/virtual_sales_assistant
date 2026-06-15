@@ -430,12 +430,28 @@ class DiscoveryGateOut(BaseModel):
     value: str | None
     required_for: list[str]
     notes: str
+    owner: Literal["delivery", "engineering", "shared"]
+
+
+class ActivationTargetReadiness(BaseModel):
+    target: Literal["local", "ai-demo", "pilot"]
+    ready: bool
+    description: str
+    blockers: list[str] = Field(default_factory=list)
+
+
+class RuntimeValidationCommandOut(BaseModel):
+    name: str
+    command: str
+    notes: str
 
 
 class IntegrationReadinessResponse(BaseModel):
     ready: bool
     selected_live_modes: list[str]
     blockers: list[str]
+    provider_blockers: list[str] = Field(default_factory=list)
+    provider_readiness: dict[str, dict] = Field(default_factory=dict)
     gates: list[DiscoveryGateOut]
     view_contract_validated: bool = False
     last_validation_at: str | None = None
@@ -443,4 +459,10 @@ class IntegrationReadinessResponse(BaseModel):
     summary_provider: str
     summary_model_id: str
     ai_demo_ready: bool
+    ai_demo_provider_ready: bool = False
+    ai_demo_eval_validated: bool = False
+    ai_demo_eval_last_validation_at: str | None = None
+    ai_demo_eval_validation_summary: str | None = None
     ai_demo_blockers: list[str] = Field(default_factory=list)
+    activation_targets: list[ActivationTargetReadiness] = Field(default_factory=list)
+    runtime_validation_commands: dict[str, list[RuntimeValidationCommandOut]] = Field(default_factory=dict)

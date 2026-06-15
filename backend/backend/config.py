@@ -81,12 +81,16 @@ class Settings(BaseSettings):
     anthropic_model: str = "claude-haiku-4-5"
     anthropic_timeout_seconds: float = 8.0
     anthropic_max_tokens: int = 600
+    ai_demo_eval_validated: bool = False
+    ai_demo_eval_last_validation_at: str | None = None
+    ai_demo_eval_validation_summary: str | None = None
     summary_fail_open: bool = False
     databricks_host: str | None = None
     databricks_token: str | None = None
     databricks_sql_warehouse_id: str | None = None
     snowflake_account: str | None = None
     snowflake_user: str | None = None
+    snowflake_token: str | None = None
     snowflake_warehouse: str | None = None
     snowflake_database: str | None = None
     snowflake_schema: str | None = None
