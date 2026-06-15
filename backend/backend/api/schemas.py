@@ -351,6 +351,43 @@ class TerritorySummaryResponse(BaseModel):
     stores: list[TerritoryStoreSummary]
 
 
+class CreateManagerTaskRequest(BaseModel):
+    territory_code: str
+    store_id: str
+    assigned_rep_id: str
+    session_id: str
+    title: str = Field(min_length=3, max_length=160)
+    task_type: Literal["shelf_check", "follow_up", "promo_check", "order_review"]
+    priority: Literal["low", "medium", "high"]
+    due_date: str | None = None
+    notes: str | None = Field(default=None, max_length=1000)
+    linked_alert_ids: list[str] = Field(default_factory=list, max_length=20)
+
+
+class ManagerTaskResponse(BaseModel):
+    task_id: str
+    territory_code: str
+    store_id: str
+    store_name: str | None = None
+    assigned_rep_id: str
+    created_by: str
+    session_id: str
+    title: str
+    task_type: str
+    priority: str
+    due_date: str | None
+    status: str
+    payload_json: dict
+    created_at: datetime
+    audit_event_id: str | None = None
+
+
+class ManagerTaskListResponse(BaseModel):
+    territory_code: str | None = None
+    assigned_rep_id: str | None = None
+    tasks: list[ManagerTaskResponse]
+
+
 class AdminAuditEventsResponse(BaseModel):
     events: list[AuditEventOut]
     limit: int

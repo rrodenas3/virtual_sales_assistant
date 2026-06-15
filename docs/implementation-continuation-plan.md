@@ -62,6 +62,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Observability now has an OTLP HTTP export boundary behind `OBSERVABILITY_PROVIDER=otlp_http`, while structured local logging remains the default.
 - Eval artifacts now include MLflow-ready metrics/params plus an optional `scripts/log_eval_to_mlflow.py` handoff script.
 - Shelf-image analysis now has a mock-first REST and MCP boundary with external-provider discovery gates; no real image pixels are analyzed by default.
+- Manager-initiated work is scaffolded through auditable task assignment endpoints and a deployable `manager_tasks` migration.
 
 ## Deferred Spec Areas
 
