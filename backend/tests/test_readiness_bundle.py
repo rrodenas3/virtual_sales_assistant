@@ -42,6 +42,8 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
     assert set(command_sets) == {"local", "ai-demo", "pilot"}
     assert command_sets["local"][0]["name"] == "public_safety_scan"
     assert any(command["name"] == "summary_load_test" for command in command_sets["ai-demo"])
+    assert any(command["name"] == "ai_summary_eval" for command in command_sets["ai-demo"])
+    assert any(command["name"] == "mlflow_handoff_dry_run" for command in command_sets["ai-demo"])
     assert any(command["name"] == "live_data_contracts" for command in command_sets["pilot"])
 
 
@@ -58,6 +60,7 @@ def test_readiness_bundle_writes_handoff_artifacts(tmp_path) -> None:
     assert "## Live Data Readiness Env" in bundle_md
     assert "`LIVE_DATA_CONTRACT_VALIDATED`" in bundle_md
     assert "| ai-demo | blocked |" in bundle_md
+    assert "## AI Demo Readiness Env" in bundle_md
     assert "## Discovery Blocker Owners" in (tmp_path / "readiness" / "pilot_readiness_report.md").read_text(encoding="utf-8")
     assert (tmp_path / "readiness" / "pilot_readiness_report.json").exists()
     assert (tmp_path / "mcp" / "mcp_smoke_report.json").exists()

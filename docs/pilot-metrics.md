@@ -105,10 +105,11 @@ For AI-demo or pilot validation, require the configured AI provider explicitly:
 
 ```powershell
 python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai
+python scripts/log_eval_to_mlflow.py --artifact-dir artifacts/eval-ai --experiment-name phantom-vsa-evals --dry-run --output-dir artifacts/eval-ai
 python scripts/pilot_readiness_report.py --target ai-demo --output-dir artifacts/readiness/ai-demo
 ```
 
-Template-only eval success proves scaffold safety, not final AI-assistant readiness.
+Template-only eval success proves scaffold safety, not final AI-assistant readiness. After the approved provider eval passes, record `AI_DEMO_EVAL_VALIDATED=true`, `AI_DEMO_EVAL_LAST_VALIDATION_AT`, and `AI_DEMO_EVAL_VALIDATION_SUMMARY` in the approved runtime environment so `/health/ai` and `/integrations/readiness` can distinguish configured AI from validated AI.
 
 Every HTTP response includes `x-request-id` and `x-response-time-ms`. When `OBSERVABILITY_PROVIDER=structured`, the backend emits structured `http_request` events to the `phantom.telemetry` logger with method, path, status, request ID, and duration.
 

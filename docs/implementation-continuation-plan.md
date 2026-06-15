@@ -96,6 +96,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Summary endpoint load testing now supports an approved runtime bearer-token override through `LOAD_TEST_BEARER_TOKEN` while keeping tokens out of reports.
 - Pilot readiness reports, readiness bundles, `/integrations/readiness`, and manager/admin readiness panels now include target-specific runtime validation commands for local, AI-demo, and final pilot handoff from a shared governance helper.
 - MLflow handoff now has a dry-run manifest mode that validates eval artifacts and writes `mlflow_handoff.json`/`mlflow_handoff.md` without requiring a managed MLflow server or local MLflow package.
+- AI-demo readiness now requires explicit approved-provider eval evidence through `AI_DEMO_EVAL_VALIDATED`, with runtime commands and readiness bundle env keys documenting how to generate and record the proof.
 
 ## Deferred Spec Areas
 
@@ -113,5 +114,5 @@ This plan continues the MVP from the current public repository state. It hardens
 - Pilot model setting: `ANTHROPIC_MODEL=claude-haiku-4-5`, configurable by environment.
 - LangGraph: defer production dependency; keep current graph-style scaffold as a parity/migration harness.
 - CopilotKit: defer for pilot; use the existing custom `/agent/run` SSE bridge first.
-- Real AI gate: pilot validation must run the summary eval path once with `SUMMARY_PROVIDER=anthropic`; template-only pilot mode is not sufficient for AI-assistant validation.
+- Real AI gate: pilot validation must run the summary eval path once with `SUMMARY_PROVIDER=anthropic` and record `AI_DEMO_EVAL_VALIDATED=true`; template-only pilot mode is not sufficient for AI-assistant validation.
 - Client discovery owner: delivery owns platform answers and approved secret provisioning; engineering owns readiness gates, validation scripts, and adapter code.

@@ -165,6 +165,22 @@ def build_report(target: Target) -> dict[str, Any]:
     owner_blockers = _discovery_owner_blockers(blockers)
     providers = eval_result["summary"]["providers"]
     summary_status = summary_provider_status()
+    if required_provider is not None:
+        current_eval_validated = eval_result["passed"] and required_provider in providers
+        summary_status = {
+            **summary_status,
+            "ai_demo_eval_validated": current_eval_validated,
+            "ai_demo_ready": summary_status["ai_demo_provider_ready"] and current_eval_validated,
+            "ai_demo_blockers": [
+                blocker
+                for blocker in summary_status["ai_demo_blockers"]
+                if blocker != "AI-demo eval must pass with provider=anthropic before AI-demo readiness"
+            ],
+        }
+        if not current_eval_validated:
+            summary_status["ai_demo_blockers"].append(
+                "AI-demo eval must pass with provider=anthropic before AI-demo readiness"
+            )
     provider_readiness = {
         "auth": auth,
         "data_platform": data_platform,
@@ -199,6 +215,11 @@ def build_report(target: Target) -> dict[str, Any]:
             "real_ai",
             required_provider is None or required_provider in providers,
             "not required for local scaffold" if required_provider is None else f"requires provider={required_provider}",
+        ),
+        _gate(
+            "ai_demo_eval_evidence",
+            required_provider is None or (eval_result["passed"] and required_provider in providers),
+            "not required for local scaffold" if required_provider is None else "current eval run must pass with provider=anthropic",
         ),
         _gate(
             "discovery",
@@ -273,6 +294,9 @@ def build_report(target: Target) -> dict[str, Any]:
         "discovery_blockers": blockers,
         "discovery_owner_blockers": owner_blockers,
         "eval_summary": eval_result["summary"],
+        "ai_demo_eval_validated": bool(summary_status["ai_demo_eval_validated"]),
+        "ai_demo_eval_last_validation_at": summary_status["ai_demo_eval_last_validation_at"],
+        "ai_demo_eval_validation_summary": summary_status["ai_demo_eval_validation_summary"],
         "scaffold_smoke": smoke_result,
         "mcp_smoke": mcp_smoke,
         "memory": memory,

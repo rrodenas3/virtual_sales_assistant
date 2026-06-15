@@ -38,6 +38,19 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
         commands.extend(
             [
                 {
+                    "name": "ai_summary_eval",
+                    "command": "python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai",
+                    "notes": "Must pass with the configured approved provider before claiming AI-assistant behavior.",
+                },
+                {
+                    "name": "mlflow_handoff_dry_run",
+                    "command": (
+                        "python scripts/log_eval_to_mlflow.py --artifact-dir artifacts/eval-ai "
+                        "--experiment-name phantom-vsa-evals --dry-run --output-dir artifacts/eval-ai"
+                    ),
+                    "notes": "Validates eval artifacts and produces local handoff manifests without a tracking server.",
+                },
+                {
                     "name": "ai_demo_readiness",
                     "command": "python scripts/pilot_readiness_report.py --target ai-demo --output-dir artifacts/readiness/ai-demo",
                     "notes": "Requires approved summary provider configuration.",

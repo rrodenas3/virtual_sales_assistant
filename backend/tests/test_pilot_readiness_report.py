@@ -31,6 +31,7 @@ def test_local_readiness_report_includes_scaffold_smoke() -> None:
         "public_safety_scan",
         "local_readiness",
     }
+    assert report["ai_demo_eval_validated"] is False
     targets = {target["target"]: target for target in report["activation_targets"]}
     assert targets["local"]["ready"] is True
     assert targets["ai-demo"]["ready"] is False
@@ -44,6 +45,7 @@ def test_local_readiness_report_includes_scaffold_smoke() -> None:
     assert any(gate["name"] == "shelf_image_provider" and gate["passed"] for gate in report["gates"])
     assert any(gate["name"] == "audit_sink" and gate["passed"] for gate in report["gates"])
     assert any(gate["name"] == "observability" and gate["passed"] for gate in report["gates"])
+    assert any(gate["name"] == "ai_demo_eval_evidence" and gate["passed"] for gate in report["gates"])
 
 
 def test_discovery_owner_blockers_group_by_owner() -> None:

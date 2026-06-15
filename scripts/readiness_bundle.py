@@ -19,6 +19,14 @@ from scripts.pilot_readiness_report import write_artifacts as write_pilot_readin
 from scripts.validate_live_data_contracts import readiness_env_manifest  # noqa: E402
 
 
+def ai_demo_readiness_env_manifest() -> dict[str, str]:
+    return {
+        "AI_DEMO_EVAL_VALIDATED": "Set true after the approved provider eval passes.",
+        "AI_DEMO_EVAL_LAST_VALIDATION_AT": "UTC timestamp for the approved provider eval run.",
+        "AI_DEMO_EVAL_VALIDATION_SUMMARY": "Short summary of provider, model, latency, cost, and trace results.",
+    }
+
+
 def build_bundle(target: str) -> dict[str, Any]:
     readiness = build_pilot_readiness_report(target)  # type: ignore[arg-type]
     mcp_smoke = build_mcp_smoke_report()
@@ -30,6 +38,7 @@ def build_bundle(target: str) -> dict[str, Any]:
         "mcp_smoke": mcp_smoke,
         "live_data_contract_manifest": manifest,
         "live_data_readiness_env_manifest": readiness_env_manifest(),
+        "ai_demo_readiness_env_manifest": ai_demo_readiness_env_manifest(),
         "runtime_validation_commands": runtime_validation_commands(target),
         "required_manual_checks": [
             "Run public-safety scan before publishing or sharing artifacts.",
@@ -73,6 +82,18 @@ def write_artifacts(bundle: dict[str, Any], output_dir: Path) -> None:
         "|---|---|",
     ]
     for key, meaning in bundle["live_data_readiness_env_manifest"].items():
+        escaped_meaning = str(meaning).replace("|", "\\|")
+        lines.append(f"| `{key}` | {escaped_meaning} |")
+    lines.extend(
+        [
+            "",
+            "## AI Demo Readiness Env",
+            "",
+            "| Env key | Meaning |",
+            "|---|---|",
+        ]
+    )
+    for key, meaning in bundle["ai_demo_readiness_env_manifest"].items():
         escaped_meaning = str(meaning).replace("|", "\\|")
         lines.append(f"| `{key}` | {escaped_meaning} |")
     lines.extend(

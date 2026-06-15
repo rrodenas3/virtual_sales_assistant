@@ -459,6 +459,10 @@ class IntegrationReadinessResponse(BaseModel):
     summary_provider: str
     summary_model_id: str
     ai_demo_ready: bool
+    ai_demo_provider_ready: bool = False
+    ai_demo_eval_validated: bool = False
+    ai_demo_eval_last_validation_at: str | None = None
+    ai_demo_eval_validation_summary: str | None = None
     ai_demo_blockers: list[str] = Field(default_factory=list)
     activation_targets: list[ActivationTargetReadiness] = Field(default_factory=list)
     runtime_validation_commands: dict[str, list[RuntimeValidationCommandOut]] = Field(default_factory=dict)
