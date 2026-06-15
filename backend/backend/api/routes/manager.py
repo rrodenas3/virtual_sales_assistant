@@ -152,6 +152,21 @@ async def create_manager_task(
     if store.rep_id != request.assigned_rep_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="assigned_rep_id does not match store owner")
 
+    existing_open_task = (
+        await db.execute(
+            select(ManagerTask)
+            .where(ManagerTask.territory_code == request.territory_code)
+            .where(ManagerTask.store_id == request.store_id)
+            .where(ManagerTask.assigned_rep_id == request.assigned_rep_id)
+            .where(ManagerTask.task_type == request.task_type)
+            .where(ManagerTask.title == request.title)
+            .where(ManagerTask.status == "OPEN")
+            .order_by(ManagerTask.created_at.desc())
+        )
+    ).scalars().first()
+    if existing_open_task is not None:
+        return _task_response(existing_open_task, store.store_name)
+
     row = ManagerTask(
         territory_code=request.territory_code,
         store_id=request.store_id,

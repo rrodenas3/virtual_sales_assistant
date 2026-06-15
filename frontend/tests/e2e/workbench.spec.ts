@@ -437,6 +437,23 @@ test("rep assigned work hides completed and cancelled task history", async ({ pa
             audit_event_id: "audit_work_done"
           },
           {
+            task_id: "work_open_duplicate",
+            territory_code: "WEST-01",
+            store_id: "ST-001",
+            store_name: "West Market 01",
+            assigned_rep_id: "REP-001",
+            created_by: "MGR-001",
+            session_id: "MGR-001:2026-06-15:manager_work",
+            title: "Verify shelf before noon",
+            task_type: "shelf_check",
+            priority: "high",
+            due_date: null,
+            status: "OPEN",
+            payload_json: { notes: "Duplicate open task.", linked_alert_ids: [] },
+            created_at: "2026-06-15T00:00:00Z",
+            audit_event_id: "audit_work_open_duplicate"
+          },
+          {
             task_id: "work_cancelled",
             territory_code: "WEST-01",
             store_id: "ST-001",
@@ -461,7 +478,7 @@ test("rep assigned work hides completed and cancelled task history", async ({ pa
   await page.goto("/");
 
   await expect(page.getByTestId("my-tasks")).toContainText("1 open tasks");
-  await expect(page.getByTestId("my-tasks")).toContainText("Verify shelf before noon");
+  await expect(page.getByTestId("my-tasks").getByText("Verify shelf before noon")).toHaveCount(1);
   await expect(page.getByTestId("my-tasks")).not.toContainText("Readiness shelf check");
   await expect(page.getByTestId("my-tasks")).not.toContainText("Cancel this duplicate task");
 });

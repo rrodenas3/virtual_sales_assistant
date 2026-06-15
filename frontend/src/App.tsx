@@ -270,10 +270,16 @@ export function App() {
     () => visits.find((visit) => visit.store_id === selectedStoreId) ?? null,
     [selectedStoreId, visits]
   );
-  const openMyTasks = useMemo(
-    () => myTasks?.tasks.filter((task) => task.status === "OPEN") ?? [],
-    [myTasks]
-  );
+  const openMyTasks = useMemo(() => {
+    const seen = new Set<string>();
+    return (myTasks?.tasks ?? []).filter((task) => {
+      if (task.status !== "OPEN") return false;
+      const taskKey = `${task.store_id}:${task.task_type}:${task.title}`;
+      if (seen.has(taskKey)) return false;
+      seen.add(taskKey);
+      return true;
+    });
+  }, [myTasks]);
 
   async function handleFeedback(alertId: string, value: AlertFeedback) {
     setFeedback((current) => ({ ...current, [alertId]: value }));
