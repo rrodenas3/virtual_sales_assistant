@@ -432,6 +432,13 @@ class DiscoveryGateOut(BaseModel):
     notes: str
 
 
+class ActivationTargetReadiness(BaseModel):
+    target: Literal["local", "ai-demo", "pilot"]
+    ready: bool
+    description: str
+    blockers: list[str] = Field(default_factory=list)
+
+
 class IntegrationReadinessResponse(BaseModel):
     ready: bool
     selected_live_modes: list[str]
@@ -446,3 +453,4 @@ class IntegrationReadinessResponse(BaseModel):
     summary_model_id: str
     ai_demo_ready: bool
     ai_demo_blockers: list[str] = Field(default_factory=list)
+    activation_targets: list[ActivationTargetReadiness] = Field(default_factory=list)

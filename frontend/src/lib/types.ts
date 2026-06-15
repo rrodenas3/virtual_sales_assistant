@@ -201,6 +201,12 @@ export type IntegrationReadinessResponse = {
   summary_model_id: string;
   ai_demo_ready: boolean;
   ai_demo_blockers: string[];
+  activation_targets: {
+    target: "local" | "ai-demo" | "pilot";
+    ready: boolean;
+    description: string;
+    blockers: string[];
+  }[];
 };
 
 export type DemoRole = "rep" | "manager" | "admin";

@@ -49,6 +49,19 @@ import type {
 } from "./lib/types";
 import { TraceDrawer } from "./components/TraceDrawer";
 
+function ActivationTargets({ readiness }: { readiness: IntegrationReadinessResponse }) {
+  return (
+    <div className="activationTargets" data-testid="activation-targets">
+      {readiness.activation_targets.map((target) => (
+        <div key={target.target} className={target.ready ? "activationTarget activationTarget--ready" : "activationTarget"}>
+          <strong>{target.target}</strong>
+          <span>{target.ready ? "ready" : `${target.blockers.length} blockers`}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function App() {
   const [visits, setVisits] = useState<VisitPriority[]>([]);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
@@ -384,6 +397,7 @@ export function App() {
                   ))}
                 </div>
               )}
+              <ActivationTargets readiness={readiness} />
             </div>
           )}
           <div className="metricStrip">
@@ -485,6 +499,7 @@ export function App() {
                   ))}
                 </div>
               )}
+              <ActivationTargets readiness={readiness} />
             </div>
           )}
           <div className="sectionHead">

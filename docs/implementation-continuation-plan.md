@@ -85,6 +85,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - `scripts/readiness_bundle.py` now generates a local-safe handoff bundle with pilot readiness, MCP smoke, live-contract manifest, and manual checks for public safety, live credentials, and AI-demo validation.
 - The manager command view now surfaces `/integrations/readiness` with selected live modes, provider blockers, and AI-demo posture.
 - The admin governance view now surfaces `/integrations/readiness` beside audit events, so provider blockers, discovery blockers, and live-contract status are visible during trace review.
+- `/integrations/readiness` now includes activation targets for local scaffold, AI demo, and final pilot readiness; manager/admin panels render those target states directly.
 
 ## Deferred Spec Areas
 

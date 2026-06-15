@@ -253,7 +253,27 @@ test.beforeEach(async ({ page }) => {
         summary_provider: "template",
         summary_model_id: "grounded-template-v1",
         ai_demo_ready: false,
-        ai_demo_blockers: ["SUMMARY_PROVIDER must be anthropic for AI-demo readiness"]
+        ai_demo_blockers: ["SUMMARY_PROVIDER must be anthropic for AI-demo readiness"],
+        activation_targets: [
+          {
+            target: "local",
+            ready: true,
+            description: "Local scaffold with mock/default providers",
+            blockers: []
+          },
+          {
+            target: "ai-demo",
+            ready: false,
+            description: "Real summary provider validation with the SSE assistant enabled",
+            blockers: ["SUMMARY_PROVIDER must be anthropic for AI-demo readiness"]
+          },
+          {
+            target: "pilot",
+            ready: false,
+            description: "Credentialed pilot with live contracts, live modes, and audit mirror",
+            blockers: ["Live data contracts must be validated for pilot readiness"]
+          }
+        ]
       }
     });
   });
@@ -359,6 +379,8 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByRole("heading", { name: "Territory command view" })).toBeVisible();
   await expect(page.getByTestId("readiness-panel")).toContainText("Local scaffold ready");
   await expect(page.getByTestId("readiness-panel")).toContainText("mock/local modes");
+  await expect(page.getByTestId("readiness-panel")).toContainText("ai-demo");
+  await expect(page.getByTestId("readiness-panel")).toContainText("pilot");
   await expect(page.getByText("0 assigned tasks")).toBeVisible();
 
   await page.getByRole("button", { name: "Assign shelf check" }).click();
@@ -376,6 +398,8 @@ test("admin can review readiness and audit detail", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Governance audit view" })).toBeVisible();
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("Provider gates clear");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("mock contracts");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("local");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot");
   await expect(page.getByText("1 recent events")).toBeVisible();
 
   await page.getByRole("button", { name: /osa_summary_created/ }).click();

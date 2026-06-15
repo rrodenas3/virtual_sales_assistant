@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from backend.api.schemas import DiscoveryGateOut, IntegrationReadinessResponse
+from backend.api.schemas import ActivationTargetReadiness, DiscoveryGateOut, IntegrationReadinessResponse
 from backend.auth.mock_jwt import CurrentUser, get_current_user
 from backend.auth.providers import auth_status
 from backend.config import settings
@@ -44,6 +44,52 @@ def _provider_blockers(provider_readiness: dict[str, dict]) -> list[str]:
     return blockers
 
 
+def _activation_targets(
+    *,
+    discovery_blockers: list[str],
+    provider_blockers: list[str],
+    provider_readiness: dict[str, dict],
+    summary_status: dict,
+) -> list[ActivationTargetReadiness]:
+    local_blockers = [*discovery_blockers, *provider_blockers]
+    ai_demo_blockers = [
+        *local_blockers,
+        *list(summary_status["ai_demo_blockers"]),
+    ]
+    if not settings.agent_run_enabled:
+        ai_demo_blockers.append("AGENT_RUN_ENABLED must be true for AI-demo readiness")
+
+    pilot_blockers = list(ai_demo_blockers)
+    if not settings.live_data_contract_validated:
+        pilot_blockers.append("Live data contracts must be validated for pilot readiness")
+    if not selected_live_modes():
+        pilot_blockers.append("At least one live integration mode must be selected for pilot readiness")
+    audit_status = provider_readiness.get("audit", {})
+    if not audit_status.get("unity_selected"):
+        pilot_blockers.append("Unity Catalog audit sink or mirror must be selected for pilot readiness")
+
+    return [
+        ActivationTargetReadiness(
+            target="local",
+            ready=not local_blockers,
+            description="Local scaffold with mock/default providers",
+            blockers=local_blockers,
+        ),
+        ActivationTargetReadiness(
+            target="ai-demo",
+            ready=not ai_demo_blockers,
+            description="Real summary provider validation with the SSE assistant enabled",
+            blockers=ai_demo_blockers,
+        ),
+        ActivationTargetReadiness(
+            target="pilot",
+            ready=not pilot_blockers,
+            description="Credentialed pilot with live contracts, live modes, and audit mirror",
+            blockers=pilot_blockers,
+        ),
+    ]
+
+
 @router.get("/readiness", response_model=IntegrationReadinessResponse)
 async def integration_readiness(current_user: CurrentUser = Depends(get_current_user)) -> IntegrationReadinessResponse:
     if current_user.role not in {"manager", "admin"}:
@@ -76,4 +122,10 @@ async def integration_readiness(current_user: CurrentUser = Depends(get_current_
         summary_model_id=str(summary_status["active_model"]),
         ai_demo_ready=bool(summary_status["ai_demo_ready"]),
         ai_demo_blockers=list(summary_status["ai_demo_blockers"]),
+        activation_targets=_activation_targets(
+            discovery_blockers=blockers,
+            provider_blockers=provider_blockers,
+            provider_readiness=provider_readiness,
+            summary_status=summary_status,
+        ),
     )

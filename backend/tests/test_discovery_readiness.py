@@ -37,6 +37,13 @@ def test_readiness_reports_default_local_mode() -> None:
     assert body["provider_readiness"]["observability"]["provider"] == "structured"
     assert "SUMMARY_PROVIDER must be anthropic for AI-demo readiness" in body["ai_demo_blockers"]
     assert any(gate["setting_name"] == "discovery_sso_provider" for gate in body["gates"])
+    targets = {target["target"]: target for target in body["activation_targets"]}
+    assert targets["local"]["ready"] is True
+    assert targets["local"]["blockers"] == []
+    assert targets["ai-demo"]["ready"] is False
+    assert "AGENT_RUN_ENABLED must be true for AI-demo readiness" in targets["ai-demo"]["blockers"]
+    assert targets["pilot"]["ready"] is False
+    assert "Live data contracts must be validated for pilot readiness" in targets["pilot"]["blockers"]
 
 
 def test_readiness_reports_live_contract_validation_status(monkeypatch) -> None:
@@ -64,6 +71,9 @@ def test_readiness_reports_ai_demo_provider_state(monkeypatch) -> None:
     assert body["summary_model_id"] == "claude-haiku-4-5"
     assert body["ai_demo_ready"] is True
     assert body["ai_demo_blockers"] == []
+    targets = {target["target"]: target for target in body["activation_targets"]}
+    assert targets["ai-demo"]["ready"] is False
+    assert targets["ai-demo"]["blockers"] == ["AGENT_RUN_ENABLED must be true for AI-demo readiness"]
 
 
 def test_readiness_reports_provider_configuration_blockers(monkeypatch) -> None:

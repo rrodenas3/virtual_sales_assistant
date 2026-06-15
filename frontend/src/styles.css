@@ -150,6 +150,34 @@ button { font: inherit; }
   border-color: color-mix(in oklch, var(--risk), white 58%);
   color: color-mix(in oklch, var(--risk), black 12%);
 }
+.activationTargets {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.activationTarget {
+  border: 1px solid color-mix(in oklch, var(--risk), white 60%);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: color-mix(in oklch, var(--risk), white 91%);
+}
+.activationTarget strong,
+.activationTarget span {
+  display: block;
+}
+.activationTarget strong {
+  font-family: "Archivo", sans-serif;
+}
+.activationTarget span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-top: 3px;
+}
+.activationTarget--ready {
+  border-color: color-mix(in oklch, var(--success), white 55%);
+  background: color-mix(in oklch, var(--success), white 91%);
+}
 .managerTable, .auditFeed, .approvalQueue, .taskQueue {
   display: grid;
   gap: 8px;
@@ -489,6 +517,7 @@ button { font: inherit; }
   .metricStrip { grid-template-columns: 1fr 1fr; }
   .readinessPanel { grid-template-columns: 1fr; }
   .readinessPanel__meta { justify-content: flex-start; }
+  .activationTargets { grid-template-columns: 1fr; }
   .managerRow, .auditRow, .approvalRow, .taskRow, .filterBar { grid-template-columns: 1fr; }
   .actionBand { grid-template-columns: 1fr; }
   .alertRow { grid-template-columns: 1fr; }
