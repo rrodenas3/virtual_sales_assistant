@@ -45,11 +45,12 @@ This plan continues the MVP from the current public repository state. It hardens
 - Store-master access is split behind a dedicated `StoreMasterPort`; OSA remains responsible for ranked territory and alert logic.
 - `/agent/run` is scaffolded as a feature-flagged SSE bridge that reuses grounded OSA summary services.
 - Frontend Playwright smoke coverage validates the mocked rep workbench route -> store -> alerts -> summary -> feedback flow.
+- Audit sinks support discovery-gated Postgres-primary dual-write scaffolding for a future Unity Catalog mirror.
 
 ## Deferred Spec Areas
 
 - CopilotKit client package integration on top of the existing `/agent/run` SSE bridge.
-- Unity Catalog audit dual-write beyond the `AuditSink` interface.
+- Live Unity Catalog audit mirror implementation beyond the dual-write scaffold.
 - OpenTelemetry, LangSmith, and MLflow production wiring.
 - Haiku-based guardrail classifier.
 - Live Databricks, Snowflake, CRM, ERP, SSO, and device integrations.
