@@ -8,7 +8,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 |---|---|---|---|
 | Product UX | Field assistant with before/during/after visit support | Workbench-first MVP, chat secondary | Implemented: route workbench, store detail, OOS alerts, RGM/action band, trace drawer |
 | Auth / identity | SSO/CRM-mapped rep identity, unresolved in discovery | Mock JWT with `sub`, `territory_code`, `role`; ignore client rep IDs; validate external JWT after discovery | Implemented: provider boundary, mock JWT, JWKS-backed external JWT validation, rep/store RBAC, unauthorized store access returns `404` |
-| Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active; Databricks/Snowflake skeletons fail fast until credentials/contracts exist |
+| Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active; Databricks/Snowflake parameterized query adapters scaffolded until credentials/contracts exist |
 | Priority scoring | Formula sketched in OSA MCP SQL | Deterministic service formula with explainable components | Implemented and tested |
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
 | Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes with parity tests; production routes still use services directly |
@@ -77,7 +77,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 
 - No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, but routes still use deterministic services directly.
 - No active Mem0 memory yet. The memory port exists, but the default provider is `none`.
-- No real Snowflake/Databricks/MCP queries yet. Current mock adapters enforce the corrected data contract without live credentials.
+- No live Snowflake/Databricks/MCP credentials yet. Current mock adapters enforce the corrected data contract; live adapters build parameterized query statements and are ready for view-contract validation.
 - No CopilotKit dependency in the core UI. The MVP is an operational workbench first; `/agent/run` is a feature-flagged SSE bridge for later AG-UI wiring.
 - No real ERP submit. `submit-sandbox` validates HITL policy and payload hash but has no external side effects.
 - No Hermes/Ollama inference yet. Browser offline feedback sync is implemented first.
@@ -87,7 +87,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 
 Highest priority:
 
-1. Implement parameterized Databricks/Snowflake query bodies after discovery readiness is green for data sharing and residency.
+1. Validate Databricks/Snowflake query adapters against confirmed live view contracts and credentials.
 2. Replace local JSON MCP transport with FastMCP dependency once runtime requirements and data-source credentials are known.
 3. Promote graph routing only when multi-agent orchestration adds value beyond deterministic services.
 4. Wire live CRM/ERP submit after discovery gates are answered.

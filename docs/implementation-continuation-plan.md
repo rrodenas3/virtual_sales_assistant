@@ -48,6 +48,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Audit sinks support discovery-gated Postgres-primary dual-write scaffolding for a future Unity Catalog mirror.
 - External JWT validation is implemented behind discovery gates with JWKS, issuer, audience, algorithm, role-claim, and territory-claim checks.
 - Guardrails support a provider boundary: default pattern checks plus fail-open/fail-closed external classifier scaffolding.
+- Databricks and Snowflake adapters build parameterized `QueryStatement` objects with injectable SQL clients and schema mappers.
 
 ## Deferred Spec Areas
 
@@ -55,5 +56,5 @@ This plan continues the MVP from the current public repository state. It hardens
 - Live Unity Catalog audit mirror implementation beyond the dual-write scaffold.
 - OpenTelemetry, LangSmith, and MLflow production wiring.
 - Live Haiku/Bedrock guardrail classifier implementation beyond the external-classifier scaffold.
-- Live Databricks, Snowflake, CRM, ERP, SSO, and device integrations.
+- Live Databricks, Snowflake, CRM, ERP, and device integrations.
 - Hermes/Ollama offline inference spike.
