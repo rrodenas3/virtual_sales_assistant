@@ -3,6 +3,7 @@ from sqlalchemy import text
 
 from backend.config import settings
 from backend.db.session import engine
+from backend.services.summary_providers import summary_provider_status
 
 router = APIRouter(tags=["health"])
 
@@ -35,3 +36,8 @@ async def observability_health() -> dict:
         "otlp_endpoint_configured": bool(settings.otel_exporter_otlp_endpoint),
         "otel_fail_closed": settings.otel_fail_closed,
     }
+
+
+@router.get("/health/ai")
+async def ai_health() -> dict:
+    return {"status": "ok", **summary_provider_status()}

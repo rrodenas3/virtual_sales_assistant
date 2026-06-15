@@ -23,6 +23,20 @@ def test_observability_health_reports_structured_mode(monkeypatch) -> None:
     assert response.json()["otel_service_name"] == "phantom-vsa-backend"
 
 
+def test_ai_health_reports_template_mode_as_not_ai_demo_ready(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "summary_provider", "template")
+    monkeypatch.setattr(settings, "llm_model_id", "grounded-template-v1")
+    monkeypatch.setattr(settings, "anthropic_token_ref", None)
+    with TestClient(app, headers={"Authorization": f"Bearer {REP_001}"}) as client:
+        response = client.get("/api/v1/health/ai")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["selected_provider"] == "template"
+    assert body["active_model"] == "grounded-template-v1"
+    assert body["ai_demo_ready"] is False
+    assert "SUMMARY_PROVIDER must be anthropic for AI-demo readiness" in body["ai_demo_blockers"]
+
+
 def test_request_middleware_logs_structured_http_event(monkeypatch, caplog) -> None:
     monkeypatch.setattr(settings, "observability_provider", "structured")
     monkeypatch.setattr(settings, "trace_sample_rate", 1.0)

@@ -36,6 +36,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 GET  /api/v1/health
 GET  /api/v1/health/db
 GET  /api/v1/health/observability
+GET  /api/v1/health/ai
 GET  /api/v1/integrations/readiness
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
@@ -88,7 +89,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 - No active Mem0 memory by default. The memory port exists, `none` is the default provider, and Mem0 is discovery-gated behind retention/scope settings.
 - No live Snowflake/Databricks/MCP credentials yet. Current mock adapters enforce the corrected data contract; live adapters build parameterized query statements and `scripts/validate_live_data_contracts.py` is ready for view-contract validation in a credentialed environment.
 - No CopilotKit dependency in the core UI. The client-pilot path now uses the custom `/agent/run` SSE assistant panel first and defers CopilotKit package integration.
-- Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but final AI-assistant pilot validation must include an eval run with `SUMMARY_PROVIDER=anthropic`.
+- Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but `/health/ai`, `/integrations/readiness`, and final AI-assistant pilot validation make template-only mode visibly not AI-demo-ready.
 - External guardrail classifier behavior is implemented against an HTTP contract with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; production endpoint selection remains discovery/configuration work.
 - No real ERP submit by default. `submit-sandbox` validates HITL policy and payload hash; external ERP provider is discovery-gated and disabled unless configured.
 - No Hermes/Ollama inference yet. Browser offline feedback sync, IndexedDB read fallback, and PWA app-shell caching are implemented first.

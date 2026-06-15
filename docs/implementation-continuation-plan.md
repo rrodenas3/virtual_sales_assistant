@@ -65,6 +65,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Manager-initiated work is scaffolded through auditable task assignment/status endpoints and a deployable `manager_tasks` migration.
 - Local pilot readiness now includes scaffold smoke gates for HITL order submit, shelf-image analysis, and manager task transitions.
 - Manager task MCP preview tools now share the backend task payload service with REST routes.
+- AI-demo readiness is now exposed through `/health/ai` and `/integrations/readiness`, so template summaries cannot be confused with the required real-provider validation path.
 
 ## Deferred Spec Areas
 
