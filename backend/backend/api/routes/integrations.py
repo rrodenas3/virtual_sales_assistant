@@ -55,6 +55,7 @@ async def integration_readiness(current_user: CurrentUser = Depends(get_current_
                 value=gate.value,
                 required_for=list(gate.required_for),
                 notes=gate.notes,
+                owner=gate.owner,
             )
             for gate in discovery_gates()
         ],

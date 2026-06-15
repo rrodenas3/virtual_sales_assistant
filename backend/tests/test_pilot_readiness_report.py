@@ -3,7 +3,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from scripts.pilot_readiness_report import build_report  # noqa: E402
+from scripts.pilot_readiness_report import _discovery_owner_blockers, build_report  # noqa: E402
 
 
 def test_local_readiness_report_includes_scaffold_smoke() -> None:
@@ -26,6 +26,7 @@ def test_local_readiness_report_includes_scaffold_smoke() -> None:
     assert report["shelf_image"]["ready"] is True
     assert report["audit"]["ready"] is True
     assert report["observability"]["ready"] is True
+    assert report["discovery_owner_blockers"] == {}
     targets = {target["target"]: target for target in report["activation_targets"]}
     assert targets["local"]["ready"] is True
     assert targets["ai-demo"]["ready"] is False
@@ -39,3 +40,10 @@ def test_local_readiness_report_includes_scaffold_smoke() -> None:
     assert any(gate["name"] == "shelf_image_provider" and gate["passed"] for gate in report["gates"])
     assert any(gate["name"] == "audit_sink" and gate["passed"] for gate in report["gates"])
     assert any(gate["name"] == "observability" and gate["passed"] for gate in report["gates"])
+
+
+def test_discovery_owner_blockers_group_by_owner() -> None:
+    owners = _discovery_owner_blockers(["discovery_data_sharing_model", "guardrail_classifier_endpoint"])
+
+    assert owners["delivery"] == ["discovery_data_sharing_model"]
+    assert owners["shared"] == ["guardrail_classifier_endpoint"]

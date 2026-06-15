@@ -13,7 +13,7 @@ The backend exposes the current gate state at:
 GET /api/v1/integrations/readiness
 ```
 
-The endpoint is manager/admin-only. Local mock mode can remain ready with several unanswered gates because no live integration is selected. When a live mode is selected, the relevant gates become blockers before provider setup or query execution.
+The endpoint is manager/admin-only. Local mock mode can remain ready with several unanswered gates because no live integration is selected. When a live mode is selected, the relevant gates become blockers before provider setup or query execution. Each gate includes an `owner` field (`delivery`, `engineering`, or `shared`) so unresolved blockers can be routed without interpreting free-form notes.
 
 | Topic | Setting | Status | Blocks |
 |---|---|---|---|

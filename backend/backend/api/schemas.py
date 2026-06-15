@@ -430,6 +430,7 @@ class DiscoveryGateOut(BaseModel):
     value: str | None
     required_for: list[str]
     notes: str
+    owner: Literal["delivery", "engineering", "shared"]
 
 
 class ActivationTargetReadiness(BaseModel):

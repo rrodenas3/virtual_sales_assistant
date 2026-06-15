@@ -37,6 +37,7 @@ def test_readiness_reports_default_local_mode() -> None:
     assert body["provider_readiness"]["observability"]["provider"] == "structured"
     assert "SUMMARY_PROVIDER must be anthropic for AI-demo readiness" in body["ai_demo_blockers"]
     assert any(gate["setting_name"] == "discovery_sso_provider" for gate in body["gates"])
+    assert {gate["owner"] for gate in body["gates"]} >= {"delivery", "shared"}
     targets = {target["target"]: target for target in body["activation_targets"]}
     assert targets["local"]["ready"] is True
     assert targets["local"]["blockers"] == []

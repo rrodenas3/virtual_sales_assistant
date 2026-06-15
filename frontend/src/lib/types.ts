@@ -185,6 +185,7 @@ export type DiscoveryGate = {
   value: string | null;
   required_for: string[];
   notes: string;
+  owner: "delivery" | "engineering" | "shared";
 };
 
 export type IntegrationReadinessResponse = {

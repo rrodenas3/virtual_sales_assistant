@@ -15,7 +15,7 @@ from backend.config import settings  # noqa: E402
 from backend.governance.activation import build_activation_targets, flatten_provider_blockers  # noqa: E402
 from backend.governance.action_providers import action_provider_status  # noqa: E402
 from backend.governance.data_platform import data_platform_status  # noqa: E402
-from backend.governance.discovery import readiness_blockers, selected_live_modes  # noqa: E402
+from backend.governance.discovery import discovery_gates, readiness_blockers, selected_live_modes  # noqa: E402
 from backend.governance.guardrails import guardrail_status  # noqa: E402
 from backend.governance.offline_agent import offline_agent_status  # noqa: E402
 from backend.governance.shelf_image import shelf_image_status  # noqa: E402
@@ -137,6 +137,15 @@ def run_scaffold_smoke() -> dict[str, Any]:
     }
 
 
+def _discovery_owner_blockers(blockers: list[str]) -> dict[str, list[str]]:
+    blocker_set = set(blockers)
+    owner_map: dict[str, list[str]] = {"delivery": [], "engineering": [], "shared": []}
+    for gate in discovery_gates():
+        if gate.setting_name in blocker_set:
+            owner_map[gate.owner].append(gate.setting_name)
+    return {owner: settings for owner, settings in owner_map.items() if settings}
+
+
 def build_report(target: Target) -> dict[str, Any]:
     required_provider = "anthropic" if target in {"ai-demo", "pilot"} else None
     eval_result = run_eval(require_provider=required_provider)
@@ -153,6 +162,7 @@ def build_report(target: Target) -> dict[str, Any]:
     offline_agent = offline_agent_status()
     modes = selected_live_modes()
     blockers = readiness_blockers()
+    owner_blockers = _discovery_owner_blockers(blockers)
     providers = eval_result["summary"]["providers"]
     summary_status = summary_provider_status()
     provider_readiness = {
@@ -261,6 +271,7 @@ def build_report(target: Target) -> dict[str, Any]:
         "passed": all(gate["passed"] for gate in gates),
         "selected_live_modes": sorted(modes),
         "discovery_blockers": blockers,
+        "discovery_owner_blockers": owner_blockers,
         "eval_summary": eval_result["summary"],
         "scaffold_smoke": smoke_result,
         "mcp_smoke": mcp_smoke,
@@ -289,9 +300,21 @@ def write_artifacts(report: dict[str, Any], output_dir: Path) -> None:
         f"- Passed: `{report['passed']}`",
         f"- Selected live modes: `{', '.join(report['selected_live_modes']) or 'none'}`",
         "",
-        "| Activation target | Status | Blockers |",
-        "|---|---:|---|",
+        "## Discovery Blocker Owners",
+        "",
     ]
+    if report["discovery_owner_blockers"]:
+        for owner, owner_blockers in report["discovery_owner_blockers"].items():
+            lines.append(f"- `{owner}`: {', '.join(owner_blockers)}")
+    else:
+        lines.append("- None")
+    lines.extend(
+        [
+            "",
+            "| Activation target | Status | Blockers |",
+            "|---|---:|---|",
+        ]
+    )
     for target in report["activation_targets"]:
         status = "ready" if target["ready"] else "blocked"
         blockers = ", ".join(target["blockers"]) or "none"

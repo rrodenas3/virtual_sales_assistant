@@ -88,6 +88,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - `/integrations/readiness` now includes activation targets for local scaffold, AI demo, and final pilot readiness; manager/admin panels render those target states directly.
 - Activation target blockers are calculated in a shared governance service and reused by the readiness report script, keeping API/UI state aligned with generated pilot artifacts.
 - Manager/admin readiness panels and readiness bundle markdown now include activation blocker previews, so pilot owners can see the next blocking action without opening nested reports.
+- Discovery gates now carry machine-readable owner metadata (`delivery`, `engineering`, or `shared`), and readiness reports group live-mode discovery blockers by owner.
 
 ## Deferred Spec Areas
 

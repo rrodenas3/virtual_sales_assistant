@@ -65,6 +65,19 @@ function ActivationTargets({ readiness }: { readiness: IntegrationReadinessRespo
   );
 }
 
+function discoveryOwnerSummary(readiness: IntegrationReadinessResponse): string | null {
+  if (readiness.blockers.length === 0) return null;
+  const blockerSet = new Set(readiness.blockers);
+  const counts = readiness.gates
+    .filter((gate) => blockerSet.has(gate.setting_name))
+    .reduce<Record<string, number>>((acc, gate) => {
+      acc[gate.owner] = (acc[gate.owner] ?? 0) + 1;
+      return acc;
+    }, {});
+  const parts = Object.entries(counts).map(([owner, count]) => `${count} ${owner}`);
+  return parts.length ? `Discovery owners: ${parts.join(", ")}` : null;
+}
+
 export function App() {
   const [visits, setVisits] = useState<VisitPriority[]>([]);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
@@ -97,6 +110,7 @@ export function App() {
   const [auditFilters, setAuditFilters] = useState({ event_type: "", rep_id: "", resource_type: "" });
   const identity = useMemo(() => getCurrentIdentity(), [role]);
   const sessionId = useMemo(() => buildSessionId("workbench"), [identity.sub]);
+  const readinessOwnerSummary = readiness ? discoveryOwnerSummary(readiness) : null;
 
   useEffect(() => {
     if (role !== "rep") return;
@@ -392,6 +406,7 @@ export function App() {
                 <span>{readiness.selected_live_modes.length ? readiness.selected_live_modes.join(", ") : "mock/local modes"}</span>
                 <span>{readiness.provider_blockers.length} provider blockers</span>
                 <span>{readiness.ai_demo_ready ? "AI demo ready" : `${readiness.summary_provider} summary`}</span>
+                {readinessOwnerSummary && <span>{readinessOwnerSummary}</span>}
               </div>
               {(readiness.blockers.length > 0 || readiness.provider_blockers.length > 0) && (
                 <div className="readinessPanel__blockers">
@@ -494,6 +509,7 @@ export function App() {
                 <span>{readiness.provider_blockers.length} provider blockers</span>
                 <span>{readiness.blockers.length} discovery blockers</span>
                 <span>{readiness.view_contract_validated ? "live contracts validated" : "mock contracts"}</span>
+                {readinessOwnerSummary && <span>{readinessOwnerSummary}</span>}
               </div>
               {(readiness.blockers.length > 0 || readiness.provider_blockers.length > 0) && (
                 <div className="readinessPanel__blockers">
