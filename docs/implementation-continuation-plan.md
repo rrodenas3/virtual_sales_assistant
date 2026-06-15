@@ -44,6 +44,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Client discovery readiness gates are implemented before live SSO, data, CRM, ERP, and audit integrations.
 - Store-master access is split behind a dedicated `StoreMasterPort`; OSA remains responsible for ranked territory and alert logic.
 - `/agent/run` is scaffolded as a feature-flagged SSE bridge that reuses grounded OSA summary services.
+- Frontend Playwright smoke coverage validates the mocked rep workbench route -> store -> alerts -> summary -> feedback flow.
 
 ## Deferred Spec Areas
 

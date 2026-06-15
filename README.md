@@ -18,6 +18,7 @@ This repo currently implements the secure OSA pilot slice:
 - CRM visit-log drafts
 - pilot metrics and spec compliance documentation
 - local eval harness for OSA grounding, trace, auth, and latency checks
+- Playwright workbench smoke test with mocked API responses
 - structured request telemetry with request IDs and response timing
 - feature-flagged graph-style agent scaffold with parity tests
 - memory provider scaffold with null default and fail-closed Mem0 placeholder

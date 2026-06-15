@@ -350,6 +350,7 @@ export function App() {
             {visits.map((visit) => (
               <button
                 key={visit.store_id}
+                data-testid={`visit-${visit.store_id}`}
                 className={`visitRow ${visit.store_id === selectedStoreId ? "visitRow--active" : ""}`}
                 onClick={() => setSelectedStoreId(visit.store_id)}
               >
@@ -428,12 +429,12 @@ export function App() {
               <div className="sectionHead">
                 <div>
                   <p className="eyebrow">OSA alerts</p>
-                  <h3>{alerts.length} grounded shelf risks</h3>
+                  <h3 data-testid="alert-count">{alerts.length} grounded shelf risks</h3>
                 </div>
-                <button className="primaryButton" onClick={summarize}>Generate summary</button>
+                <button className="primaryButton" data-testid="generate-summary" onClick={summarize}>Generate summary</button>
               </div>
 
-              {summary && <pre className="summaryBox">{summary.summary}</pre>}
+              {summary && <pre className="summaryBox" data-testid="summary-box">{summary.summary}</pre>}
 
               <div className="alertList">
                 {alerts.map((alert) => (
@@ -454,6 +455,7 @@ export function App() {
                       {(["confirmed", "false_positive", "dismissed", "needs_follow_up"] as AlertFeedback[]).map((value) => (
                         <button
                           key={value}
+                          data-testid={`feedback-${alert.alert_id}-${value}`}
                           className={feedback[alert.alert_id] === value ? "feedbackButton feedbackButton--active" : "feedbackButton"}
                           onClick={() => handleFeedback(alert.alert_id, value)}
                         >
