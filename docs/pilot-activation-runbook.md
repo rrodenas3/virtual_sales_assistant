@@ -185,6 +185,7 @@ Exit gate:
 - Feedback sync remains idempotent with `{rep_id}:{client_event_uuid}`.
 - Memory reads are scoped by rep/store and memory writes are non-blocking but telemetry-visible.
 - `/api/v1/health/memory` reports `ready=true` for the selected memory provider before a pilot uses persistent memory.
+- `scripts/memory_provider_smoke.py` passes as a dry run before any credentialed memory-provider smoke is attempted.
 - Hermes/Ollama local inference remains behind a separate spike gate with device RAM, latency, tool-call accuracy criteria, and an explicit kill switch.
 
 ## Phase 5b: Shelf Image Provider Readiness
@@ -227,6 +228,7 @@ python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke
 python scripts/unity_audit_smoke.py --output-dir artifacts/unity-audit-smoke
 python scripts/action_provider_smoke.py --output-dir artifacts/action-provider-smoke
 python scripts/guardrail_classifier_smoke.py --output-dir artifacts/guardrail-classifier-smoke
+python scripts/memory_provider_smoke.py --output-dir artifacts/memory-provider-smoke
 python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json --live-data-env artifacts/contracts/live/readiness_env.json --output-dir artifacts/pilot-env
 ```
 

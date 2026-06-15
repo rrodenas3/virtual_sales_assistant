@@ -110,6 +110,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
                     "notes": "Dry-run external classifier allow/block/fallback behavior at the configured risk threshold.",
                 },
                 {
+                    "name": "memory_provider_smoke",
+                    "command": "python scripts/memory_provider_smoke.py --output-dir artifacts/memory-provider-smoke",
+                    "notes": "Dry-run Mem0 read/write payloads and verifies default no-memory mode.",
+                },
+                {
                     "name": "pilot_env_handoff",
                     "command": (
                         "python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json "

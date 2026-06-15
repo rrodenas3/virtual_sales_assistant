@@ -53,6 +53,7 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
     assert any(command["name"] == "unity_audit_smoke" for command in command_sets["pilot"])
     assert any(command["name"] == "action_provider_smoke" for command in command_sets["pilot"])
     assert any(command["name"] == "guardrail_classifier_smoke" for command in command_sets["pilot"])
+    assert any(command["name"] == "memory_provider_smoke" for command in command_sets["pilot"])
     assert any(command["name"] == "pilot_env_handoff" for command in command_sets["pilot"])
 
 
