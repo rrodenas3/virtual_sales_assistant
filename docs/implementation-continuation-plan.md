@@ -90,7 +90,8 @@ This plan continues the MVP from the current public repository state. It hardens
 - Manager/admin readiness panels and readiness bundle markdown now include activation blocker previews, so pilot owners can see the next blocking action without opening nested reports.
 - Discovery gates now carry machine-readable owner metadata (`delivery`, `engineering`, or `shared`), and readiness reports group live-mode discovery blockers by owner.
 - Readiness bundles now include the live-data readiness env-key manifest required to record credentialed contract validation results after approved runs.
-- Snowflake live-data access now has an HTTP SQL API client contract with token readiness gating and local payload/response tests; credentialed smoke remains discovery-gated.
+- Databricks and Snowflake live-data access now have HTTP SQL API client contracts with token readiness gating and local payload/response tests; credentialed smoke remains discovery-gated.
+- The Databricks bearer credential is intentionally omitted from public `.env.example`; it maps to the backend `databricks_token` setting through an approved secret channel.
 
 ## Deferred Spec Areas
 

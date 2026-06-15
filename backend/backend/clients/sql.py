@@ -42,12 +42,24 @@ class SQLClient(Protocol):
 
 
 class DatabricksSQLClient:
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, transport: httpx.AsyncBaseTransport | None = None) -> None:
         self.host = settings.databricks_host.rstrip("/") if settings.databricks_host else ""
         self.token = settings.databricks_token
         self.warehouse_id = settings.databricks_sql_warehouse_id
+        self.transport = transport
 
     async def execute(self, query: QueryStatement) -> list[dict[str, Any]]:
+        missing = [
+            name
+            for name, value in {
+                "databricks_host": self.host,
+                "databricks_token": self.token,
+                "databricks_sql_warehouse_id": self.warehouse_id,
+            }.items()
+            if not value
+        ]
+        if missing:
+            raise RuntimeError(f"Databricks SQL client missing setting: {', '.join(missing)}")
         payload = {
             "warehouse_id": self.warehouse_id,
             "statement": query.statement,
@@ -56,7 +68,7 @@ class DatabricksSQLClient:
             "disposition": "INLINE",
             "wait_timeout": "10s",
         }
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=20.0, transport=self.transport) as client:
             response = await client.post(
                 f"{self.host}/api/2.0/sql/statements/",
                 headers={"Authorization": f"Bearer {self.token}"},

@@ -6,8 +6,14 @@ from typing import Any
 import httpx
 import pytest
 
-from backend.clients.sql import QueryStatement, SnowflakeSQLClient, param
+from backend.clients.sql import DatabricksSQLClient, QueryStatement, SnowflakeSQLClient, param
 from backend.config import settings
+
+
+def _configure_databricks(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "databricks_host", "https://dbc.example.test/")
+    monkeypatch.setattr(settings, "databricks_token", "approved-token-reference")
+    monkeypatch.setattr(settings, "databricks_sql_warehouse_id", "warehouse")
 
 
 def _configure_snowflake(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -17,6 +23,53 @@ def _configure_snowflake(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(settings, "snowflake_warehouse", "warehouse")
     monkeypatch.setattr(settings, "snowflake_database", "database")
     monkeypatch.setattr(settings, "snowflake_schema", "schema")
+
+
+@pytest.mark.asyncio
+async def test_databricks_sql_client_posts_parameterized_statement(monkeypatch: pytest.MonkeyPatch) -> None:
+    _configure_databricks(monkeypatch)
+    captured: dict[str, Any] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["url"] = str(request.url)
+        captured["headers"] = dict(request.headers)
+        captured["payload"] = json.loads(request.content.decode("utf-8"))
+        return httpx.Response(
+            200,
+            json={
+                "manifest": {"schema": {"columns": [{"name": "store_id"}, {"name": "risk_score"}]}},
+                "result": {"data_array": [["ST-001", 0.91]]},
+            },
+        )
+
+    client = DatabricksSQLClient(settings, transport=httpx.MockTransport(handler))
+
+    rows = await client.execute(
+        QueryStatement(
+            statement="select * from alerts where store_id = :store_id and risk_score > :risk_score",
+            parameters=(param("store_id", "ST-001"), param("risk_score", 0.7, "DOUBLE")),
+        )
+    )
+
+    assert captured["url"] == "https://dbc.example.test/api/2.0/sql/statements/"
+    assert captured["headers"]["authorization"] == "Bearer approved-token-reference"
+    assert captured["payload"]["warehouse_id"] == "warehouse"
+    assert captured["payload"]["statement"] == "select * from alerts where store_id = :store_id and risk_score > :risk_score"
+    assert captured["payload"]["parameters"] == [
+        {"name": "store_id", "value": "ST-001", "type": "STRING"},
+        {"name": "risk_score", "value": "0.7", "type": "DOUBLE"},
+    ]
+    assert rows == [{"store_id": "ST-001", "risk_score": 0.91}]
+
+
+@pytest.mark.asyncio
+async def test_databricks_sql_client_fails_fast_on_missing_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
+    _configure_databricks(monkeypatch)
+    monkeypatch.setattr(settings, "databricks_sql_warehouse_id", None)
+    client = DatabricksSQLClient(settings)
+
+    with pytest.raises(RuntimeError, match="databricks_sql_warehouse_id"):
+        await client.execute(QueryStatement(statement="select 1", parameters=()))
 
 
 @pytest.mark.asyncio
