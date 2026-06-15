@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="PHANTOM VSA">
+  <rect width="512" height="512" rx="96" fill="#315b49"/>
+  <path d="M112 128h288v256H112z" fill="#f4f7f1"/>
+  <path d="M152 168h96v176h-96zM272 168h88v48h-88zM272 240h88v48h-88zM272 312h88v32h-88z" fill="#315b49"/>
+  <circle cx="200" cy="224" r="28" fill="#d69b43"/>
+  <path d="M168 296h64" stroke="#d66b43" stroke-width="24" stroke-linecap="round"/>
+</svg>

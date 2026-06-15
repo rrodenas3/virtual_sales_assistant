@@ -185,3 +185,22 @@ test("rep can review route, generate summary, and submit alert feedback", async 
   await page.getByTestId(`feedback-${alertId}-confirmed`).click();
   await expect(page.getByTestId(`feedback-${alertId}-confirmed`)).toHaveClass(/feedbackButton--active/);
 });
+
+test("app exposes PWA manifest and registers service worker", async ({ page }) => {
+  await page.goto("/");
+
+  const manifestHref = await page.locator('link[rel="manifest"]').getAttribute("href");
+  expect(manifestHref).toBe("/manifest.webmanifest");
+  const manifestResponse = await page.request.get("/manifest.webmanifest");
+  expect(manifestResponse.ok()).toBeTruthy();
+  const manifest = await manifestResponse.json();
+  expect(manifest.display).toBe("standalone");
+  expect(manifest.icons[0].src).toBe("/pwa-icon.svg");
+
+  const registrationState = await page.evaluate(async () => {
+    if (!("serviceWorker" in navigator)) return "unsupported";
+    const registration = await navigator.serviceWorker.ready;
+    return registration.active?.scriptURL.endsWith("/sw.js") ? "registered" : "missing";
+  });
+  expect(registrationState).toBe("registered");
+});

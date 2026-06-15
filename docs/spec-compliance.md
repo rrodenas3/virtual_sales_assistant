@@ -20,7 +20,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented as draft-only local persistence |
 | ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects | Implemented and tested |
-| Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue and IndexedDB read cache first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache |
+| Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue, IndexedDB read cache, and PWA shell first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache, manifest, service worker app shell/static cache |
 | Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs |
 | Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, observability health, audit mirror failure telemetry |
 | Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented: workbench UI; custom feature-flagged `/agent/run` SSE assistant panel; CopilotKit package integration deferred |
@@ -82,7 +82,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 - Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but final AI-assistant pilot validation must include an eval run with `SUMMARY_PROVIDER=anthropic`.
 - External guardrail classifier behavior is implemented against an HTTP contract with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; production endpoint selection remains discovery/configuration work.
 - No real ERP submit. `submit-sandbox` validates HITL policy and payload hash but has no external side effects.
-- No Hermes/Ollama inference yet. Browser offline feedback sync is implemented first.
+- No Hermes/Ollama inference yet. Browser offline feedback sync, IndexedDB read fallback, and PWA app-shell caching are implemented first.
 - No shelf image recognition, voice, digital shelf, manager-initiated tasks, or multi-tenant support.
 
 ## Remaining Work To Fully Meet The Original Spec
@@ -102,7 +102,7 @@ Later:
 - Credentialed Unity Catalog audit smoke tests beyond the parameterized insert path.
 - LangSmith/OpenTelemetry exporters beyond structured local telemetry.
 - Live Haiku/Bedrock guardrail classifier implementation beyond the scaffold.
-- Hermes/Ollama offline agent spike.
+- Hermes/Ollama offline agent spike and local tool-call accuracy testing.
 - Shelf image MCP.
 - Real CRM and ERP integrations after discovery gates are answered.
 

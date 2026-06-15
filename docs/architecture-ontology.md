@@ -53,7 +53,7 @@ Surfaces:
 - Manager view: territory metrics, ranked store table, and approval queue.
 - Admin view: filterable audit event feed and detail payload.
 - Trace drawer: formula, source system, model version, freshness, and audit IDs.
-- Offline status: browser queue count, online/offline status, and stale cache timestamp when IndexedDB read fallback is used.
+- Offline status: browser queue count, online/offline status, PWA shell registration, and stale cache timestamp when IndexedDB read fallback is used.
 
 ### Step 3: API Layer
 
@@ -244,7 +244,7 @@ Implemented now:
 - OSA/RGM mock adapter ports.
 - Deterministic scoring and alert actions.
 - HITL draft approval and sandbox submit.
-- Offline feedback sync and IndexedDB read cache.
+- Offline feedback sync, IndexedDB read cache, and PWA app-shell/static asset cache.
 - Manager approval queue and admin audit detail views.
 - Audit and pilot metrics.
 - Structured request telemetry and response timing headers.

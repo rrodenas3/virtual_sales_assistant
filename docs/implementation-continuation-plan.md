@@ -55,6 +55,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Live data contract validation is scaffolded through `scripts/validate_live_data_contracts.py`, backend column manifests, row-level normalization checks, and readiness fields for validation status.
 - Governance controls now include a parameterized Unity Catalog audit insert path behind `AuditSink` and an HTTP external-classifier guardrail provider with the configured `0.85` block threshold.
 - The rep workbench includes a feature-flagged custom SSE assistant panel backed by `POST /agent/run`; CopilotKit remains deferred.
+- Offline/PWA hardening now includes installability metadata, an app-shell service worker, static asset caching, and E2E registration coverage. API read fallback remains handled by IndexedDB in the app; writes are never service-worker cached.
 
 ## Deferred Spec Areas
 
@@ -63,7 +64,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - OpenTelemetry, LangSmith, and MLflow production wiring.
 - Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
 - Live Databricks, Snowflake, CRM, ERP, and device integrations.
-- Hermes/Ollama offline inference spike.
+- Hermes/Ollama offline inference spike and offline local-agent tool calls.
 
 ## Locked Forward Decisions
 
