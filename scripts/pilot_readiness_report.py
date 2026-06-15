@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from backend.config import settings  # noqa: E402
 from backend.governance.action_providers import action_provider_status  # noqa: E402
+from backend.governance.data_platform import data_platform_status  # noqa: E402
 from backend.governance.discovery import readiness_blockers, selected_live_modes  # noqa: E402
 from backend.main import app  # noqa: E402
 from backend.memory.adapters import memory_status  # noqa: E402
@@ -135,6 +136,7 @@ def build_report(target: Target) -> dict[str, Any]:
     mcp_smoke = build_mcp_smoke_report()
     memory = memory_status()
     action_providers = action_provider_status()
+    data_platform = data_platform_status()
     modes = selected_live_modes()
     blockers = readiness_blockers()
     providers = eval_result["summary"]["providers"]
@@ -142,6 +144,11 @@ def build_report(target: Target) -> dict[str, Any]:
         f"crm={action_providers['crm']['provider']}; "
         f"erp={action_providers['erp']['provider']}; "
         f"blockers={action_providers['blockers']}"
+    )
+    data_platform_detail = (
+        f"databricks_selected={data_platform['databricks']['selected']}; "
+        f"snowflake_selected={data_platform['snowflake']['selected']}; "
+        f"blockers={data_platform['blockers']}"
     )
 
     gates = [
@@ -196,6 +203,11 @@ def build_report(target: Target) -> dict[str, Any]:
             action_providers["ready"],
             action_provider_detail,
         ),
+        _gate(
+            "data_platform",
+            data_platform["ready"],
+            data_platform_detail,
+        ),
     ]
     return {
         "target": target,
@@ -207,6 +219,7 @@ def build_report(target: Target) -> dict[str, Any]:
         "mcp_smoke": mcp_smoke,
         "memory": memory,
         "action_providers": action_providers,
+        "data_platform": data_platform,
         "gates": gates,
     }
 

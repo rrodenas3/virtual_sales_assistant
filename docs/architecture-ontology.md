@@ -69,6 +69,7 @@ Primary route groups:
 - `/approvals`: approve/reject draft.
 - `/crm`: visit-log drafts.
 - `/health/action-providers`: selected CRM/ERP provider readiness.
+- `/health/data-platform`: selected Databricks/Snowflake provider readiness.
 - `/sync`: idempotent offline feedback sync.
 - `/integrations`: discovery readiness for live integration gates.
 - `/metrics`: pilot KPI rollup.
@@ -131,6 +132,7 @@ Controls:
 
 - RBAC: reps are scoped to assigned stores; managers are scoped to territory; admins can read audit.
 - Integration readiness blocks selected live providers until required discovery gates are answered.
+- Data-platform readiness blocks selected Databricks/Snowflake modes until credentials, discovery answers, and live contract validation are present.
 - Unauthorized store access returns `404` for anti-enumeration.
 - Summary guardrails use a provider boundary. Pattern blocking is active by default; external classifier mode is scaffolded with explicit fail-open/fail-closed behavior.
 - Write-like flows are draft-first and require explicit approval before sandbox submit.

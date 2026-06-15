@@ -4,6 +4,7 @@ from sqlalchemy import text
 from backend.config import settings
 from backend.db.session import engine
 from backend.governance.action_providers import action_provider_status
+from backend.governance.data_platform import data_platform_status
 from backend.governance.guardrails import guardrail_status
 from backend.governance.offline_agent import offline_agent_status
 from backend.memory.adapters import memory_status
@@ -65,3 +66,8 @@ async def memory_health() -> dict:
 @router.get("/health/action-providers")
 async def action_providers_health() -> dict:
     return {"status": "ok", **action_provider_status()}
+
+
+@router.get("/health/data-platform")
+async def data_platform_health() -> dict:
+    return {"status": "ok", **data_platform_status()}

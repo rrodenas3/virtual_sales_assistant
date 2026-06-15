@@ -76,6 +76,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - External guardrail classifier mode now has `/health/guardrails` status and discovery gates for endpoint and data residency.
 - Memory provider activation now has `/health/memory` status, showing whether Mem0 is enabled and which token, retention, or scope gates still block activation.
 - External CRM/ERP write-back activation now has `/health/action-providers` status and a pilot-readiness gate for endpoint, token-reference, and discovery blockers.
+- Live Databricks/Snowflake activation now has `/health/data-platform` status and a pilot-readiness gate for credentials, discovery answers, and live contract validation.
 
 ## Deferred Spec Areas
 
@@ -84,7 +85,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts and optional logging.
 - Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
 - Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract and readiness endpoint.
-- Live Databricks, Snowflake, CRM, ERP, shelf-image, and device credentialed smoke tests.
+- Live Databricks, Snowflake, CRM, ERP, shelf-image, and device credentialed smoke tests after readiness gates pass.
 - Hermes/Ollama offline inference spike and offline local-agent tool calls.
 
 ## Locked Forward Decisions
