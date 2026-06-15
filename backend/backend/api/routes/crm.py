@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.adapters.crm import CRMPort
 from backend.adapters.osa import OSADataPort
 from backend.api.schemas import VisitLogDraftRequest, VisitLogDraftResponse
 from backend.auth.mock_jwt import CurrentUser, get_current_user
 from backend.db.models import VisitLog
 from backend.db.session import get_db
-from backend.deps import get_osa_adapter
+from backend.deps import get_crm_adapter, get_osa_adapter
 from backend.governance.rbac import assert_store_access
 from backend.services.audit import log_audit_event
 
@@ -19,19 +20,27 @@ async def create_visit_log_draft(
     current_user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     osa: OSADataPort = Depends(get_osa_adapter),
+    crm: CRMPort = Depends(get_crm_adapter),
 ) -> VisitLogDraftResponse:
     try:
         store = await osa.get_store_detail(current_user.rep_id, request.store_id)
     except KeyError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found") from exc
     assert_store_access(current_user, store.rep_id, store.territory_code)
-    payload = {"notes": request.notes, "outcome": request.outcome}
+    payload = {
+        "store_id": request.store_id,
+        "rep_id": current_user.rep_id,
+        "session_id": request.session_id,
+        "notes": request.notes,
+        "outcome": request.outcome,
+    }
+    submit_result = await crm.submit_visit_log(payload)
     draft = VisitLog(
         store_id=request.store_id,
         rep_id=current_user.rep_id,
         session_id=request.session_id,
         payload_json=payload,
-        status="DRAFT",
+        status=submit_result.status,
     )
     db.add(draft)
     await db.flush()
@@ -42,7 +51,11 @@ async def create_visit_log_draft(
         event_type="crm_visit_log_draft_created",
         resource_type="visit_log",
         resource_id=draft.id,
-        payload_json={"status": draft.status, "outcome": request.outcome},
+        payload_json={
+            "status": draft.status,
+            "outcome": request.outcome,
+            "external_id": submit_result.external_id,
+        },
         data_freshness_ts=store.data_freshness_ts,
     )
     await db.commit()

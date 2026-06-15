@@ -108,6 +108,10 @@ def selected_live_modes(config: Settings = settings) -> set[str]:
         modes.add("snowflake")
     if config.audit_sink == "unity_catalog" or config.audit_dual_write_enabled:
         modes.add("unity_catalog")
+    if config.crm_adapter == "external":
+        modes.add("crm_writeback")
+    if config.erp_adapter == "external":
+        modes.add("erp_submit")
     return modes
 
 

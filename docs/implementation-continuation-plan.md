@@ -56,6 +56,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Governance controls now include a parameterized Unity Catalog audit insert path behind `AuditSink` and an HTTP external-classifier guardrail provider with the configured `0.85` block threshold.
 - The rep workbench includes a feature-flagged custom SSE assistant panel backed by `POST /agent/run`; CopilotKit remains deferred.
 - Offline/PWA hardening now includes installability metadata, an app-shell service worker, static asset caching, and E2E registration coverage. API read fallback remains handled by IndexedDB in the app; writes are never service-worker cached.
+- CRM and ERP action boundaries now use provider-selected ports: local CRM drafts and sandbox ERP remain defaults, while external HTTP providers are discovery-gated.
 
 ## Deferred Spec Areas
 

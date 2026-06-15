@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     osa_adapter: Literal["mock", "databricks"] = "mock"
     rgm_adapter: Literal["mock", "databricks"] = "mock"
     store_master_adapter: Literal["mock", "snowflake"] = "mock"
+    crm_adapter: Literal["local", "external"] = "local"
+    erp_adapter: Literal["sandbox", "external"] = "sandbox"
+    crm_endpoint: str | None = None
+    crm_token_ref: str | None = None
+    erp_endpoint: str | None = None
+    erp_token_ref: str | None = None
     audit_sink: Literal["postgres", "unity_catalog"] = "postgres"
     audit_dual_write_enabled: bool = False
     audit_dual_write_fail_closed: bool = True
