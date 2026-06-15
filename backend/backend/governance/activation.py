@@ -100,6 +100,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
                     "notes": "Dry-run parameterized audit insert and DDL drift check before credentialed Unity Catalog smoke.",
                 },
                 {
+                    "name": "action_provider_smoke",
+                    "command": "python scripts/action_provider_smoke.py --output-dir artifacts/action-provider-smoke",
+                    "notes": "Dry-run CRM/ERP payload contract with approval ID and payload-hash binding.",
+                },
+                {
                     "name": "pilot_env_handoff",
                     "command": (
                         "python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json "

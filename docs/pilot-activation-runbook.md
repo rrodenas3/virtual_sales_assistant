@@ -156,6 +156,7 @@ Exit gate:
 - Approval payload hash must match at submit time.
 - Rejected or modified drafts cannot be submitted.
 - `/api/v1/health/action-providers` reports `ready=true` before external CRM or ERP providers are used.
+- `scripts/action_provider_smoke.py` passes as a dry run before any credentialed CRM/ERP smoke is attempted.
 - External write failures are audited and do not mutate draft approval history.
 
 ## Phase 5: Offline And Memory Expansion
@@ -224,6 +225,7 @@ Required command:
 python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/readiness/pilot
 python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke
 python scripts/unity_audit_smoke.py --output-dir artifacts/unity-audit-smoke
+python scripts/action_provider_smoke.py --output-dir artifacts/action-provider-smoke
 python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json --live-data-env artifacts/contracts/live/readiness_env.json --output-dir artifacts/pilot-env
 ```
 

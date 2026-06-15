@@ -101,6 +101,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Final local API smoke now writes handoff artifacts for the complete rep-manager-admin workflow, including HITL submit, CRM draft, audit, metrics, and readiness paths.
 - API contract validation now detects stale running backends that expose an old route set before frontend smoke or pilot handoff.
 - Unity Catalog audit activation now has a dry-run smoke artifact that verifies the parameterized insert and DDL contract before any credentialed mirror write.
+- CRM/ERP write-back activation now has a dry-run action provider smoke artifact that verifies outbound request shape, approval ID, and payload-hash binding without live endpoints.
 
 ## Deferred Spec Areas
 
@@ -109,7 +110,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts, dry-run handoff manifests, and optional logging.
 - Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
 - Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract and readiness endpoint.
-- Live Databricks, Snowflake, CRM, ERP, shelf-image, and device credentialed smoke tests after readiness gates pass.
+- Live Databricks, Snowflake, CRM, ERP, shelf-image, and device credentialed smoke tests after readiness gates pass; CRM/ERP now has a dry-run payload smoke first.
 - Hermes/Ollama offline inference spike and offline local-agent tool calls.
 
 ## Locked Forward Decisions
