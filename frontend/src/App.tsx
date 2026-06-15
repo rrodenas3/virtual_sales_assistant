@@ -174,13 +174,19 @@ export function App() {
   }, [selectedStoreId, role, identity.sub]);
 
   useEffect(() => {
+    if (role !== "manager" && role !== "admin") return;
+    getIntegrationReadiness()
+      .then(setReadiness)
+      .catch(() => setReadiness(null));
+  }, [role]);
+
+  useEffect(() => {
     if (role !== "manager") return;
-    Promise.all([getTerritorySummary(), getApprovalQueue(), getManagerTasks(), getIntegrationReadiness()])
-      .then(([summaryRows, queueRows, taskRows, readinessRows]) => {
+    Promise.all([getTerritorySummary(), getApprovalQueue(), getManagerTasks()])
+      .then(([summaryRows, queueRows, taskRows]) => {
         setTerritorySummary(summaryRows);
         setApprovalQueue(queueRows);
         setManagerTasks(taskRows);
-        setReadiness(readinessRows);
       })
       .catch((err: Error) => setError(err.message));
   }, [role]);
@@ -461,6 +467,26 @@ export function App() {
 
       {role === "admin" && adminAudit && (
         <section className="leadershipPane">
+          {readiness && (
+            <div className="readinessPanel" data-testid="admin-readiness-panel">
+              <div>
+                <p className="eyebrow">Governance readiness</p>
+                <h3>{readiness.ready ? "Provider gates clear" : "Provider review required"}</h3>
+              </div>
+              <div className="readinessPanel__meta">
+                <span>{readiness.provider_blockers.length} provider blockers</span>
+                <span>{readiness.blockers.length} discovery blockers</span>
+                <span>{readiness.view_contract_validated ? "live contracts validated" : "mock contracts"}</span>
+              </div>
+              {(readiness.blockers.length > 0 || readiness.provider_blockers.length > 0) && (
+                <div className="readinessPanel__blockers">
+                  {[...readiness.blockers, ...readiness.provider_blockers].slice(0, 4).map((blocker) => (
+                    <span key={blocker}>{blocker}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           <div className="sectionHead">
             <div>
               <p className="eyebrow">Audit</p>

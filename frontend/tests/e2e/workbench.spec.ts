@@ -2,6 +2,18 @@ import { expect, test, type Route } from "@playwright/test";
 
 const alertId = "ST-001:SKU-4001:2026-06-15";
 const managerTaskId = "work_001";
+const adminAuditEvent = {
+  event_id: "audit-admin-1",
+  session_id: "session-admin",
+  rep_id: "REP-001",
+  event_type: "osa_summary_created",
+  resource_type: "agent_summary",
+  resource_id: "ST-001",
+  payload_json: { summary_provider: "template" },
+  source_system: "mock",
+  data_freshness_ts: "2026-06-15T00:00:00Z",
+  created_at: "2026-06-15T00:00:00Z"
+};
 
 test.use({ serviceWorkers: "block" });
 
@@ -246,6 +258,22 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
+  await page.route("**/api/v1/admin/audit-events?**", async (route) => {
+    await route.fulfill({
+      json: {
+        events: [adminAuditEvent],
+        limit: 75,
+        next_cursor: null
+      }
+    });
+  });
+
+  await page.route("**/api/v1/admin/audit-events/audit-admin-1", async (route) => {
+    await route.fulfill({
+      json: { event: adminAuditEvent }
+    });
+  });
+
   await page.route("**/api/v1/agent/run", async (route) => {
     await route.fulfill({
       contentType: "text/event-stream",
@@ -339,4 +367,17 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
 
   await page.getByTestId(`cancel-work-${managerTaskId}`).click();
   await expect(page.getByText("marked cancelled")).toBeVisible();
+});
+
+test("admin can review readiness and audit detail", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "admin" }).click();
+  await expect(page.getByRole("heading", { name: "Governance audit view" })).toBeVisible();
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("Provider gates clear");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("mock contracts");
+  await expect(page.getByText("1 recent events")).toBeVisible();
+
+  await page.getByRole("button", { name: /osa_summary_created/ }).click();
+  await expect(page.locator(".auditDetail")).toContainText("audit-admin-1");
 });
