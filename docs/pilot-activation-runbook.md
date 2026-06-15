@@ -20,6 +20,7 @@ Exit gate:
 
 - Local readiness report passes.
 - Backend tests, frontend build, Playwright smoke, eval harness, live-contract manifest check, and public-safety scan are green.
+- Observability readiness passes; `OBSERVABILITY_PROVIDER=otlp_http` must include an approved OTLP endpoint.
 - Readiness scaffold smoke passes for HITL sandbox submit, manager task status updates, and shelf-image analysis.
 - Readiness MCP smoke passes for every local MCP server manifest.
 - Readiness memory gate passes with the disabled default provider or a fully configured selected provider.

@@ -19,6 +19,7 @@ from backend.governance.shelf_image import shelf_image_status  # noqa: E402
 from backend.main import app  # noqa: E402
 from backend.memory.adapters import memory_status  # noqa: E402
 from backend.services.audit_sinks import audit_sink_status  # noqa: E402
+from backend.services.telemetry import observability_status  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 from scripts.mcp_smoke import build_report as build_mcp_smoke_report  # noqa: E402
 from tests.eval.run_eval import run_eval  # noqa: E402
@@ -143,6 +144,7 @@ def build_report(target: Target) -> dict[str, Any]:
     auth = auth_status()
     shelf_image = shelf_image_status()
     audit = audit_sink_status()
+    observability = observability_status()
     modes = selected_live_modes()
     blockers = readiness_blockers()
     providers = eval_result["summary"]["providers"]
@@ -224,6 +226,11 @@ def build_report(target: Target) -> dict[str, Any]:
             shelf_image["ready"],
             f"provider={shelf_image['provider']}; blockers={shelf_image['blockers']}",
         ),
+        _gate(
+            "observability",
+            observability["ready"],
+            f"provider={observability['provider']}; blockers={observability['blockers']}",
+        ),
     ]
     return {
         "target": target,
@@ -239,6 +246,7 @@ def build_report(target: Target) -> dict[str, Any]:
         "auth": auth,
         "shelf_image": shelf_image,
         "audit": audit,
+        "observability": observability,
         "gates": gates,
     }
 

@@ -11,6 +11,26 @@ from backend.config import settings
 logger = logging.getLogger("phantom.telemetry")
 
 
+def observability_status() -> dict[str, Any]:
+    blockers: list[str] = []
+    if settings.observability_provider == "otlp_http":
+        if not settings.otel_exporter_otlp_endpoint:
+            blockers.append("otel_exporter_otlp_endpoint")
+        if not settings.otel_service_name:
+            blockers.append("otel_service_name")
+
+    return {
+        "provider": settings.observability_provider,
+        "trace_sample_rate": settings.trace_sample_rate,
+        "structured_logger": "phantom.telemetry",
+        "otel_service_name": settings.otel_service_name,
+        "otlp_endpoint_configured": bool(settings.otel_exporter_otlp_endpoint),
+        "otel_fail_closed": settings.otel_fail_closed,
+        "ready": not blockers,
+        "blockers": blockers,
+    }
+
+
 def log_structured_event(event_name: str, **fields: Any) -> None:
     if settings.observability_provider == "none":
         return

@@ -173,6 +173,7 @@ Tracked:
 - Estimated summary cost.
 - Event counts by audit event type.
 - HTTP request ID, status, path, and duration in structured telemetry logs.
+- Observability readiness requires an OTLP endpoint and service name when `OBSERVABILITY_PROVIDER=otlp_http`.
 
 ### Step 10: Public Safety
 

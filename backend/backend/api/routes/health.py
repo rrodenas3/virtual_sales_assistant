@@ -12,6 +12,7 @@ from backend.governance.shelf_image import shelf_image_status
 from backend.memory.adapters import memory_status
 from backend.services.audit_sinks import audit_sink_status
 from backend.services.summary_providers import summary_provider_status
+from backend.services.telemetry import observability_status
 
 router = APIRouter(tags=["health"])
 
@@ -35,15 +36,7 @@ async def db_health() -> dict:
 
 @router.get("/health/observability")
 async def observability_health() -> dict:
-    return {
-        "status": "ok",
-        "provider": settings.observability_provider,
-        "trace_sample_rate": settings.trace_sample_rate,
-        "structured_logger": "phantom.telemetry",
-        "otel_service_name": settings.otel_service_name,
-        "otlp_endpoint_configured": bool(settings.otel_exporter_otlp_endpoint),
-        "otel_fail_closed": settings.otel_fail_closed,
-    }
+    return {"status": "ok", **observability_status()}
 
 
 @router.get("/health/ai")
