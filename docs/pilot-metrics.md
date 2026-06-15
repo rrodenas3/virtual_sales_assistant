@@ -64,7 +64,22 @@ For each `osa_summary_created` event, validate that every SKU named in the summa
 ## Latency
 
 Use `scripts/load_test.py` for `/api/v1/agent/osa-summary`; target p95 is below 5 seconds.
-Use `scripts/run_eval.py` for the local deterministic eval covering summary latency, grounded alert IDs, unauthorized store hiding, and trace completeness.
+Use `scripts/run_eval.py` for the local eval covering summary latency, grounded alert IDs, unauthorized store hiding, trace completeness, hallucination rate, provider/model metadata, and estimated cost.
+
+Pilot gate thresholds enforced by the local eval:
+
+- p95 summary latency: `<5s`
+- hallucination rate: `0%`
+- trace completeness: `100%`
+- estimated interaction cost: `<€0.08`
+
+Optional evidence artifacts:
+
+```powershell
+python scripts/run_eval.py --output-dir artifacts/eval
+```
+
+The artifact directory is intentionally untracked.
 
 Every HTTP response includes `x-request-id` and `x-response-time-ms`. When `OBSERVABILITY_PROVIDER=structured`, the backend emits structured `http_request` events to the `phantom.telemetry` logger with method, path, status, request ID, and duration.
 

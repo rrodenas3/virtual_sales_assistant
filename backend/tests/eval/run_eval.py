@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import base64
+import argparse
+import csv
 import json
 import re
 import time
@@ -13,6 +15,10 @@ from backend.main import app
 
 DATASET = Path(__file__).with_name("osa_eval_dataset.json")
 SKU_PATTERN = re.compile(r"Core SKU \d+")
+MAX_COST_EUR = 0.08
+MAX_HALLUCINATION_RATE = 0.0
+MIN_TRACE_COMPLETENESS = 1.0
+MAX_P95_LATENCY_MS = 5000
 
 
 def _token(rep_id: str, territory_code: str, role: str = "rep") -> str:
@@ -61,6 +67,14 @@ def run_eval() -> dict[str, Any]:
             summary_text = summary_body.get("summary", "")
             named_skus = set(SKU_PATTERN.findall(summary_text))
             hallucinated_skus = sorted(named_skus - allowed_skus)
+            audit_response = client.get(f"/api/v1/audit/session/eval:{case['name']}")
+            audit_events = audit_response.json().get("events", []) if audit_response.status_code == 200 else []
+            summary_audit_events = [event for event in audit_events if event["event_type"] == "osa_summary_created"]
+            summary_audit_payload = summary_audit_events[-1]["payload_json"] if summary_audit_events else {}
+            cost_eur = float(summary_audit_payload.get("estimated_cost_eur", 0.0))
+            provider = summary_audit_payload.get("summary_provider", "unknown")
+            model_id = summary_audit_payload.get("model_id", summary_body.get("model_id", "unknown"))
+            trace_complete = bool(summary_body.get("audit_event_id")) and bool(summary_audit_events)
 
             checks = {
                 "visit_priority_status": visits.status_code == 200,
@@ -69,8 +83,10 @@ def run_eval() -> dict[str, Any]:
                 "summary_status": summary_response.status_code == 200,
                 "summary_grounded_ids": set(summary_body.get("grounded_alert_ids", [])) == set(alert_ids),
                 "summary_no_hallucinated_skus": not hallucinated_skus,
-                "summary_audited": bool(summary_body.get("audit_event_id")),
+                "summary_audited": trace_complete,
                 "summary_latency_budget": latency_ms <= case["latency_budget_ms"],
+                "summary_cost_budget": cost_eur <= MAX_COST_EUR,
+                "summary_provider_known": provider in {"template", "anthropic"},
             }
             case_failures = [name for name, passed in checks.items() if not passed]
             if case_failures:
@@ -82,14 +98,94 @@ def run_eval() -> dict[str, Any]:
                     "checks": checks,
                     "hallucinated_skus": hallucinated_skus,
                     "grounded_alert_count": len(alert_ids),
+                    "summary_provider": provider,
+                    "model_id": model_id,
+                    "estimated_cost_eur": cost_eur,
+                    "trace_complete": trace_complete,
                 }
             )
 
-    return {"passed": not failures, "failures": failures, "results": results}
+    total_cases = len(results)
+    hallucinated_cases = len([result for result in results if result["hallucinated_skus"]])
+    trace_complete_cases = len([result for result in results if result["trace_complete"]])
+    latencies = sorted(float(result["latency_ms"]) for result in results)
+    p95_latency_ms = _percentile(latencies, 0.95) if latencies else 0.0
+    max_cost_eur = max((float(result["estimated_cost_eur"]) for result in results), default=0.0)
+    hallucination_rate = hallucinated_cases / total_cases if total_cases else 0.0
+    trace_completeness = trace_complete_cases / total_cases if total_cases else 0.0
+    aggregate_checks = {
+        "p95_latency_budget": p95_latency_ms <= MAX_P95_LATENCY_MS,
+        "hallucination_rate_budget": hallucination_rate <= MAX_HALLUCINATION_RATE,
+        "trace_completeness_budget": trace_completeness >= MIN_TRACE_COMPLETENESS,
+        "cost_budget": max_cost_eur <= MAX_COST_EUR,
+    }
+    failures.extend(f"aggregate:{name}" for name, passed in aggregate_checks.items() if not passed)
+    summary = {
+        "case_count": total_cases,
+        "p95_latency_ms": p95_latency_ms,
+        "hallucination_rate": hallucination_rate,
+        "trace_completeness": trace_completeness,
+        "max_estimated_cost_eur": max_cost_eur,
+        "providers": sorted({str(result["summary_provider"]) for result in results}),
+        "models": sorted({str(result["model_id"]) for result in results}),
+        "thresholds": {
+            "max_p95_latency_ms": MAX_P95_LATENCY_MS,
+            "max_hallucination_rate": MAX_HALLUCINATION_RATE,
+            "min_trace_completeness": MIN_TRACE_COMPLETENESS,
+            "max_cost_eur": MAX_COST_EUR,
+        },
+        "checks": aggregate_checks,
+    }
+    return {"passed": not failures, "failures": failures, "summary": summary, "results": results}
+
+
+def _percentile(values: list[float], percentile: float) -> float:
+    if not values:
+        return 0.0
+    index = max(0, min(len(values) - 1, round((len(values) - 1) * percentile)))
+    return round(values[index], 2)
+
+
+def write_artifacts(result: dict[str, Any], output_dir: Path) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "osa_eval_results.json").write_text(json.dumps(result, indent=2, sort_keys=True), encoding="utf-8")
+    with (output_dir / "osa_eval_results.csv").open("w", newline="", encoding="utf-8") as csv_file:
+        writer = csv.DictWriter(
+            csv_file,
+            fieldnames=[
+                "name",
+                "latency_ms",
+                "summary_provider",
+                "model_id",
+                "estimated_cost_eur",
+                "trace_complete",
+                "grounded_alert_count",
+                "hallucinated_skus",
+            ],
+        )
+        writer.writeheader()
+        for row in result["results"]:
+            writer.writerow(
+                {
+                    "name": row["name"],
+                    "latency_ms": row["latency_ms"],
+                    "summary_provider": row["summary_provider"],
+                    "model_id": row["model_id"],
+                    "estimated_cost_eur": row["estimated_cost_eur"],
+                    "trace_complete": row["trace_complete"],
+                    "grounded_alert_count": row["grounded_alert_count"],
+                    "hallucinated_skus": ";".join(row["hallucinated_skus"]),
+                }
+            )
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Run PHANTOM local OSA summary eval gates.")
+    parser.add_argument("--output-dir", type=Path, default=None, help="Optional directory for JSON/CSV eval artifacts.")
+    args = parser.parse_args()
     result = run_eval()
+    if args.output_dir:
+        write_artifacts(result, args.output_dir)
     print(json.dumps(result, indent=2, sort_keys=True))
     if not result["passed"]:
         raise SystemExit(1)

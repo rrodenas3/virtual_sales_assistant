@@ -13,6 +13,7 @@ dist/
 .vite/
 test-results/
 playwright-report/
+artifacts/
 
 # Environment
 .env
