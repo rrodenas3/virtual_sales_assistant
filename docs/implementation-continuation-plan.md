@@ -92,6 +92,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Readiness bundles now include the live-data readiness env-key manifest required to record credentialed contract validation results after approved runs.
 - Databricks and Snowflake live-data access now have HTTP SQL API client contracts with token readiness gating and local payload/response tests; credentialed smoke remains discovery-gated.
 - The Databricks bearer credential is intentionally omitted from public `.env.example`; it maps to the backend `databricks_token` setting through an approved secret channel.
+- Snowflake store-master adapter construction now uses the same token gate as `/health/data-platform` and the Snowflake SQL client, avoiding late credential failures.
 
 ## Deferred Spec Areas
 

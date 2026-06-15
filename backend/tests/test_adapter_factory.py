@@ -45,11 +45,28 @@ def test_snowflake_store_master_adapter_fails_fast_without_required_settings(mon
     monkeypatch.setattr(settings, "discovery_data_residency", "eu-west")
     monkeypatch.setattr(settings, "snowflake_account", None)
     monkeypatch.setattr(settings, "snowflake_user", None)
+    monkeypatch.setattr(settings, "snowflake_token", None)
     monkeypatch.setattr(settings, "snowflake_warehouse", None)
     monkeypatch.setattr(settings, "snowflake_database", None)
     monkeypatch.setattr(settings, "snowflake_schema", None)
     get_store_master_port.cache_clear()
     with pytest.raises(RuntimeError, match="Snowflake store master adapter missing settings"):
+        get_store_master_port()
+    get_store_master_port.cache_clear()
+
+
+def test_snowflake_store_master_adapter_requires_token(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "store_master_adapter", "snowflake")
+    monkeypatch.setattr(settings, "discovery_data_sharing_model", "client_databricks")
+    monkeypatch.setattr(settings, "discovery_data_residency", "eu-west")
+    monkeypatch.setattr(settings, "snowflake_account", "acct")
+    monkeypatch.setattr(settings, "snowflake_user", "svc_user")
+    monkeypatch.setattr(settings, "snowflake_token", None)
+    monkeypatch.setattr(settings, "snowflake_warehouse", "warehouse")
+    monkeypatch.setattr(settings, "snowflake_database", "database")
+    monkeypatch.setattr(settings, "snowflake_schema", "schema")
+    get_store_master_port.cache_clear()
+    with pytest.raises(RuntimeError, match="snowflake_token"):
         get_store_master_port()
     get_store_master_port.cache_clear()
 
