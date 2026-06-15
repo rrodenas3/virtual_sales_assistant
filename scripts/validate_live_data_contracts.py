@@ -67,24 +67,35 @@ def _validation_summary(report: dict[str, object]) -> str:
     return f"{valid_count}/{len(results)} contracts valid; rows={row_count}"
 
 
-def write_artifacts(report: dict[str, object], output_dir: Path) -> None:
-    output_dir.mkdir(parents=True, exist_ok=True)
+def readiness_env_from_report(report: dict[str, object]) -> dict[str, object]:
     summary = _validation_summary(report)
     generated_at = str(report.get("generated_at", datetime.now(UTC).isoformat()))
+    return {
+        "LIVE_DATA_CONTRACT_VALIDATED": bool(report.get("valid")),
+        "LIVE_DATA_CONTRACT_LAST_VALIDATION_AT": generated_at,
+        "LIVE_DATA_CONTRACT_VALIDATION_SUMMARY": summary,
+    }
+
+
+def readiness_env_manifest() -> dict[str, str]:
+    return {
+        "LIVE_DATA_CONTRACT_VALIDATED": "true only after all selected live data contracts validate",
+        "LIVE_DATA_CONTRACT_LAST_VALIDATION_AT": "UTC timestamp from the credentialed validation run",
+        "LIVE_DATA_CONTRACT_VALIDATION_SUMMARY": "short validation summary copied from readiness_env.json",
+    }
+
+
+def write_artifacts(report: dict[str, object], output_dir: Path) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    readiness_env = readiness_env_from_report(report)
+    summary = str(readiness_env["LIVE_DATA_CONTRACT_VALIDATION_SUMMARY"])
+    generated_at = str(readiness_env["LIVE_DATA_CONTRACT_LAST_VALIDATION_AT"])
     (output_dir / "live_data_contract_report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True),
         encoding="utf-8",
     )
     (output_dir / "readiness_env.json").write_text(
-        json.dumps(
-            {
-                "LIVE_DATA_CONTRACT_VALIDATED": bool(report.get("valid")),
-                "LIVE_DATA_CONTRACT_LAST_VALIDATION_AT": generated_at,
-                "LIVE_DATA_CONTRACT_VALIDATION_SUMMARY": summary,
-            },
-            indent=2,
-            sort_keys=True,
-        ),
+        json.dumps(readiness_env, indent=2, sort_keys=True),
         encoding="utf-8",
     )
     lines = [

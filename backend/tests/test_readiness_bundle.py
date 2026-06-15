@@ -15,6 +15,7 @@ def test_readiness_bundle_combines_local_safe_artifacts() -> None:
     assert bundle["pilot_readiness"]["passed"] is True
     assert bundle["mcp_smoke"]["server_count"] == 7
     assert "contracts" in bundle["live_data_contract_manifest"]
+    assert "LIVE_DATA_CONTRACT_VALIDATED" in bundle["live_data_readiness_env_manifest"]
     assert bundle["required_manual_checks"]
 
 
@@ -26,6 +27,8 @@ def test_readiness_bundle_writes_handoff_artifacts(tmp_path) -> None:
     bundle_md = (tmp_path / "readiness_bundle.md").read_text(encoding="utf-8")
     assert bundle_md.startswith("# Readiness Bundle")
     assert "## Activation Targets" in bundle_md
+    assert "## Live Data Readiness Env" in bundle_md
+    assert "`LIVE_DATA_CONTRACT_VALIDATED`" in bundle_md
     assert "| ai-demo | blocked |" in bundle_md
     assert "## Discovery Blocker Owners" in (tmp_path / "readiness" / "pilot_readiness_report.md").read_text(encoding="utf-8")
     assert (tmp_path / "readiness" / "pilot_readiness_report.json").exists()

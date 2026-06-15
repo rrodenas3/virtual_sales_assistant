@@ -15,6 +15,7 @@ from scripts.mcp_smoke import build_report as build_mcp_smoke_report  # noqa: E4
 from scripts.mcp_smoke import write_artifacts as write_mcp_smoke_artifacts  # noqa: E402
 from scripts.pilot_readiness_report import build_report as build_pilot_readiness_report  # noqa: E402
 from scripts.pilot_readiness_report import write_artifacts as write_pilot_readiness_artifacts  # noqa: E402
+from scripts.validate_live_data_contracts import readiness_env_manifest  # noqa: E402
 
 
 def build_bundle(target: str) -> dict[str, Any]:
@@ -27,6 +28,7 @@ def build_bundle(target: str) -> dict[str, Any]:
         "pilot_readiness": readiness,
         "mcp_smoke": mcp_smoke,
         "live_data_contract_manifest": manifest,
+        "live_data_readiness_env_manifest": readiness_env_manifest(),
         "required_manual_checks": [
             "Run public-safety scan before publishing or sharing artifacts.",
             "Run live data contract validation only in an approved credentialed environment.",
@@ -63,11 +65,23 @@ def write_artifacts(bundle: dict[str, Any], output_dir: Path) -> None:
         f"| MCP smoke | {'pass' if bundle['mcp_smoke']['passed'] else 'fail'} |",
         f"| Contract manifest | {len(bundle['live_data_contract_manifest']['contracts'])} contracts |",
         "",
-        "## Activation Targets",
+        "## Live Data Readiness Env",
         "",
-        "| Target | Status | Blockers |",
-        "|---|---:|---|",
+        "| Env key | Meaning |",
+        "|---|---|",
     ]
+    for key, meaning in bundle["live_data_readiness_env_manifest"].items():
+        escaped_meaning = str(meaning).replace("|", "\\|")
+        lines.append(f"| `{key}` | {escaped_meaning} |")
+    lines.extend(
+        [
+            "",
+            "## Activation Targets",
+            "",
+            "| Target | Status | Blockers |",
+            "|---|---:|---|",
+        ]
+    )
     for target in bundle["pilot_readiness"]["activation_targets"]:
         status = "ready" if target["ready"] else "blocked"
         blockers = ", ".join(target["blockers"]) or "none"

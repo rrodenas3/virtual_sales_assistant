@@ -89,6 +89,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Activation target blockers are calculated in a shared governance service and reused by the readiness report script, keeping API/UI state aligned with generated pilot artifacts.
 - Manager/admin readiness panels and readiness bundle markdown now include activation blocker previews, so pilot owners can see the next blocking action without opening nested reports.
 - Discovery gates now carry machine-readable owner metadata (`delivery`, `engineering`, or `shared`), and readiness reports group live-mode discovery blockers by owner.
+- Readiness bundles now include the live-data readiness env-key manifest required to record credentialed contract validation results after approved runs.
 
 ## Deferred Spec Areas
 
