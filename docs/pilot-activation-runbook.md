@@ -53,6 +53,7 @@ Exit gate:
 - Trace completeness remains `1.0`.
 - Estimated cost stays below the configured `0.08 EUR` per interaction ceiling.
 - P95 summary latency remains below `5000 ms`.
+- `scripts/load_test.py` passes against the configured backend and writes load-test artifacts.
 
 ## Phase 2: Live Data Contract Readiness
 
