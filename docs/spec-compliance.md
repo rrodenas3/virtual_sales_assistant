@@ -27,7 +27,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Manager view | Manager dashboard with territory overview | Add leadership summary and approval queue before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, and manager UI mode |
 | Admin console | Governance and audit console | Add audit feed, filters, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, and admin UI mode |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
-| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, Playwright workbench smoke, local OSA eval harness, frontend build verification, summary provider unit coverage |
+| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, Playwright workbench smoke, local OSA eval harness with optional required-provider gate, pilot readiness report, frontend build verification, summary provider unit coverage |
 
 ## Implemented API Surface
 
@@ -90,9 +90,10 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 Highest priority:
 
 1. Run `scripts/validate_live_data_contracts.py` against confirmed live view contracts and credentials, then record validation status in readiness settings.
-2. Replace local JSON MCP transport with FastMCP dependency once runtime requirements and data-source credentials are known.
-3. Replace the deterministic graph scaffold with production LangGraph only when multi-agent orchestration adds value beyond current services.
-4. Wire live CRM/ERP submit after discovery gates are answered.
+2. Run `scripts/pilot_readiness_report.py --target ai-demo` with `SUMMARY_PROVIDER=anthropic` before calling the product an AI assistant.
+3. Replace local JSON MCP transport with FastMCP dependency once runtime requirements and data-source credentials are known.
+4. Replace the deterministic graph scaffold with production LangGraph only when multi-agent orchestration adds value beyond current services.
+5. Wire live CRM/ERP submit after discovery gates are answered.
 
 Later:
 
@@ -119,6 +120,9 @@ npm run build
 
 cd ..
 python scripts/run_eval.py
+python scripts/pilot_readiness_report.py --target local
 python scripts/validate_live_data_contracts.py --manifest-only
 bash ./scripts/public_safety_scan.sh
 ```
+
+For AI-demo or pilot validation, run `python scripts/run_eval.py --require-provider anthropic` after configuring `SUMMARY_PROVIDER=anthropic`.

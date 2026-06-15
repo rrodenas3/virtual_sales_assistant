@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Route } from "@playwright/test";
 
 const alertId = "ST-001:SKU-4001:2026-06-15";
 
@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
     window.localStorage.setItem("phantom.demoRole", "rep");
   });
 
-  await page.route("http://localhost:8000/api/v1/metrics/pilot", async (route) => {
+  await page.route("**/api/v1/metrics/pilot", async (route) => {
     await route.fulfill({
       json: {
         feedback_count: 2,
@@ -24,7 +24,7 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
-  await page.route("http://localhost:8000/api/v1/visits/today**", async (route) => {
+  await page.route("**/api/v1/visits/today**", async (route) => {
     await route.fulfill({
       json: [
         {
@@ -43,7 +43,7 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
-  await page.route(/http:\/\/localhost:8000\/api\/v1\/stores\/ST-001(?:\?.*)?$/, async (route) => {
+  const fulfillStoreDetail = async (route: Route) => {
     await route.fulfill({
       json: {
         store_id: "ST-001",
@@ -64,9 +64,12 @@ test.beforeEach(async ({ page }) => {
         audit_event_id: "audit-store-1"
       }
     });
-  });
+  };
 
-  await page.route("http://localhost:8000/api/v1/stores/ST-001/alerts**", async (route) => {
+  await page.route("**/api/v1/stores/ST-001", fulfillStoreDetail);
+  await page.route("**/api/v1/stores/ST-001?*", fulfillStoreDetail);
+
+  await page.route("**/api/v1/stores/ST-001/alerts**", async (route) => {
     await route.fulfill({
       json: {
         alerts: [
@@ -94,7 +97,7 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
-  await page.route("http://localhost:8000/api/v1/stores/ST-001/rgm-recommendations**", async (route) => {
+  await page.route("**/api/v1/stores/ST-001/rgm-recommendations**", async (route) => {
     await route.fulfill({
       json: {
         store_id: "ST-001",
@@ -130,7 +133,7 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
-  await page.route("http://localhost:8000/api/v1/agent/osa-summary", async (route) => {
+  await page.route("**/api/v1/agent/osa-summary", async (route) => {
     await route.fulfill({
       json: {
         summary: "Core SKU 4001 has high grounded OOS risk. Verify backroom inventory before replenishment.",
@@ -142,7 +145,7 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
-  await page.route("http://localhost:8000/api/v1/agent/run", async (route) => {
+  await page.route("**/api/v1/agent/run", async (route) => {
     await route.fulfill({
       contentType: "text/event-stream",
       body: [
@@ -154,7 +157,7 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
-  await page.route(`http://localhost:8000/api/v1/alerts/${encodeURIComponent(alertId)}/feedback`, async (route) => {
+  await page.route(`**/api/v1/alerts/${encodeURIComponent(alertId)}/feedback`, async (route) => {
     await route.fulfill({
       json: {
         id: "feedback-1",
@@ -173,11 +176,17 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("rep can review route, generate summary, and submit alert feedback", async ({ page }) => {
+  const requestFailures: string[] = [];
+  page.on("requestfailed", (request) => {
+    requestFailures.push(`${request.url()} :: ${request.failure()?.errorText ?? "unknown"}`);
+  });
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "Today's field workbench" })).toBeVisible();
   await expect(page.getByTestId("visit-ST-001")).toContainText("West Market 01");
-  await expect(page.getByRole("heading", { name: "West Market 01" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "West Market 01" })).toBeVisible().catch((error: Error) => {
+    throw new Error(`${error.message}\nRequest failures:\n${requestFailures.join("\n") || "none"}`);
+  });
   await expect(page.getByTestId("alert-count")).toContainText("1 grounded shelf risks");
 
   await page.getByTestId("generate-summary").click();

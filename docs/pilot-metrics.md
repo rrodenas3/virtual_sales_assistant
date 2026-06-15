@@ -81,6 +81,15 @@ python scripts/run_eval.py --output-dir artifacts/eval
 
 The artifact directory is intentionally untracked.
 
+For AI-demo or pilot validation, require the configured AI provider explicitly:
+
+```powershell
+python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai
+python scripts/pilot_readiness_report.py --target ai-demo --output-dir artifacts/readiness/ai-demo
+```
+
+Template-only eval success proves scaffold safety, not final AI-assistant readiness.
+
 Every HTTP response includes `x-request-id` and `x-response-time-ms`. When `OBSERVABILITY_PROVIDER=structured`, the backend emits structured `http_request` events to the `phantom.telemetry` logger with method, path, status, request ID, and duration.
 
 ## Cost Per Interaction

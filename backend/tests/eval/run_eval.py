@@ -35,7 +35,7 @@ def _client(rep_id: str, territory_code: str) -> TestClient:
     return client
 
 
-def run_eval() -> dict[str, Any]:
+def run_eval(*, require_provider: str | None = None) -> dict[str, Any]:
     dataset = json.loads(DATASET.read_text(encoding="utf-8"))
     results: list[dict[str, Any]] = []
     failures: list[str] = []
@@ -119,6 +119,9 @@ def run_eval() -> dict[str, Any]:
         "trace_completeness_budget": trace_completeness >= MIN_TRACE_COMPLETENESS,
         "cost_budget": max_cost_eur <= MAX_COST_EUR,
     }
+    providers = sorted({str(result["summary_provider"]) for result in results})
+    if require_provider:
+        aggregate_checks["required_provider_present"] = require_provider in providers
     failures.extend(f"aggregate:{name}" for name, passed in aggregate_checks.items() if not passed)
     summary = {
         "case_count": total_cases,
@@ -126,8 +129,9 @@ def run_eval() -> dict[str, Any]:
         "hallucination_rate": hallucination_rate,
         "trace_completeness": trace_completeness,
         "max_estimated_cost_eur": max_cost_eur,
-        "providers": sorted({str(result["summary_provider"]) for result in results}),
+        "providers": providers,
         "models": sorted({str(result["model_id"]) for result in results}),
+        "required_provider": require_provider,
         "thresholds": {
             "max_p95_latency_ms": MAX_P95_LATENCY_MS,
             "max_hallucination_rate": MAX_HALLUCINATION_RATE,
@@ -182,8 +186,14 @@ def write_artifacts(result: dict[str, Any], output_dir: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run PHANTOM local OSA summary eval gates.")
     parser.add_argument("--output-dir", type=Path, default=None, help="Optional directory for JSON/CSV eval artifacts.")
+    parser.add_argument(
+        "--require-provider",
+        choices=["template", "anthropic"],
+        default=None,
+        help="Fail unless at least one eval case used the required summary provider.",
+    )
     args = parser.parse_args()
-    result = run_eval()
+    result = run_eval(require_provider=args.require_provider)
     if args.output_dir:
         write_artifacts(result, args.output_dir)
     print(json.dumps(result, indent=2, sort_keys=True))

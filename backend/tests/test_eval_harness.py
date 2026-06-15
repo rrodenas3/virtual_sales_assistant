@@ -11,6 +11,14 @@ def test_local_eval_harness_passes() -> None:
     assert result["summary"]["trace_completeness"] == 1.0
     assert result["summary"]["max_estimated_cost_eur"] <= result["summary"]["thresholds"]["max_cost_eur"]
     assert result["summary"]["providers"] == ["template"]
+    assert result["summary"]["required_provider"] is None
+
+
+def test_eval_harness_can_require_ai_provider() -> None:
+    result = run_eval(require_provider="anthropic")
+    assert not result["passed"]
+    assert "aggregate:required_provider_present" in result["failures"]
+    assert result["summary"]["required_provider"] == "anthropic"
 
 
 def test_eval_harness_writes_json_and_csv_artifacts(tmp_path) -> None:

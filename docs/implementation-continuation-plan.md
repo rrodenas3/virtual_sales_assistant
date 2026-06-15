@@ -58,6 +58,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Offline/PWA hardening now includes installability metadata, an app-shell service worker, static asset caching, and E2E registration coverage. API read fallback remains handled by IndexedDB in the app; writes are never service-worker cached.
 - CRM and ERP action boundaries now use provider-selected ports: local CRM drafts and sandbox ERP remain defaults, while external HTTP providers are discovery-gated.
 - Memory now has discovery-gated Mem0 HTTP read/write contracts, scoped metadata, and summary audit fields. `MEMORY_PROVIDER=none` remains the default.
+- Pilot activation gates now distinguish local scaffold readiness, AI demo readiness, and final pilot readiness through `scripts/pilot_readiness_report.py` and `docs/pilot-activation-runbook.md`.
 
 ## Deferred Spec Areas
 
