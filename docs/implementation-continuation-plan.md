@@ -46,12 +46,14 @@ This plan continues the MVP from the current public repository state. It hardens
 - `/agent/run` is scaffolded as a feature-flagged SSE bridge that reuses grounded OSA summary services.
 - Frontend Playwright smoke coverage validates the mocked rep workbench route -> store -> alerts -> summary -> feedback flow.
 - Audit sinks support discovery-gated Postgres-primary dual-write scaffolding for a future Unity Catalog mirror.
+- External JWT validation is implemented behind discovery gates with JWKS, issuer, audience, algorithm, role-claim, and territory-claim checks.
+- Guardrails support a provider boundary: default pattern checks plus fail-open/fail-closed external classifier scaffolding.
 
 ## Deferred Spec Areas
 
 - CopilotKit client package integration on top of the existing `/agent/run` SSE bridge.
 - Live Unity Catalog audit mirror implementation beyond the dual-write scaffold.
 - OpenTelemetry, LangSmith, and MLflow production wiring.
-- Haiku-based guardrail classifier.
+- Live Haiku/Bedrock guardrail classifier implementation beyond the external-classifier scaffold.
 - Live Databricks, Snowflake, CRM, ERP, SSO, and device integrations.
 - Hermes/Ollama offline inference spike.

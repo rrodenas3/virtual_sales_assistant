@@ -5,6 +5,7 @@ Phase 1 implementation of the PHANTOM Virtual Sales Assistant MVP.
 This repo currently implements the secure OSA pilot slice:
 
 - mock JWT identity
+- external JWT validation scaffold with JWKS, issuer, audience, and claim mapping
 - rep/store RBAC
 - deterministic visit priority scoring
 - deterministic OOS alert actions and confidence labels

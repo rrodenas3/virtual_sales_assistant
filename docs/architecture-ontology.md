@@ -23,7 +23,7 @@ The internal architecture is organized into ten panels. The current repository i
 
 ### Step 1: Identity Boundary
 
-The browser sends a mock JWT in local/demo mode. Backend auth is provider-based: `AUTH_PROVIDER=mock` is active for demo, and `AUTH_PROVIDER=external_jwt` fails closed until issuer, audience, and JWK validation are configured.
+The browser sends a mock JWT in local/demo mode. Backend auth is provider-based: `AUTH_PROVIDER=mock` is active for demo, and `AUTH_PROVIDER=external_jwt` validates issuer, audience, JWKS key ID, algorithm, role claim, and territory claim after SSO discovery gates are answered.
 
 Claims:
 
@@ -129,7 +129,7 @@ Controls:
 - RBAC: reps are scoped to assigned stores; managers are scoped to territory; admins can read audit.
 - Integration readiness blocks selected live providers until required discovery gates are answered.
 - Unauthorized store access returns `404` for anti-enumeration.
-- Summary guardrails use a lightweight pattern blocklist.
+- Summary guardrails use a provider boundary. Pattern blocking is active by default; external classifier mode is scaffolded with explicit fail-open/fail-closed behavior.
 - Write-like flows are draft-first and require explicit approval before sandbox submit.
 - Sandbox submit requires an approved draft and matching payload hash.
 - Audit writes go through `AuditSink`; Postgres is active locally and Unity Catalog mirror dual-write is scaffolded behind discovery-gated settings.

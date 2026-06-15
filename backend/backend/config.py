@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     auth_provider: Literal["mock", "external_jwt"] = "mock"
     external_jwt_issuer: str | None = None
     external_jwt_audience: str | None = None
+    external_jwt_jwks_url: str | None = None
+    external_jwt_role_claim: str = "role"
+    external_jwt_territory_claim: str = "territory_code"
+    external_jwt_algorithms: list[str] = Field(default_factory=lambda: ["RS256"])
     discovery_data_sharing_model: str | None = None
     discovery_crm_platform: str | None = None
     discovery_erp_sandbox: str | None = None
@@ -35,6 +39,9 @@ class Settings(BaseSettings):
     audit_sink: Literal["postgres", "unity_catalog"] = "postgres"
     audit_dual_write_enabled: bool = False
     audit_dual_write_fail_closed: bool = True
+    guardrail_provider: Literal["pattern", "external_classifier"] = "pattern"
+    guardrail_classifier_endpoint: str | None = None
+    guardrail_fail_closed: bool = True
     agent_graph_enabled: bool = False
     agent_run_enabled: bool = False
     memory_provider: Literal["none", "mem0"] = "none"
