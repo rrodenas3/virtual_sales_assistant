@@ -27,6 +27,7 @@ This repo currently implements the secure OSA pilot slice:
 - client discovery readiness gate for live integrations
 - Alembic migration scaffold
 - adapter factory for future Databricks/Snowflake integration
+- parameterized Databricks/Snowflake query adapter scaffolds
 - mock-backed MCP tool functions with local JSON transport
 - manager territory summary
 - admin audit event feed

@@ -96,9 +96,9 @@ Current adapter factory defaults:
 - `MockOSAAdapter`: visit priority, OOS alerts, rep-scoped store details, territory summaries.
 - `MockStoreMasterAdapter`: store-master detail port backed by the mock store seed data.
 - `MockRGMAdapter`: promo, assortment, and upsell recommendations.
-- `DatabricksOSAAdapter`, `DatabricksRGMAdapter`, and `SnowflakeStoreMasterAdapter`: fail-fast scaffolds until credentials and view contracts are confirmed.
+- `DatabricksOSAAdapter`, `DatabricksRGMAdapter`, and `SnowflakeStoreMasterAdapter`: parameterized query adapters behind discovery and credential gates.
 
-REST and MCP must use the same adapter factory and service layer. Future query bodies should use parameterized Databricks/Snowflake/MCP calls.
+REST and MCP must use the same adapter factory and service layer. Live data adapters build typed `QueryStatement` objects with named parameters; tests assert request values stay outside SQL text.
 
 ### Step 6: Persistence
 
@@ -255,7 +255,7 @@ Implemented now:
 
 Deferred intentionally:
 
-- Real Databricks/Snowflake adapters.
+- Live Databricks/Snowflake credentials, view contracts, and production smoke tests.
 - FastMCP dependency wiring. Mock-backed MCP tool functions use local JSON transport and share the backend adapter/service layer.
 - Production LangGraph supervisor mesh. A deterministic graph-style scaffold is present behind a feature flag.
 - Active Mem0 memory layer. A null default and fail-closed Mem0 scaffold are implemented.
@@ -267,8 +267,8 @@ Deferred intentionally:
 
 ## 5. Next Architecture Steps
 
-1. Complete external JWT validation after SSO discovery.
-2. Implement parameterized Databricks/Snowflake query bodies behind the scaffolded adapters.
+1. Validate external JWT settings against the selected client IdP after SSO discovery.
+2. Confirm Databricks/Snowflake view contracts and credentials, then run production smoke tests against live adapters.
 3. Replace local JSON MCP transport with FastMCP dependency once runtime requirements are confirmed.
 4. Promote graph routing only when multi-agent routing adds value beyond deterministic services.
 5. Add MLflow evaluation once model/tool routing exists.
