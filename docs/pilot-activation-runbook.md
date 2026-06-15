@@ -60,6 +60,7 @@ Exit gate:
 - Estimated cost stays below the configured `0.08 EUR` per interaction ceiling.
 - P95 summary latency remains below `5000 ms`.
 - `scripts/load_test.py` passes against the configured backend and writes load-test artifacts.
+- When testing external identity, `LOAD_TEST_BEARER_TOKEN` is supplied from the approved runtime environment and is not written into artifacts.
 
 ## Phase 2: Live Data Contract Readiness
 

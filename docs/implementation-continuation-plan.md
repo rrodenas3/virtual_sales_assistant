@@ -93,6 +93,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Databricks and Snowflake live-data access now have HTTP SQL API client contracts with token readiness gating and local payload/response tests; credentialed smoke remains discovery-gated.
 - The Databricks bearer credential is intentionally omitted from public `.env.example`; it maps to the backend `databricks_token` setting through an approved secret channel.
 - Snowflake store-master adapter construction now uses the same token gate as `/health/data-platform` and the Snowflake SQL client, avoiding late credential failures.
+- Summary endpoint load testing now supports an approved runtime bearer-token override through `LOAD_TEST_BEARER_TOKEN` while keeping tokens out of reports.
 
 ## Deferred Spec Areas
 
