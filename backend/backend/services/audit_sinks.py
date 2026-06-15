@@ -244,6 +244,41 @@ def _risk_level(event_type: str, requires_approval: bool) -> str:
     return "low"
 
 
+def audit_sink_status() -> dict:
+    unity_selected = settings.audit_sink == "unity_catalog" or settings.audit_dual_write_enabled
+    blockers: list[str] = []
+    table_valid = True
+    try:
+        validate_unity_table_name(settings.audit_unity_catalog_table)
+    except ValueError:
+        table_valid = False
+        blockers.append("audit_unity_catalog_table")
+
+    if unity_selected:
+        for name in ("databricks_host", "databricks_token", "databricks_sql_warehouse_id"):
+            if not getattr(settings, name):
+                blockers.append(name)
+        if not settings.discovery_data_sharing_model:
+            blockers.append("discovery_data_sharing_model")
+        if not settings.discovery_data_residency:
+            blockers.append("discovery_data_residency")
+
+    return {
+        "primary_sink": settings.audit_sink,
+        "unity_selected": unity_selected,
+        "dual_write_enabled": settings.audit_dual_write_enabled,
+        "dual_write_fail_closed": settings.audit_dual_write_fail_closed,
+        "unity_table": settings.audit_unity_catalog_table,
+        "unity_table_valid": table_valid,
+        "databricks_host_configured": bool(settings.databricks_host),
+        "databricks_token_configured": bool(settings.databricks_token),
+        "databricks_warehouse_configured": bool(settings.databricks_sql_warehouse_id),
+        "discovery_configured": bool(settings.discovery_data_sharing_model and settings.discovery_data_residency),
+        "ready": not blockers,
+        "blockers": blockers,
+    }
+
+
 class CompositeAuditSink:
     def __init__(
         self,

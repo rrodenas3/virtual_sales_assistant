@@ -79,6 +79,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Live Databricks/Snowflake activation now has `/health/data-platform` status and a pilot-readiness gate for credentials, discovery answers, and live contract validation.
 - External JWT activation now has `/health/auth` status and a pilot-readiness gate for SSO discovery, issuer, audience, and accepted algorithms.
 - External shelf-image activation now has `/health/shelf-image` status and a pilot-readiness gate for endpoint, token-reference, device, and data-residency blockers.
+- Unity Catalog audit activation now has `/health/audit-sink` status and a pilot-readiness gate for table identifier, Databricks credentials, discovery answers, and dual-write mode.
 
 ## Deferred Spec Areas
 

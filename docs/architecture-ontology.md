@@ -72,6 +72,7 @@ Primary route groups:
 - `/health/data-platform`: selected Databricks/Snowflake provider readiness.
 - `/health/auth`: selected identity provider readiness.
 - `/health/shelf-image`: selected shelf-image provider readiness.
+- `/health/audit-sink`: selected audit sink and Unity Catalog mirror readiness.
 - `/sync`: idempotent offline feedback sync.
 - `/integrations`: discovery readiness for live integration gates.
 - `/metrics`: pilot KPI rollup.
@@ -143,6 +144,7 @@ Controls:
 - Sandbox submit requires an approved draft and matching payload hash.
 - CRM/ERP external-provider activation exposes endpoint, token-reference, and discovery blockers through `/health/action-providers`.
 - Audit writes go through `AuditSink`; Postgres is active locally and Unity Catalog mirror dual-write is scaffolded behind discovery-gated settings.
+- Audit-sink readiness blocks selected Unity Catalog primary or mirror mode until table name, Databricks credentials, and discovery answers are present.
 - Unity Catalog audit table names are constrained to safe three-part identifiers, and tests assert the DDL artifact matches the runtime insert contract.
 
 ### Step 8: Offline Sync

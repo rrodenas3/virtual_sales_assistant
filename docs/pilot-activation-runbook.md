@@ -114,6 +114,7 @@ Exit gate:
 - Unauthorized store access still returns `404`.
 - Mutating routes still ignore client-supplied rep identity.
 - `/api/v1/health/auth` reports `ready=true` before `AUTH_PROVIDER=external_jwt` is used for pilot traffic.
+- `/api/v1/health/audit-sink` reports `ready=true` before Unity Catalog audit primary or dual-write mode is used.
 - Audit mirror smoke test writes a parameterized row to the approved table.
 - Guardrail classifier is either explicitly deferred or enabled with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; `/health/guardrails` must show the selected mode as ready.
 

@@ -10,6 +10,7 @@ from backend.governance.guardrails import guardrail_status
 from backend.governance.offline_agent import offline_agent_status
 from backend.governance.shelf_image import shelf_image_status
 from backend.memory.adapters import memory_status
+from backend.services.audit_sinks import audit_sink_status
 from backend.services.summary_providers import summary_provider_status
 
 router = APIRouter(tags=["health"])
@@ -83,3 +84,8 @@ async def auth_health() -> dict:
 @router.get("/health/shelf-image")
 async def shelf_image_health() -> dict:
     return {"status": "ok", **shelf_image_status()}
+
+
+@router.get("/health/audit-sink")
+async def audit_sink_health() -> dict:
+    return {"status": "ok", **audit_sink_status()}

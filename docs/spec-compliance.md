@@ -15,7 +15,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs; Anthropic SDK provider is config-gated behind deterministic template fallback | Implemented: `SUMMARY_PROVIDER=template|anthropic`, grounded identifier validation, provider metadata in audit |
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services, and CI-backed manifest smoke; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, discovery-gated Mem0 HTTP contract, summary audit metadata, and `/health/memory` readiness |
-| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, guardrail health/readiness gates, read-only policy stub, append-only Postgres audit behind `AuditSink`, parameterized Unity Catalog audit insert path, identifier validation, and DDL drift tests |
+| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, guardrail health/readiness gates, read-only policy stub, append-only Postgres audit behind `AuditSink`, audit-sink readiness, parameterized Unity Catalog audit insert path, identifier validation, and DDL drift tests |
 | Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness`, live-mode gate checks, owner model, and live data contract validation status fields |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented: local draft provider default plus discovery-gated external CRM HTTP adapter and action-provider readiness |
@@ -44,6 +44,7 @@ GET  /api/v1/health/action-providers
 GET  /api/v1/health/data-platform
 GET  /api/v1/health/auth
 GET  /api/v1/health/shelf-image
+GET  /api/v1/health/audit-sink
 GET  /api/v1/integrations/readiness
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01

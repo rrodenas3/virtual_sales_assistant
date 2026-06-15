@@ -18,6 +18,7 @@ from backend.governance.discovery import readiness_blockers, selected_live_modes
 from backend.governance.shelf_image import shelf_image_status  # noqa: E402
 from backend.main import app  # noqa: E402
 from backend.memory.adapters import memory_status  # noqa: E402
+from backend.services.audit_sinks import audit_sink_status  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 from scripts.mcp_smoke import build_report as build_mcp_smoke_report  # noqa: E402
 from tests.eval.run_eval import run_eval  # noqa: E402
@@ -141,6 +142,7 @@ def build_report(target: Target) -> dict[str, Any]:
     data_platform = data_platform_status()
     auth = auth_status()
     shelf_image = shelf_image_status()
+    audit = audit_sink_status()
     modes = selected_live_modes()
     blockers = readiness_blockers()
     providers = eval_result["summary"]["providers"]
@@ -184,8 +186,8 @@ def build_report(target: Target) -> dict[str, Any]:
         ),
         _gate(
             "audit_sink",
-            target != "pilot" or settings.audit_sink == "unity_catalog" or settings.audit_dual_write_enabled,
-            f"AUDIT_SINK={settings.audit_sink}; AUDIT_DUAL_WRITE_ENABLED={settings.audit_dual_write_enabled}",
+            audit["ready"] and (target != "pilot" or audit["unity_selected"]),
+            f"primary={audit['primary_sink']}; unity_selected={audit['unity_selected']}; blockers={audit['blockers']}",
         ),
         _gate(
             "scaffold_smoke",
@@ -236,6 +238,7 @@ def build_report(target: Target) -> dict[str, Any]:
         "data_platform": data_platform,
         "auth": auth,
         "shelf_image": shelf_image,
+        "audit": audit,
         "gates": gates,
     }
 
