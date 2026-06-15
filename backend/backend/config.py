@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     store_master_adapter: Literal["mock", "snowflake"] = "mock"
     audit_sink: Literal["postgres", "unity_catalog"] = "postgres"
     agent_graph_enabled: bool = False
+    agent_run_enabled: bool = False
     memory_provider: Literal["none", "mem0"] = "none"
     mem0_token_ref: str | None = None
     llm_model_id: str = "grounded-template-v1"

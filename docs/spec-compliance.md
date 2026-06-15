@@ -23,7 +23,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue and IndexedDB read cache first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache |
 | Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs |
 | Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, observability health |
-| Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented; CopilotKit deferred intentionally |
+| Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented: workbench UI; feature-flagged `/agent/run` SSE scaffold; CopilotKit package integration deferred |
 | Manager view | Manager dashboard with territory overview | Add leadership summary and approval queue before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, and manager UI mode |
 | Admin console | Governance and audit console | Add audit feed, filters, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, and admin UI mode |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
@@ -54,6 +54,7 @@ POST /api/v1/orders/drafts/{draft_id}/submit-sandbox
 POST /api/v1/crm/visit-log-drafts
 POST /api/v1/sync/feedback-events
 POST /api/v1/agent/osa-summary
+POST /api/v1/agent/run
 GET  /api/v1/audit/session/{session_id}
 ```
 
@@ -77,7 +78,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 - No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, but routes still use deterministic services directly.
 - No active Mem0 memory yet. The memory port exists, but the default provider is `none`.
 - No real Snowflake/Databricks/MCP queries yet. Current mock adapters enforce the corrected data contract without live credentials.
-- No CopilotKit dependency in the core UI. The MVP is an operational workbench first.
+- No CopilotKit dependency in the core UI. The MVP is an operational workbench first; `/agent/run` is a feature-flagged SSE bridge for later AG-UI wiring.
 - No real ERP submit. `submit-sandbox` validates HITL policy and payload hash but has no external side effects.
 - No Hermes/Ollama inference yet. Browser offline feedback sync is implemented first.
 - No shelf image recognition, voice, digital shelf, manager-initiated tasks, or multi-tenant support.
@@ -93,6 +94,7 @@ Highest priority:
 
 Later:
 
+- CopilotKit client package integration on top of the feature-flagged `/agent/run` SSE bridge.
 - Mem0 memory scopes, retention policy, and production provider wiring.
 - MLflow integration beyond the local eval harness.
 - LangSmith/OpenTelemetry exporters beyond structured local telemetry.

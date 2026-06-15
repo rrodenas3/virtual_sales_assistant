@@ -151,6 +151,7 @@ async def api_index() -> dict:
             "POST /api/v1/crm/visit-log-drafts",
             "POST /api/v1/sync/feedback-events",
             "POST /api/v1/agent/osa-summary",
+            "POST /api/v1/agent/run",
             "GET /api/v1/audit/session/{session_id}",
         ],
     }

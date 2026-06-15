@@ -9,6 +9,7 @@ This repo currently implements the secure OSA pilot slice:
 - deterministic visit priority scoring
 - deterministic OOS alert actions and confidence labels
 - grounded OSA summaries
+- feature-flagged agent run SSE bridge for future AG-UI/CopilotKit wiring
 - append-only audit events
 - alert feedback capture
 - React workbench UI
@@ -64,6 +65,7 @@ GET  /api/v1/stores/{store_id}
 GET  /api/v1/stores/{store_id}/alerts
 POST /api/v1/alerts/{alert_id}/feedback
 POST /api/v1/agent/osa-summary
+POST /api/v1/agent/run
 GET  /api/v1/audit/session/{session_id}
 ```
 
