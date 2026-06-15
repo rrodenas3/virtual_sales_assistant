@@ -65,6 +65,20 @@ function ActivationTargets({ readiness }: { readiness: IntegrationReadinessRespo
   );
 }
 
+function RuntimeCommands({ readiness }: { readiness: IntegrationReadinessResponse }) {
+  const targets = ["local", "ai-demo", "pilot"] as const;
+  return (
+    <div className="runtimeCommands" data-testid="runtime-commands">
+      {targets.map((target) => (
+        <div key={target} className="runtimeCommandGroup">
+          <strong>{target}</strong>
+          <span>{readiness.runtime_validation_commands[target].map((command) => command.name).join(", ")}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function discoveryOwnerSummary(readiness: IntegrationReadinessResponse): string | null {
   if (readiness.blockers.length === 0) return null;
   const blockerSet = new Set(readiness.blockers);
@@ -416,6 +430,7 @@ export function App() {
                 </div>
               )}
               <ActivationTargets readiness={readiness} />
+              <RuntimeCommands readiness={readiness} />
             </div>
           )}
           <div className="metricStrip">
@@ -519,6 +534,7 @@ export function App() {
                 </div>
               )}
               <ActivationTargets readiness={readiness} />
+              <RuntimeCommands readiness={readiness} />
             </div>
           )}
           <div className="sectionHead">

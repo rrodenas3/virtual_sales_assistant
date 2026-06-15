@@ -405,6 +405,7 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("readiness-panel")).toContainText("ai-demo");
   await expect(page.getByTestId("readiness-panel")).toContainText("pilot");
   await expect(page.getByTestId("readiness-panel")).toContainText("SUMMARY_PROVIDER must be anthropic");
+  await expect(page.getByTestId("readiness-panel")).toContainText("summary_load_test");
   await expect(page.getByText("0 assigned tasks")).toBeVisible();
 
   await page.getByRole("button", { name: "Assign shelf check" }).click();
@@ -425,6 +426,7 @@ test("admin can review readiness and audit detail", async ({ page }) => {
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("local");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("Live data contracts must be validated");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot_readiness");
   await expect(page.getByText("1 recent events")).toBeVisible();
 
   await page.getByRole("button", { name: /osa_summary_created/ }).click();
