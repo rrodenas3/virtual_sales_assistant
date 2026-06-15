@@ -30,6 +30,7 @@ def test_local_readiness_report_includes_scaffold_smoke() -> None:
     assert {command["name"] for command in report["runtime_validation_commands"]} == {
         "public_safety_scan",
         "local_readiness",
+        "final_api_smoke",
     }
     assert report["ai_demo_eval_validated"] is False
     targets = {target["target"]: target for target in report["activation_targets"]}

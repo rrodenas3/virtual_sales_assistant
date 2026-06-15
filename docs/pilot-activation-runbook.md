@@ -14,6 +14,7 @@ Required command:
 
 ```powershell
 python scripts/pilot_readiness_report.py --target local --output-dir artifacts/readiness/local
+python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke
 python scripts/readiness_bundle.py --target local --output-dir artifacts/readiness/bundle-local
 ```
 
@@ -24,6 +25,7 @@ Exit gate:
 - Backend tests, frontend build, Playwright smoke, eval harness, live-contract manifest check, and public-safety scan are green.
 - Observability readiness passes; `OBSERVABILITY_PROVIDER=otlp_http` must include an approved OTLP endpoint.
 - Readiness scaffold smoke passes for HITL sandbox submit, manager task status updates, and shelf-image analysis.
+- Final API smoke passes for rep, manager, admin, HITL, audit, CRM draft, RGM, feedback, and metrics paths.
 - Readiness MCP smoke passes for every local MCP server manifest.
 - Readiness memory gate passes with the disabled default provider or a fully configured selected provider.
 - Readiness bundle artifacts exist for handoff review.
@@ -217,6 +219,7 @@ Required command:
 
 ```powershell
 python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/readiness/pilot
+python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke
 python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json --live-data-env artifacts/contracts/live/readiness_env.json --output-dir artifacts/pilot-env
 ```
 

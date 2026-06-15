@@ -98,6 +98,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - MLflow handoff now has a dry-run manifest mode that validates eval artifacts and writes `mlflow_handoff.json`/`mlflow_handoff.md` without requiring a managed MLflow server or local MLflow package.
 - AI-demo readiness now requires explicit approved-provider eval evidence through `AI_DEMO_EVAL_VALIDATED`, with runtime commands, generated env snippets, and readiness bundle env keys documenting how to generate and record the proof.
 - Final pilot validation now has a public-safe env handoff script that merges AI-demo and live-data validation evidence into `pilot_validation.env.snippet` without secrets.
+- Final local API smoke now writes handoff artifacts for the complete rep-manager-admin workflow, including HITL submit, CRM draft, audit, metrics, and readiness paths.
 
 ## Deferred Spec Areas
 

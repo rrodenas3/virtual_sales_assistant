@@ -33,6 +33,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
             "command": "python scripts/pilot_readiness_report.py --target local --output-dir artifacts/readiness/local",
             "notes": "Safe local scaffold gate using mock/default providers.",
         },
+        {
+            "name": "final_api_smoke",
+            "command": "python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke",
+            "notes": "End-to-end local API smoke covering rep, manager, admin, HITL, audit, and metrics paths.",
+        },
     ]
     if target in {"ai-demo", "pilot"}:
         commands.extend(
