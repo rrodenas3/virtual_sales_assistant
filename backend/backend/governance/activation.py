@@ -51,6 +51,14 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
                     "notes": "Validates eval artifacts and produces local handoff manifests without a tracking server.",
                 },
                 {
+                    "name": "ai_demo_eval_evidence",
+                    "command": (
+                        "python scripts/ai_demo_eval_evidence.py --artifact-dir artifacts/eval-ai "
+                        "--output-dir artifacts/eval-ai"
+                    ),
+                    "notes": "Writes the exact AI_DEMO_EVAL_* values to record after the approved eval passes.",
+                },
+                {
                     "name": "ai_demo_readiness",
                     "command": "python scripts/pilot_readiness_report.py --target ai-demo --output-dir artifacts/readiness/ai-demo",
                     "notes": "Requires approved summary provider configuration.",

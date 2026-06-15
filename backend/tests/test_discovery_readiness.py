@@ -54,6 +54,7 @@ def test_readiness_reports_default_local_mode() -> None:
     assert any(command["name"] == "summary_load_test" for command in body["runtime_validation_commands"]["ai-demo"])
     assert any(command["name"] == "ai_summary_eval" for command in body["runtime_validation_commands"]["ai-demo"])
     assert any(command["name"] == "mlflow_handoff_dry_run" for command in body["runtime_validation_commands"]["ai-demo"])
+    assert any(command["name"] == "ai_demo_eval_evidence" for command in body["runtime_validation_commands"]["ai-demo"])
     assert any(command["name"] == "pilot_readiness" for command in body["runtime_validation_commands"]["pilot"])
 
 

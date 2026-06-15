@@ -301,6 +301,11 @@ test.beforeEach(async ({ page }) => {
               notes: "Validates eval artifacts and produces local handoff manifests without a tracking server."
             },
             {
+              name: "ai_demo_eval_evidence",
+              command: "python scripts/ai_demo_eval_evidence.py --artifact-dir artifacts/eval-ai --output-dir artifacts/eval-ai",
+              notes: "Writes the exact AI_DEMO_EVAL_* values to record after the approved eval passes."
+            },
+            {
               name: "summary_load_test",
               command: "python scripts/load_test.py --base-url http://localhost:8000 --requests 50 --concurrency 10 --threshold-p95-ms 5000 --output-dir artifacts/load/summary",
               notes: "Set LOAD_TEST_BEARER_TOKEN only in the approved runtime environment when validating external identity."
@@ -424,6 +429,7 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("readiness-panel")).toContainText("SUMMARY_PROVIDER must be anthropic");
   await expect(page.getByTestId("readiness-panel")).toContainText("AI eval pending");
   await expect(page.getByTestId("readiness-panel")).toContainText("ai_summary_eval");
+  await expect(page.getByTestId("readiness-panel")).toContainText("ai_demo_eval_evidence");
   await expect(page.getByTestId("readiness-panel")).toContainText("summary_load_test");
   await expect(page.getByText("0 assigned tasks")).toBeVisible();
 

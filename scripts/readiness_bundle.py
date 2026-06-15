@@ -14,17 +14,10 @@ from backend.governance.activation import runtime_validation_commands  # noqa: E
 from backend.governance.live_contracts import contract_manifest  # noqa: E402
 from scripts.mcp_smoke import build_report as build_mcp_smoke_report  # noqa: E402
 from scripts.mcp_smoke import write_artifacts as write_mcp_smoke_artifacts  # noqa: E402
+from scripts.ai_demo_eval_evidence import evidence_env_manifest  # noqa: E402
 from scripts.pilot_readiness_report import build_report as build_pilot_readiness_report  # noqa: E402
 from scripts.pilot_readiness_report import write_artifacts as write_pilot_readiness_artifacts  # noqa: E402
 from scripts.validate_live_data_contracts import readiness_env_manifest  # noqa: E402
-
-
-def ai_demo_readiness_env_manifest() -> dict[str, str]:
-    return {
-        "AI_DEMO_EVAL_VALIDATED": "Set true after the approved provider eval passes.",
-        "AI_DEMO_EVAL_LAST_VALIDATION_AT": "UTC timestamp for the approved provider eval run.",
-        "AI_DEMO_EVAL_VALIDATION_SUMMARY": "Short summary of provider, model, latency, cost, and trace results.",
-    }
 
 
 def build_bundle(target: str) -> dict[str, Any]:
@@ -38,7 +31,7 @@ def build_bundle(target: str) -> dict[str, Any]:
         "mcp_smoke": mcp_smoke,
         "live_data_contract_manifest": manifest,
         "live_data_readiness_env_manifest": readiness_env_manifest(),
-        "ai_demo_readiness_env_manifest": ai_demo_readiness_env_manifest(),
+        "ai_demo_readiness_env_manifest": evidence_env_manifest(),
         "runtime_validation_commands": runtime_validation_commands(target),
         "required_manual_checks": [
             "Run public-safety scan before publishing or sharing artifacts.",
