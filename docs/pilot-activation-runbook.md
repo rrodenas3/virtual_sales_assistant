@@ -27,6 +27,7 @@ Exit gate:
 - Readiness MCP smoke passes for every local MCP server manifest.
 - Readiness memory gate passes with the disabled default provider or a fully configured selected provider.
 - Readiness bundle artifacts exist for handoff review.
+- Readiness bundle includes runtime validation commands for the selected activation target.
 - `SUMMARY_PROVIDER=template` is acceptable only for this phase.
 
 ## Phase 1: Real AI Demo Readiness

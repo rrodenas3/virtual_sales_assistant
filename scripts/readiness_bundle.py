@@ -18,6 +18,52 @@ from scripts.pilot_readiness_report import write_artifacts as write_pilot_readin
 from scripts.validate_live_data_contracts import readiness_env_manifest  # noqa: E402
 
 
+def runtime_validation_commands(target: str) -> list[dict[str, str]]:
+    commands = [
+        {
+            "name": "public_safety_scan",
+            "command": "bash ./scripts/public_safety_scan.sh",
+            "notes": "Required before sharing or publishing artifacts.",
+        },
+        {
+            "name": "local_readiness",
+            "command": "python scripts/pilot_readiness_report.py --target local --output-dir artifacts/readiness/local",
+            "notes": "Safe local scaffold gate using mock/default providers.",
+        },
+    ]
+    if target in {"ai-demo", "pilot"}:
+        commands.extend(
+            [
+                {
+                    "name": "ai_demo_readiness",
+                    "command": "python scripts/pilot_readiness_report.py --target ai-demo --output-dir artifacts/readiness/ai-demo",
+                    "notes": "Requires approved summary provider configuration.",
+                },
+                {
+                    "name": "summary_load_test",
+                    "command": "python scripts/load_test.py --base-url http://localhost:8000 --requests 50 --concurrency 10 --threshold-p95-ms 5000 --output-dir artifacts/load/summary",
+                    "notes": "Set LOAD_TEST_BEARER_TOKEN only in the approved runtime environment when validating external identity.",
+                },
+            ]
+        )
+    if target == "pilot":
+        commands.extend(
+            [
+                {
+                    "name": "live_data_contracts",
+                    "command": "python scripts/validate_live_data_contracts.py --output-dir artifacts/contracts/live",
+                    "notes": "Run only in an approved credentialed environment.",
+                },
+                {
+                    "name": "pilot_readiness",
+                    "command": "python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/readiness/pilot",
+                    "notes": "Final gate after AI-demo, live data, identity, audit, action provider, memory, and offline decisions are approved.",
+                },
+            ]
+        )
+    return commands
+
+
 def build_bundle(target: str) -> dict[str, Any]:
     readiness = build_pilot_readiness_report(target)  # type: ignore[arg-type]
     mcp_smoke = build_mcp_smoke_report()
@@ -29,6 +75,7 @@ def build_bundle(target: str) -> dict[str, Any]:
         "mcp_smoke": mcp_smoke,
         "live_data_contract_manifest": manifest,
         "live_data_readiness_env_manifest": readiness_env_manifest(),
+        "runtime_validation_commands": runtime_validation_commands(target),
         "required_manual_checks": [
             "Run public-safety scan before publishing or sharing artifacts.",
             "Run live data contract validation only in an approved credentialed environment.",
@@ -87,6 +134,19 @@ def write_artifacts(bundle: dict[str, Any], output_dir: Path) -> None:
         blockers = ", ".join(target["blockers"]) or "none"
         escaped_blockers = blockers.replace("|", "\\|")
         lines.append(f"| {target['target']} | {status} | {escaped_blockers} |")
+    lines.extend(
+        [
+            "",
+            "## Runtime Validation Commands",
+            "",
+            "| Name | Command | Notes |",
+            "|---|---|---|",
+        ]
+    )
+    for command in bundle["runtime_validation_commands"]:
+        escaped_command = str(command["command"]).replace("|", "\\|")
+        escaped_notes = str(command["notes"]).replace("|", "\\|")
+        lines.append(f"| {command['name']} | `{escaped_command}` | {escaped_notes} |")
     lines.extend(
         [
             "",

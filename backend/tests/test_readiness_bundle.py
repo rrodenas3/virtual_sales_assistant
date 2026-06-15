@@ -16,7 +16,23 @@ def test_readiness_bundle_combines_local_safe_artifacts() -> None:
     assert bundle["mcp_smoke"]["server_count"] == 7
     assert "contracts" in bundle["live_data_contract_manifest"]
     assert "LIVE_DATA_CONTRACT_VALIDATED" in bundle["live_data_readiness_env_manifest"]
+    command_names = {command["name"] for command in bundle["runtime_validation_commands"]}
+    assert command_names == {"public_safety_scan", "local_readiness"}
     assert bundle["required_manual_checks"]
+
+
+def test_readiness_bundle_includes_pilot_runtime_commands() -> None:
+    bundle = build_bundle("pilot")
+    command_names = {command["name"] for command in bundle["runtime_validation_commands"]}
+
+    assert {
+        "public_safety_scan",
+        "local_readiness",
+        "ai_demo_readiness",
+        "summary_load_test",
+        "live_data_contracts",
+        "pilot_readiness",
+    } <= command_names
 
 
 def test_readiness_bundle_writes_handoff_artifacts(tmp_path) -> None:
@@ -27,6 +43,8 @@ def test_readiness_bundle_writes_handoff_artifacts(tmp_path) -> None:
     bundle_md = (tmp_path / "readiness_bundle.md").read_text(encoding="utf-8")
     assert bundle_md.startswith("# Readiness Bundle")
     assert "## Activation Targets" in bundle_md
+    assert "## Runtime Validation Commands" in bundle_md
+    assert "public_safety_scan" in bundle_md
     assert "## Live Data Readiness Env" in bundle_md
     assert "`LIVE_DATA_CONTRACT_VALIDATED`" in bundle_md
     assert "| ai-demo | blocked |" in bundle_md
