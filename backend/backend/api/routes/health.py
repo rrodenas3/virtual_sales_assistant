@@ -3,6 +3,7 @@ from sqlalchemy import text
 
 from backend.config import settings
 from backend.db.session import engine
+from backend.governance.guardrails import guardrail_status
 from backend.governance.offline_agent import offline_agent_status
 from backend.services.summary_providers import summary_provider_status
 
@@ -47,3 +48,8 @@ async def ai_health() -> dict:
 @router.get("/health/offline-agent")
 async def offline_agent_health() -> dict:
     return {"status": "ok", **offline_agent_status()}
+
+
+@router.get("/health/guardrails")
+async def guardrails_health() -> dict:
+    return {"status": "ok", **guardrail_status()}

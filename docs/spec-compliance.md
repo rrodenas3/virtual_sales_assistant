@@ -15,7 +15,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs; Anthropic SDK provider is config-gated behind deterministic template fallback | Implemented: `SUMMARY_PROVIDER=template|anthropic`, grounded identifier validation, provider metadata in audit |
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services, and CI-backed manifest smoke; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, discovery-gated Mem0 HTTP contract, summary audit metadata |
-| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, read-only policy stub, append-only Postgres audit behind `AuditSink`, parameterized Unity Catalog audit insert path, identifier validation, and DDL drift tests |
+| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, guardrail health/readiness gates, read-only policy stub, append-only Postgres audit behind `AuditSink`, parameterized Unity Catalog audit insert path, identifier validation, and DDL drift tests |
 | Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness`, live-mode gate checks, owner model, and live data contract validation status fields |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented: local draft provider default plus discovery-gated external CRM HTTP adapter |
@@ -38,6 +38,7 @@ GET  /api/v1/health/db
 GET  /api/v1/health/observability
 GET  /api/v1/health/ai
 GET  /api/v1/health/offline-agent
+GET  /api/v1/health/guardrails
 GET  /api/v1/integrations/readiness
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
@@ -91,7 +92,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 - No live Snowflake/Databricks/MCP credentials yet. Current mock adapters enforce the corrected data contract; live adapters build parameterized query statements and `scripts/validate_live_data_contracts.py` is ready for view-contract validation in a credentialed environment.
 - No CopilotKit dependency in the core UI. The client-pilot path now uses the custom `/agent/run` SSE assistant panel first and defers CopilotKit package integration.
 - Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but `/health/ai`, `/integrations/readiness`, and final AI-assistant pilot validation make template-only mode visibly not AI-demo-ready.
-- External guardrail classifier behavior is implemented against an HTTP contract with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; production endpoint selection remains discovery/configuration work.
+- External guardrail classifier behavior is implemented against an HTTP contract with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; production endpoint selection remains discovery/configuration work and is now visible through `/health/guardrails`.
 - No real ERP submit by default. `submit-sandbox` validates HITL policy and payload hash; external ERP provider is discovery-gated and disabled unless configured.
 - No Hermes/Ollama inference yet. Browser offline feedback sync, IndexedDB read fallback, PWA app-shell caching, and a disabled-by-default offline-agent governance scaffold are implemented first.
 - No production shelf image recognition, voice, digital shelf execution, or multi-tenant support. Shelf-image analysis is currently a governed mock/external-provider boundary only. Manager-initiated tasks support auditable assignment plus completion/block/cancel transitions, not a full workflow engine.

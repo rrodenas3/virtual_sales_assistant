@@ -73,6 +73,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Local MCP transport now has a CI-backed manifest smoke script covering all seven MCP server modules and expected tool names.
 - Pilot readiness reports now include the MCP manifest smoke result as a local scaffold gate.
 - Offline local-agent inference now has a disabled-by-default governance scaffold with provider setting, kill switch, device RAM, latency, and tool-accuracy thresholds exposed through `/health/offline-agent`.
+- External guardrail classifier mode now has `/health/guardrails` status and discovery gates for endpoint and data residency.
 
 ## Deferred Spec Areas
 

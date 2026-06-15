@@ -28,6 +28,21 @@ def check_guardrails(text: str) -> GuardrailResult:
     return get_guardrail_provider().check(text)
 
 
+def guardrail_status() -> dict:
+    blockers: list[str] = []
+    if settings.guardrail_provider == "external_classifier" and not settings.guardrail_classifier_endpoint:
+        blockers.append("GUARDRAIL_CLASSIFIER_ENDPOINT is required for external classifier mode")
+    return {
+        "provider": settings.guardrail_provider,
+        "classifier_endpoint_configured": bool(settings.guardrail_classifier_endpoint),
+        "block_threshold": settings.guardrail_classifier_block_threshold,
+        "timeout_seconds": settings.guardrail_classifier_timeout_seconds,
+        "fail_closed": settings.guardrail_fail_closed,
+        "ready": not blockers,
+        "blockers": blockers,
+    }
+
+
 class GuardrailProvider(Protocol):
     def check(self, text: str) -> GuardrailResult:
         ...
