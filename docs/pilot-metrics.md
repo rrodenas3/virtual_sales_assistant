@@ -64,6 +64,12 @@ For each `osa_summary_created` event, validate that every SKU named in the summa
 ## Latency
 
 Use `scripts/load_test.py` for `/api/v1/agent/osa-summary`; target p95 is below 5 seconds.
+
+```powershell
+python scripts/load_test.py --base-url http://localhost:8000 --requests 50 --concurrency 10 --threshold-p95-ms 5000 --output-dir artifacts/load/summary
+```
+
+The command exits non-zero if p95 exceeds the threshold or any request returns an error status. It writes `load_test_report.json` and `load_test_report.md` when `--output-dir` is supplied.
 Use `scripts/run_eval.py` for the local eval covering summary latency, grounded alert IDs, unauthorized store hiding, trace completeness, hallucination rate, provider/model metadata, and estimated cost.
 
 Pilot gate thresholds enforced by the local eval:

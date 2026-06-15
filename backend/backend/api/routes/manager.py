@@ -21,6 +21,7 @@ from backend.db.session import get_db
 from backend.deps import get_osa_adapter
 from backend.governance.rbac import assert_territory_access
 from backend.services.audit import log_audit_event
+from backend.services.manager_tasks import manager_task_payload, manager_task_status_payload
 
 router = APIRouter(prefix="/manager", tags=["manager"])
 
@@ -161,7 +162,7 @@ async def create_manager_task(
         task_type=request.task_type,
         priority=request.priority,
         due_date=request.due_date,
-        payload_json={"notes": request.notes, "linked_alert_ids": request.linked_alert_ids},
+        payload_json=manager_task_payload(notes=request.notes, linked_alert_ids=request.linked_alert_ids),
         status="OPEN",
     )
     db.add(row)
@@ -275,11 +276,12 @@ async def update_manager_task_status(
 
     previous_status = row.status
     row.status = request.status
-    payload = dict(row.payload_json)
-    payload["status_notes"] = request.notes
-    payload["status_updated_by"] = current_user.rep_id
-    payload["previous_status"] = previous_status
-    row.payload_json = payload
+    row.payload_json = manager_task_status_payload(
+        row.payload_json,
+        notes=request.notes,
+        updated_by=current_user.rep_id,
+        previous_status=previous_status,
+    )
 
     event = await log_audit_event(
         db,

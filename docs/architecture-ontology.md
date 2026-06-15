@@ -13,7 +13,7 @@ The internal architecture is organized into ten panels. The current repository i
 | 5-layer system architecture | Presentation, orchestration, MCP tools, data/AI platform, offline layer | Implemented: presentation, API/service orchestration, mock adapter ports, local MCP transport, offline feedback queue. Deferred: live data platform/Hermes |
 | Agent mesh + memory + HITL | Supervisor routes to OSA/RGM/action agents, memory injection, approval gate, audit | Implemented: deterministic OSA/RGM services, feature-flagged graph-style OSA summary routing, memory port, HITL approvals, sandbox submit, audit. Deferred: production LangGraph/Mem0 |
 | Data + governance | Data sources, guardrails, RBAC, immutable audit | Implemented: mock OSA/RGM sources, RBAC, guardrail stub, append-only audit tables. Deferred: real Snowflake/Databricks/Unity Catalog |
-| Product UI surface | Rep, manager, admin, generative UI, trace/activity, offline banner | Implemented: rep workbench, manager summary, admin audit feed, trace drawer, offline queue status. Deferred: CopilotKit/AG-UI |
+| Product UI surface | Rep, manager, admin, generative UI, trace/activity, offline banner | Implemented: rep workbench, manager summary/tasks, admin audit feed, trace drawer, offline queue status. Deferred: CopilotKit/AG-UI |
 | 90-day roadmap | Phase 1 OSA, Phase 2 RGM/actions, Phase 3 offline/scale | Implemented through Phase 3 foundations in local/demo form |
 | KPI framework | Day 30/60/90 adoption, precision, cost, traceability | Implemented: pilot metrics endpoint, feedback precision, summary cost telemetry, audit event counts, structured request telemetry |
 | Technology decisions | FastAPI, React, PostgreSQL, MCP, LangGraph, Mem0, offline model | Implemented: FastAPI, React/Vite, SQLAlchemy/Alembic, adapter ports, local MCP transport. Deferred: production LangGraph/Mem0/FastMCP, offline model |
@@ -50,7 +50,8 @@ Implemented in `frontend/src`.
 Surfaces:
 
 - Rep workbench: ranked stores, store detail, OOS alerts, RGM action band, draft/approval/sandbox-submit flow.
-- Manager view: territory metrics, ranked store table, and approval queue.
+- Manager view: territory metrics, ranked store table, approval queue, and auditable task assignment/cancel controls.
+- Rep task strip: assigned manager work with complete/block transitions.
 - Admin view: filterable audit event feed and detail payload.
 - Trace drawer: formula, source system, model version, freshness, and audit IDs.
 - Offline status: browser queue count, online/offline status, PWA shell registration, and stale cache timestamp when IndexedDB read fallback is used.
@@ -67,6 +68,7 @@ Primary route groups:
 - `/orders`: draft creation, retrieval, sandbox submit.
 - `/approvals`: approve/reject draft.
 - `/crm`: visit-log drafts.
+- `/health/action-providers`: selected CRM/ERP provider readiness.
 - `/sync`: idempotent offline feedback sync.
 - `/integrations`: discovery readiness for live integration gates.
 - `/metrics`: pilot KPI rollup.
@@ -86,6 +88,7 @@ Services:
 - `feedback.py`: single feedback creation path for online and offline sync.
 - `audit.py`: append-only audit event writer and reader.
 - `hashing.py`: stable payload hash for order draft approval safety.
+- `manager_tasks.py`: shared task payload helpers used by REST routes and MCP preview tools.
 
 ### Step 5: Adapter Ports
 
@@ -118,7 +121,7 @@ Local/test startup can auto-create tables for developer convenience. Production 
 
 ### Step 6.5: Memory Boundary
 
-Memory is behind `MemoryPort`. `MEMORY_PROVIDER=none` is the default and returns no memories. `MEMORY_PROVIDER=mem0` is discovery-gated until keys, retention policy, and memory scopes are confirmed. Summary audit payloads record memory provider and memory count, but grounded facts still come from OOS alerts.
+Memory is behind `MemoryPort`. `MEMORY_PROVIDER=none` is the default and returns no memories. `MEMORY_PROVIDER=mem0` is discovery-gated until keys, retention policy, and memory scopes are confirmed. `/api/v1/health/memory` exposes the selected provider, active blockers, and readiness state. Summary audit payloads record memory provider and memory count, but grounded facts still come from OOS alerts.
 
 ### Step 7: Governance
 
@@ -132,7 +135,9 @@ Controls:
 - Summary guardrails use a provider boundary. Pattern blocking is active by default; external classifier mode is scaffolded with explicit fail-open/fail-closed behavior.
 - Write-like flows are draft-first and require explicit approval before sandbox submit.
 - Sandbox submit requires an approved draft and matching payload hash.
+- CRM/ERP external-provider activation exposes endpoint, token-reference, and discovery blockers through `/health/action-providers`.
 - Audit writes go through `AuditSink`; Postgres is active locally and Unity Catalog mirror dual-write is scaffolded behind discovery-gated settings.
+- Unity Catalog audit table names are constrained to safe three-part identifiers, and tests assert the DDL artifact matches the runtime insert contract.
 
 ### Step 8: Offline Sync
 
@@ -245,7 +250,7 @@ Implemented now:
 - Deterministic scoring and alert actions.
 - HITL draft approval and sandbox submit.
 - Offline feedback sync, IndexedDB read cache, and PWA app-shell/static asset cache.
-- Manager approval queue and admin audit detail views.
+- Manager approval queue, manager task workflow, and admin audit detail views.
 - Audit and pilot metrics.
 - Structured request telemetry and response timing headers.
 - Local OSA eval harness.
@@ -253,7 +258,9 @@ Implemented now:
 - Public-safety scan.
 - Client discovery readiness endpoint and live-mode blockers.
 - Config-gated Anthropic summary provider boundary with grounded identifier validation.
-- Unity Catalog audit DDL artifact for future Delta mirror provisioning.
+- Unity Catalog audit DDL artifact for future Delta mirror provisioning, with automated drift tests.
+- CI-backed MCP manifest smoke covering the local transport server set.
+- Thresholded summary endpoint load-test script with JSON/Markdown artifacts.
 
 Deferred intentionally:
 

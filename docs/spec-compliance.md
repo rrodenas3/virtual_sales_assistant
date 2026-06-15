@@ -13,22 +13,22 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
 | Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes; summary routes can use graph routing behind `AGENT_GRAPH_ENABLED` with parity tests |
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs; Anthropic SDK provider is config-gated behind deterministic template fallback | Implemented: `SUMMARY_PROVIDER=template|anthropic`, grounded identifier validation, provider metadata in audit |
-| MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services; FastMCP dependency deferred |
-| Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, discovery-gated Mem0 HTTP contract, summary audit metadata |
-| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, read-only policy stub, append-only Postgres audit behind `AuditSink`, parameterized Unity Catalog audit insert path |
+| MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services, and CI-backed manifest smoke; FastMCP dependency deferred |
+| Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, discovery-gated Mem0 HTTP contract, summary audit metadata, and `/health/memory` readiness |
+| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, guardrail health/readiness gates, read-only policy stub, append-only Postgres audit behind `AuditSink`, parameterized Unity Catalog audit insert path, identifier validation, and DDL drift tests |
 | Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness`, live-mode gate checks, owner model, and live data contract validation status fields |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
-| CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented: local draft provider default plus discovery-gated external CRM HTTP adapter |
-| ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects by default | Implemented: sandbox provider default plus discovery-gated external ERP HTTP adapter |
-| Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue, IndexedDB read cache, and PWA shell first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache, manifest, service worker app shell/static cache |
+| CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented: local draft provider default plus discovery-gated external CRM HTTP adapter and action-provider readiness |
+| ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects by default | Implemented: sandbox provider default plus discovery-gated external ERP HTTP adapter and action-provider readiness |
+| Offline | Hermes/Ollama local inference + sync queue | Browser feedback queue, IndexedDB read cache, and PWA shell first; Hermes spike later | Implemented: localStorage feedback queue, idempotent sync, IndexedDB route/store/alert/RGM cache, manifest, service worker app shell/static cache, and disabled-by-default offline-agent kill-switch scaffold |
 | Shelf image | Image-based shelf recognition MCP | Mock-first image-analysis boundary; external provider only after device/data-residency discovery | Implemented: `POST /stores/{id}/shelf-image-analysis`, `mcp.shelf_image.analyze_shelf_image`, mock grounded findings from OOS alerts, external HTTP adapter scaffold |
-| Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs |
+| Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs, eval artifacts, and thresholded summary endpoint load-test artifacts |
 | Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, OTLP HTTP log export boundary, observability health, audit mirror failure telemetry |
 | Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented: workbench UI; custom feature-flagged `/agent/run` SSE assistant panel; CopilotKit package integration deferred |
-| Manager view | Manager dashboard with territory overview and manager-initiated work | Add leadership summary, approval queue, and auditable task workflow before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, `/manager/tasks`, `/manager/my-tasks`, `/manager/tasks/{id}/status`, and manager UI mode |
+| Manager view | Manager dashboard with territory overview and manager-initiated work | Add leadership summary, approval queue, and auditable task workflow before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, `/manager/tasks`, `/manager/my-tasks`, `/manager/tasks/{id}/status`, manager task UI assignment/cancel, and rep task completion/block controls |
 | Admin console | Governance and audit console | Add audit feed, filters, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, and admin UI mode |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
-| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before managed MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, Playwright workbench smoke, local OSA eval harness with optional required-provider gate, MLflow-ready artifact export, pilot readiness report, frontend build verification, summary provider unit coverage |
+| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before managed MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, Playwright workbench smoke, local OSA eval harness with optional required-provider gate, MLflow-ready artifact export, pilot readiness report with scaffold smoke gates, frontend build verification, summary provider unit coverage |
 
 ## Implemented API Surface
 
@@ -36,6 +36,11 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 GET  /api/v1/health
 GET  /api/v1/health/db
 GET  /api/v1/health/observability
+GET  /api/v1/health/ai
+GET  /api/v1/health/offline-agent
+GET  /api/v1/health/guardrails
+GET  /api/v1/health/memory
+GET  /api/v1/health/action-providers
 GET  /api/v1/integrations/readiness
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
@@ -77,19 +82,21 @@ GET  /api/v1/audit/session/{session_id}
 | `mcp.orders.preview_order_draft_payload` | Stable payload hash service | `POST /orders/drafts` preflight |
 | `mcp.crm.preview_visit_log_draft` | CRM draft payload contract | `POST /crm/visit-log-drafts` preflight |
 | `mcp.shelf_image.analyze_shelf_image` | Shelf image adapter factory + OSA adapter grounding | `POST /stores/{id}/shelf-image-analysis` |
+| `mcp.manager.preview_manager_task_payload` | Manager task payload service | `POST /manager/tasks` preflight |
+| `mcp.manager.preview_manager_task_status_update` | Manager task payload service | `POST /manager/tasks/{id}/status` preflight |
 
 ## Intentional Deviations From Original Spec
 
 These are not accidental gaps; they are deliberate corrections from the revised plan.
 
 - No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, and OSA summary routes can opt into graph routing with audited parity coverage. The client-pilot path explicitly defers adding LangGraph dependencies until multi-agent routing adds value beyond current services.
-- No active Mem0 memory by default. The memory port exists, `none` is the default provider, and Mem0 is discovery-gated behind retention/scope settings.
+- No active Mem0 memory by default. The memory port exists, `none` is the default provider, and Mem0 is discovery-gated behind token-reference, retention, and scope settings visible through `/health/memory`.
 - No live Snowflake/Databricks/MCP credentials yet. Current mock adapters enforce the corrected data contract; live adapters build parameterized query statements and `scripts/validate_live_data_contracts.py` is ready for view-contract validation in a credentialed environment.
 - No CopilotKit dependency in the core UI. The client-pilot path now uses the custom `/agent/run` SSE assistant panel first and defers CopilotKit package integration.
-- Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but final AI-assistant pilot validation must include an eval run with `SUMMARY_PROVIDER=anthropic`.
-- External guardrail classifier behavior is implemented against an HTTP contract with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; production endpoint selection remains discovery/configuration work.
-- No real ERP submit by default. `submit-sandbox` validates HITL policy and payload hash; external ERP provider is discovery-gated and disabled unless configured.
-- No Hermes/Ollama inference yet. Browser offline feedback sync, IndexedDB read fallback, and PWA app-shell caching are implemented first.
+- Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but `/health/ai`, `/integrations/readiness`, and final AI-assistant pilot validation make template-only mode visibly not AI-demo-ready.
+- External guardrail classifier behavior is implemented against an HTTP contract with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; production endpoint selection remains discovery/configuration work and is now visible through `/health/guardrails`.
+- No real ERP submit by default. `submit-sandbox` validates HITL policy and payload hash; external CRM/ERP providers are discovery-gated, disabled unless configured, and visible through `/health/action-providers`.
+- No Hermes/Ollama inference yet. Browser offline feedback sync, IndexedDB read fallback, PWA app-shell caching, and a disabled-by-default offline-agent governance scaffold are implemented first.
 - No production shelf image recognition, voice, digital shelf execution, or multi-tenant support. Shelf-image analysis is currently a governed mock/external-provider boundary only. Manager-initiated tasks support auditable assignment plus completion/block/cancel transitions, not a full workflow engine.
 
 ## Remaining Work To Fully Meet The Original Spec
@@ -129,6 +136,7 @@ cd ..
 python scripts/run_eval.py
 python scripts/pilot_readiness_report.py --target local
 python scripts/validate_live_data_contracts.py --manifest-only
+python scripts/mcp_smoke.py
 bash ./scripts/public_safety_scan.sh
 ```
 

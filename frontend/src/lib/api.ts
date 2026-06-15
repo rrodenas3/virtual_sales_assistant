@@ -7,6 +7,8 @@ import type {
   ApprovalResponse,
   DemoIdentity,
   DemoRole,
+  ManagerTask,
+  ManagerTaskListResponse,
   OOSAlert,
   OrderDraftResponse,
   OSASummaryResponse,
@@ -222,6 +224,52 @@ export function getTerritorySummary(): Promise<TerritorySummaryResponse> {
 
 export function getApprovalQueue(): Promise<ApprovalQueueResponse> {
   return request(`/api/v1/manager/approval-queue?territory_code=${encodeURIComponent(getCurrentTerritory())}`);
+}
+
+export function getManagerTasks(): Promise<ManagerTaskListResponse> {
+  return request(`/api/v1/manager/tasks?territory_code=${encodeURIComponent(getCurrentTerritory())}`);
+}
+
+export function getMyManagerTasks(): Promise<ManagerTaskListResponse> {
+  return request("/api/v1/manager/my-tasks");
+}
+
+export function createManagerTask(params: {
+  store_id: string;
+  assigned_rep_id: string;
+  title: string;
+  task_type: ManagerTask["task_type"];
+  priority: ManagerTask["priority"];
+  session_id: string;
+  notes?: string | null;
+  linked_alert_ids?: string[];
+}): Promise<ManagerTask> {
+  return request("/api/v1/manager/tasks", {
+    method: "POST",
+    body: JSON.stringify({
+      territory_code: getCurrentTerritory(),
+      store_id: params.store_id,
+      assigned_rep_id: params.assigned_rep_id,
+      session_id: params.session_id,
+      title: params.title,
+      task_type: params.task_type,
+      priority: params.priority,
+      notes: params.notes ?? null,
+      linked_alert_ids: params.linked_alert_ids ?? []
+    })
+  });
+}
+
+export function updateManagerTaskStatus(
+  taskId: string,
+  status: "COMPLETED" | "BLOCKED" | "CANCELLED",
+  sessionId: string,
+  notes?: string
+): Promise<ManagerTask> {
+  return request(`/api/v1/manager/tasks/${encodeURIComponent(taskId)}/status`, {
+    method: "POST",
+    body: JSON.stringify({ status, session_id: sessionId, notes: notes ?? null })
+  });
 }
 
 export function getAdminAuditEvents(filters?: {

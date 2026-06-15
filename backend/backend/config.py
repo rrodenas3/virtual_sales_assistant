@@ -69,6 +69,12 @@ class Settings(BaseSettings):
     mem0_token_ref: str | None = None
     mem0_endpoint: str = "https://api.mem0.ai/v1"
     mem0_timeout_seconds: float = 5.0
+    offline_agent_provider: Literal["none", "hermes", "ollama"] = "none"
+    offline_agent_enabled: bool = False
+    offline_agent_kill_switch: bool = True
+    offline_agent_min_device_ram_gb: float = 8.0
+    offline_agent_max_latency_ms: int = 2500
+    offline_agent_min_tool_accuracy: float = Field(default=0.95, ge=0.0, le=1.0)
     summary_provider: Literal["template", "anthropic"] = "template"
     llm_model_id: str = "grounded-template-v1"
     anthropic_token_ref: str | None = None

@@ -27,6 +27,10 @@ def test_readiness_reports_default_local_mode() -> None:
     assert body["view_contract_validated"] is False
     assert body["last_validation_at"] is None
     assert body["validation_summary"] is None
+    assert body["summary_provider"] == "template"
+    assert body["summary_model_id"] == "grounded-template-v1"
+    assert body["ai_demo_ready"] is False
+    assert "SUMMARY_PROVIDER must be anthropic for AI-demo readiness" in body["ai_demo_blockers"]
     assert any(gate["setting_name"] == "discovery_sso_provider" for gate in body["gates"])
 
 
@@ -41,6 +45,20 @@ def test_readiness_reports_live_contract_validation_status(monkeypatch) -> None:
     assert body["view_contract_validated"] is True
     assert body["last_validation_at"] == "2026-06-15T08:00:00Z"
     assert body["validation_summary"] == "3 contracts valid"
+
+
+def test_readiness_reports_ai_demo_provider_state(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "summary_provider", "anthropic")
+    monkeypatch.setattr(settings, "anthropic_token_ref", "token-ref")
+    monkeypatch.setattr(settings, "anthropic_model", "claude-haiku-4-5")
+    with TestClient(app, headers={"Authorization": f"Bearer {MANAGER}"}) as client:
+        response = client.get("/api/v1/integrations/readiness")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["summary_provider"] == "anthropic"
+    assert body["summary_model_id"] == "claude-haiku-4-5"
+    assert body["ai_demo_ready"] is True
+    assert body["ai_demo_blockers"] == []
 
 
 def test_live_databricks_mode_is_blocked_by_missing_discovery(monkeypatch) -> None:

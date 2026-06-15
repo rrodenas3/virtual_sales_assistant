@@ -3,6 +3,11 @@ from sqlalchemy import text
 
 from backend.config import settings
 from backend.db.session import engine
+from backend.governance.action_providers import action_provider_status
+from backend.governance.guardrails import guardrail_status
+from backend.governance.offline_agent import offline_agent_status
+from backend.memory.adapters import memory_status
+from backend.services.summary_providers import summary_provider_status
 
 router = APIRouter(tags=["health"])
 
@@ -35,3 +40,28 @@ async def observability_health() -> dict:
         "otlp_endpoint_configured": bool(settings.otel_exporter_otlp_endpoint),
         "otel_fail_closed": settings.otel_fail_closed,
     }
+
+
+@router.get("/health/ai")
+async def ai_health() -> dict:
+    return {"status": "ok", **summary_provider_status()}
+
+
+@router.get("/health/offline-agent")
+async def offline_agent_health() -> dict:
+    return {"status": "ok", **offline_agent_status()}
+
+
+@router.get("/health/guardrails")
+async def guardrails_health() -> dict:
+    return {"status": "ok", **guardrail_status()}
+
+
+@router.get("/health/memory")
+async def memory_health() -> dict:
+    return {"status": "ok", **memory_status()}
+
+
+@router.get("/health/action-providers")
+async def action_providers_health() -> dict:
+    return {"status": "ok", **action_provider_status()}

@@ -440,3 +440,7 @@ class IntegrationReadinessResponse(BaseModel):
     view_contract_validated: bool = False
     last_validation_at: str | None = None
     validation_summary: str | None = None
+    summary_provider: str
+    summary_model_id: str
+    ai_demo_ready: bool
+    ai_demo_blockers: list[str] = Field(default_factory=list)

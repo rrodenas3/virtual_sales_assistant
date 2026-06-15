@@ -7,6 +7,29 @@ from backend.governance.discovery import assert_discovery_ready
 from backend.memory.ports import MemoryPort
 
 
+def memory_status() -> dict:
+    blockers: list[str] = []
+    if settings.memory_provider == "mem0":
+        if not settings.mem0_token_ref:
+            blockers.append("mem0_token_ref")
+        if not settings.discovery_memory_retention_policy:
+            blockers.append("discovery_memory_retention_policy")
+        if not settings.discovery_memory_scopes:
+            blockers.append("discovery_memory_scopes")
+
+    return {
+        "provider": settings.memory_provider,
+        "enabled": settings.memory_provider != "none",
+        "endpoint_configured": bool(settings.mem0_endpoint),
+        "token_ref_configured": bool(settings.mem0_token_ref),
+        "timeout_seconds": settings.mem0_timeout_seconds,
+        "retention_policy_configured": bool(settings.discovery_memory_retention_policy),
+        "scopes_configured": bool(settings.discovery_memory_scopes),
+        "ready": not blockers,
+        "blockers": blockers,
+    }
+
+
 class NullMemoryAdapter:
     async def get_context(self, *, rep_id: str, store_id: str | None = None) -> dict:
         return {"provider": "none", "memories": [], "rep_id": rep_id, "store_id": store_id}

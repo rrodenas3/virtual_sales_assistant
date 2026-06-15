@@ -118,11 +118,11 @@ button { font: inherit; }
   border-radius: 8px;
   padding: 20px;
 }
-.managerTable, .auditFeed, .approvalQueue {
+.managerTable, .auditFeed, .approvalQueue, .taskQueue {
   display: grid;
   gap: 8px;
 }
-.managerRow, .auditRow, .approvalRow {
+.managerRow, .auditRow, .approvalRow, .taskRow {
   display: grid;
   grid-template-columns: 1.4fr 0.7fr 0.7fr 0.55fr 0.7fr;
   gap: 12px;
@@ -138,6 +138,33 @@ button { font: inherit; }
 .managerRow span, .auditRow span, .approvalRow span { color: var(--muted); font-size: 0.88rem; }
 .auditRow { grid-template-columns: 1fr 1.2fr 1fr; }
 .approvalRow { grid-template-columns: 1fr 0.7fr auto; }
+.taskRow {
+  grid-template-columns: 1fr auto;
+}
+.taskRow span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin-top: 3px;
+}
+.taskActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.taskStrip {
+  border: 1px solid var(--line);
+  background: color-mix(in oklch, var(--blue), white 91%);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.taskStrip h3 { margin: 0 0 10px; font-family: "Archivo", sans-serif; }
+.taskRow button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
 .queueBlock { margin-top: 24px; }
 .filterBar {
   display: grid;
@@ -428,7 +455,7 @@ button { font: inherit; }
   .layout { grid-template-columns: 1fr; }
   .routePane { position: static; }
   .metricStrip { grid-template-columns: 1fr 1fr; }
-  .managerRow, .auditRow, .approvalRow, .filterBar { grid-template-columns: 1fr; }
+  .managerRow, .auditRow, .approvalRow, .taskRow, .filterBar { grid-template-columns: 1fr; }
   .actionBand { grid-template-columns: 1fr; }
   .alertRow { grid-template-columns: 1fr; }
   .agentEvent { grid-template-columns: 1fr; }

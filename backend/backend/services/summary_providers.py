@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import time
 from dataclasses import dataclass
+from importlib.util import find_spec
 from typing import Protocol
 
 from backend.api.schemas import OOSAlert
@@ -34,6 +35,32 @@ class SummaryProviderResult:
 class SummaryProvider(Protocol):
     async def summarize(self, alerts: list[OOSAlert]) -> SummaryProviderResult:
         ...
+
+
+def summary_provider_status() -> dict:
+    blockers: list[str] = []
+    anthropic_sdk_available = find_spec("anthropic") is not None
+    anthropic_token_configured = bool(settings.anthropic_token_ref)
+
+    if settings.summary_provider != "anthropic":
+        blockers.append("SUMMARY_PROVIDER must be anthropic for AI-demo readiness")
+    if not anthropic_token_configured:
+        blockers.append("ANTHROPIC_TOKEN_REF is required for anthropic summaries")
+    if not anthropic_sdk_available:
+        blockers.append("anthropic SDK is not installed")
+
+    active_model = settings.anthropic_model if settings.summary_provider == "anthropic" else settings.llm_model_id
+    return {
+        "selected_provider": settings.summary_provider,
+        "active_model": active_model,
+        "template_model_id": settings.llm_model_id,
+        "anthropic_model": settings.anthropic_model,
+        "anthropic_sdk_available": anthropic_sdk_available,
+        "anthropic_token_configured": anthropic_token_configured,
+        "summary_fail_open": settings.summary_fail_open,
+        "ai_demo_ready": settings.summary_provider == "anthropic" and anthropic_token_configured and anthropic_sdk_available,
+        "ai_demo_blockers": blockers,
+    }
 
 
 def _estimate_tokens(text: str) -> int:

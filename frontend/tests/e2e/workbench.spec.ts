@@ -1,6 +1,7 @@
 import { expect, test, type Route } from "@playwright/test";
 
 const alertId = "ST-001:SKU-4001:2026-06-15";
+const managerTaskId = "work_001";
 
 test.use({ serviceWorkers: "block" });
 
@@ -147,6 +148,74 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
+  await page.route("**/api/v1/manager/my-tasks", async (route) => {
+    await route.fulfill({ json: { assigned_rep_id: "REP-001", tasks: [] } });
+  });
+
+  await page.route("**/api/v1/manager/territory-summary**", async (route) => {
+    await route.fulfill({
+      json: {
+        territory_code: "WEST-01",
+        store_count: 1,
+        total_oos_alerts: 5,
+        confirmed_feedback_count: 1,
+        false_positive_count: 0,
+        open_draft_count: 0,
+        stores: [
+          {
+            store_id: "ST-001",
+            store_name: "West Market 01",
+            rep_id: "REP-001",
+            priority_score: 0.873,
+            oos_sku_count: 5,
+            confirmed_feedback_count: 1,
+            false_positive_count: 0,
+            open_draft_count: 0,
+            data_freshness_ts: "2026-06-15T00:00:00Z"
+          }
+        ]
+      }
+    });
+  });
+
+  let managerTasks: unknown[] = [];
+  await page.route("**/api/v1/manager/tasks?**", async (route) => {
+    await route.fulfill({ json: { territory_code: "WEST-01", tasks: managerTasks } });
+  });
+
+  await page.route("**/api/v1/manager/tasks", async (route) => {
+    managerTasks = [
+      {
+        task_id: managerTaskId,
+        territory_code: "WEST-01",
+        store_id: "ST-001",
+        store_name: "West Market 01",
+        assigned_rep_id: "REP-001",
+        created_by: "MGR-001",
+        session_id: "MGR-001:2026-06-15:manager_work",
+        title: "Verify shelf at West Market 01",
+        task_type: "shelf_check",
+        priority: "medium",
+        due_date: null,
+        status: "OPEN",
+        payload_json: { notes: "Confirm top OOS risks before the next replenishment decision.", linked_alert_ids: [] },
+        created_at: "2026-06-15T00:00:00Z",
+        audit_event_id: "audit_work_1"
+      }
+    ];
+    await route.fulfill({ json: managerTasks[0] });
+  });
+
+  await page.route(`**/api/v1/manager/tasks/${managerTaskId}/status`, async (route) => {
+    const task = { ...(managerTasks[0] as Record<string, unknown>), status: "CANCELLED" };
+    managerTasks = [task];
+    await route.fulfill({ json: task });
+  });
+
+  await page.route("**/api/v1/manager/approval-queue**", async (route) => {
+    await route.fulfill({ json: { territory_code: "WEST-01", pending_count: 0, items: [] } });
+  });
+
   await page.route("**/api/v1/agent/run", async (route) => {
     await route.fulfill({
       contentType: "text/event-stream",
@@ -223,4 +292,19 @@ test("app exposes PWA manifest and registers service worker", async ({ browser }
   });
   expect(registrationState).toBe("registered");
   await context.close();
+});
+
+test("manager can assign a shelf-check task from the command view", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "manager" }).click();
+  await expect(page.getByRole("heading", { name: "Territory command view" })).toBeVisible();
+  await expect(page.getByText("0 assigned tasks")).toBeVisible();
+
+  await page.getByRole("button", { name: "Assign shelf check" }).click();
+  await expect(page.getByText("Assigned Verify shelf at West Market 01")).toBeVisible();
+  await expect(page.locator(".taskRow").filter({ hasText: "Verify shelf at West Market 01" })).toBeVisible();
+
+  await page.getByTestId(`cancel-work-${managerTaskId}`).click();
+  await expect(page.getByText("marked cancelled")).toBeVisible();
 });

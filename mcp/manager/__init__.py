@@ -1,0 +1,1 @@
+"""Manager MCP tool package."""

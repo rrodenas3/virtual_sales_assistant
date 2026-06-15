@@ -20,6 +20,9 @@ Exit gate:
 
 - Local readiness report passes.
 - Backend tests, frontend build, Playwright smoke, eval harness, live-contract manifest check, and public-safety scan are green.
+- Readiness scaffold smoke passes for HITL sandbox submit, manager task status updates, and shelf-image analysis.
+- Readiness MCP smoke passes for every local MCP server manifest.
+- Readiness memory gate passes with the disabled default provider or a fully configured selected provider.
 - `SUMMARY_PROVIDER=template` is acceptable only for this phase.
 
 ## Phase 1: Real AI Demo Readiness
@@ -52,6 +55,7 @@ Exit gate:
 - Trace completeness remains `1.0`.
 - Estimated cost stays below the configured `0.08 EUR` per interaction ceiling.
 - P95 summary latency remains below `5000 ms`.
+- `scripts/load_test.py` passes against the configured backend and writes load-test artifacts.
 
 ## Phase 2: Live Data Contract Readiness
 
@@ -81,6 +85,7 @@ python scripts/validate_live_data_contracts.py --output-dir artifacts/contracts/
 Exit gate:
 
 - Required columns, non-null columns, normalized score columns, rep filters, territory filters, and alert business keys validate.
+- Contract artifacts exist: `live_data_contract_report.json`, `live_data_contract_report.md`, and `readiness_env.json`.
 - `LIVE_DATA_CONTRACT_LAST_VALIDATION_AT` and `LIVE_DATA_CONTRACT_VALIDATION_SUMMARY` are populated.
 - No SQL string interpolation is introduced in live adapters.
 
@@ -108,7 +113,7 @@ Exit gate:
 - Unauthorized store access still returns `404`.
 - Mutating routes still ignore client-supplied rep identity.
 - Audit mirror smoke test writes a parameterized row to the approved table.
-- Guardrail classifier is either explicitly deferred or enabled with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`.
+- Guardrail classifier is either explicitly deferred or enabled with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; `/health/guardrails` must show the selected mode as ready.
 
 ## Phase 4: CRM, ERP, And HITL Write-Back
 
@@ -132,6 +137,7 @@ Exit gate:
 - Agents can draft but cannot submit.
 - Approval payload hash must match at submit time.
 - Rejected or modified drafts cannot be submitted.
+- `/api/v1/health/action-providers` reports `ready=true` before external CRM or ERP providers are used.
 - External write failures are audited and do not mutate draft approval history.
 
 ## Phase 5: Offline And Memory Expansion
@@ -149,6 +155,9 @@ MEMORY_PROVIDER=mem0
 DISCOVERY_MEMORY_RETENTION_POLICY=<approved-retention>
 DISCOVERY_MEMORY_SCOPES=<approved-scopes>
 MEM0_TOKEN_REF=<approved-token-reference>
+OFFLINE_AGENT_PROVIDER=none
+OFFLINE_AGENT_ENABLED=false
+OFFLINE_AGENT_KILL_SWITCH=true
 ```
 
 Exit gate:
@@ -156,7 +165,8 @@ Exit gate:
 - Browser IndexedDB read cache works for route, store, alerts, and RGM data.
 - Feedback sync remains idempotent with `{rep_id}:{client_event_uuid}`.
 - Memory reads are scoped by rep/store and memory writes are non-blocking but telemetry-visible.
-- Hermes/Ollama local inference remains behind a separate spike gate with device RAM, latency, and tool-call accuracy criteria.
+- `/api/v1/health/memory` reports `ready=true` for the selected memory provider before a pilot uses persistent memory.
+- Hermes/Ollama local inference remains behind a separate spike gate with device RAM, latency, tool-call accuracy criteria, and an explicit kill switch.
 
 ## Phase 5b: Shelf Image Provider Readiness
 

@@ -63,6 +63,19 @@ This plan continues the MVP from the current public repository state. It hardens
 - Eval artifacts now include MLflow-ready metrics/params plus an optional `scripts/log_eval_to_mlflow.py` handoff script.
 - Shelf-image analysis now has a mock-first REST and MCP boundary with external-provider discovery gates; no real image pixels are analyzed by default.
 - Manager-initiated work is scaffolded through auditable task assignment/status endpoints and a deployable `manager_tasks` migration.
+- Local pilot readiness now includes scaffold smoke gates for HITL order submit, shelf-image analysis, and manager task transitions.
+- Manager task MCP preview tools now share the backend task payload service with REST routes.
+- AI-demo readiness is now exposed through `/health/ai` and `/integrations/readiness`, so template summaries cannot be confused with the required real-provider validation path.
+- Live data contract validation now supports `--output-dir` artifacts, including a readiness env JSON for recording the validated status after credentialed checks.
+- The frontend now exposes manager task assignment/cancel controls and rep task completion/block controls against the existing auditable task APIs.
+- Unity Catalog audit mirroring now validates three-part table identifiers and has automated DDL drift coverage against the runtime insert contract.
+- Summary endpoint load testing now supports configurable concurrency, p95 threshold failure, and JSON/Markdown artifacts.
+- Local MCP transport now has a CI-backed manifest smoke script covering all seven MCP server modules and expected tool names.
+- Pilot readiness reports now include the MCP manifest smoke result as a local scaffold gate.
+- Offline local-agent inference now has a disabled-by-default governance scaffold with provider setting, kill switch, device RAM, latency, and tool-accuracy thresholds exposed through `/health/offline-agent`.
+- External guardrail classifier mode now has `/health/guardrails` status and discovery gates for endpoint and data residency.
+- Memory provider activation now has `/health/memory` status, showing whether Mem0 is enabled and which token, retention, or scope gates still block activation.
+- External CRM/ERP write-back activation now has `/health/action-providers` status and a pilot-readiness gate for endpoint, token-reference, and discovery blockers.
 
 ## Deferred Spec Areas
 
@@ -70,8 +83,8 @@ This plan continues the MVP from the current public repository state. It hardens
 - Live Unity Catalog audit provisioning and credentialed smoke tests beyond the parameterized insert path.
 - LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts and optional logging.
 - Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
-- Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract.
-- Live Databricks, Snowflake, CRM, ERP, shelf-image, and device integrations.
+- Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract and readiness endpoint.
+- Live Databricks, Snowflake, CRM, ERP, shelf-image, and device credentialed smoke tests.
 - Hermes/Ollama offline inference spike and offline local-agent tool calls.
 
 ## Locked Forward Decisions

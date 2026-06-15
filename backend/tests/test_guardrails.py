@@ -1,8 +1,14 @@
 import httpx
+from fastapi.testclient import TestClient
 
 from backend.config import settings
 from backend.governance import guardrails
-from backend.governance.guardrails import ExternalClassifierGuardrailProvider, PatternGuardrailProvider
+from backend.governance.discovery import readiness_blockers, selected_live_modes
+from backend.governance.guardrails import ExternalClassifierGuardrailProvider, PatternGuardrailProvider, guardrail_status
+from backend.main import app
+
+
+REP_001 = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJSRVAtMDAxIiwidGVycml0b3J5X2NvZGUiOiJXRVNULTAxIiwicm9sZSI6InJlcCJ9."
 
 
 def _mock_classifier(monkeypatch, payload: dict, status_code: int = 200) -> None:
@@ -72,3 +78,29 @@ def test_external_classifier_missing_endpoint_fails_closed(monkeypatch) -> None:
 
     assert result.blocked is True
     assert result.risk_score == 1.0
+
+
+def test_guardrail_health_reports_external_classifier_readiness(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "guardrail_provider", "external_classifier")
+    monkeypatch.setattr(settings, "guardrail_classifier_endpoint", None)
+
+    with TestClient(app, headers={"Authorization": f"Bearer {REP_001}"}) as client:
+        response = client.get("/api/v1/health/guardrails")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["provider"] == "external_classifier"
+    assert body["ready"] is False
+    assert "GUARDRAIL_CLASSIFIER_ENDPOINT is required for external classifier mode" in body["blockers"]
+
+
+def test_external_guardrail_classifier_is_discovery_gated(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "guardrail_provider", "external_classifier")
+    monkeypatch.setattr(settings, "guardrail_classifier_endpoint", None)
+    monkeypatch.setattr(settings, "discovery_data_residency", None)
+
+    assert "guardrail_classifier" in selected_live_modes()
+    blockers = readiness_blockers()
+    assert "guardrail_classifier_endpoint" in blockers
+    assert "discovery_data_residency" in blockers
+    assert guardrail_status()["ready"] is False
