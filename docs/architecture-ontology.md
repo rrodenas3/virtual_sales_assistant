@@ -132,7 +132,7 @@ Controls:
 - Summary guardrails use a lightweight pattern blocklist.
 - Write-like flows are draft-first and require explicit approval before sandbox submit.
 - Sandbox submit requires an approved draft and matching payload hash.
-- Audit writes go through `AuditSink`; Postgres is active locally and Unity Catalog dual-write is deferred.
+- Audit writes go through `AuditSink`; Postgres is active locally and Unity Catalog mirror dual-write is scaffolded behind discovery-gated settings.
 
 ### Step 8: Offline Sync
 

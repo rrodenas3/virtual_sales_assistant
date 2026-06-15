@@ -106,7 +106,7 @@ def selected_live_modes(config: Settings = settings) -> set[str]:
         modes.add("databricks")
     if config.store_master_adapter == "snowflake":
         modes.add("snowflake")
-    if config.audit_sink == "unity_catalog":
+    if config.audit_sink == "unity_catalog" or config.audit_dual_write_enabled:
         modes.add("unity_catalog")
     return modes
 

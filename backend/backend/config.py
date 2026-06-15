@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     rgm_adapter: Literal["mock", "databricks"] = "mock"
     store_master_adapter: Literal["mock", "snowflake"] = "mock"
     audit_sink: Literal["postgres", "unity_catalog"] = "postgres"
+    audit_dual_write_enabled: bool = False
+    audit_dual_write_fail_closed: bool = True
     agent_graph_enabled: bool = False
     agent_run_enabled: bool = False
     memory_provider: Literal["none", "mem0"] = "none"

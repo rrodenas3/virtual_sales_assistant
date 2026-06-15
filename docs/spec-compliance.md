@@ -15,7 +15,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs | Implemented and tested |
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, fail-closed Mem0 scaffold |
-| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, pattern guardrail, read-only policy stub, append-only audit behind `AuditSink` |
+| Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, pattern guardrail, read-only policy stub, append-only Postgres audit behind `AuditSink`, Unity Catalog mirror scaffold |
 | Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness` and live-mode gate checks |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented as draft-only local persistence |
@@ -97,6 +97,7 @@ Later:
 - CopilotKit client package integration on top of the feature-flagged `/agent/run` SSE bridge.
 - Mem0 memory scopes, retention policy, and production provider wiring.
 - MLflow integration beyond the local eval harness.
+- Live Unity Catalog audit mirror implementation beyond the scaffolded dual-write sink.
 - LangSmith/OpenTelemetry exporters beyond structured local telemetry.
 - Hermes/Ollama offline agent spike.
 - Shelf image MCP.
