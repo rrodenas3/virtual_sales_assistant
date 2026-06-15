@@ -367,3 +367,6 @@ class IntegrationReadinessResponse(BaseModel):
     selected_live_modes: list[str]
     blockers: list[str]
     gates: list[DiscoveryGateOut]
+    view_contract_validated: bool = False
+    last_validation_at: str | None = None
+    validation_summary: str | None = None

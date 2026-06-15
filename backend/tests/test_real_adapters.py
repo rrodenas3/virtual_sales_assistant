@@ -178,3 +178,7 @@ async def test_snowflake_store_master_uses_store_id_parameter(monkeypatch: pytes
     assert "ST-001" not in client.queries[0].statement
     assert client.queries[0].parameters[0].name == "store_id"
     assert store.store_id == "ST-001"
+
+
+def test_snowflake_store_master_does_not_reuse_databricks_mapper() -> None:
+    assert not hasattr(SnowflakeStoreMasterAdapter, "_store_from_row")

@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     discovery_sso_provider: str | None = None
     discovery_data_residency: str | None = None
     discovery_offline_sync_policy: str | None = "browser-feedback-queue"
+    live_data_contract_validated: bool = False
+    live_data_contract_last_validation_at: str | None = None
+    live_data_contract_validation_summary: str | None = None
     territory_timezone: str = "Europe/Paris"
     osa_source_system: str = "mock"
     osa_model_version: str = "mock-v1"
@@ -41,12 +44,19 @@ class Settings(BaseSettings):
     audit_dual_write_fail_closed: bool = True
     guardrail_provider: Literal["pattern", "external_classifier"] = "pattern"
     guardrail_classifier_endpoint: str | None = None
+    guardrail_classifier_block_threshold: float = Field(default=0.85, ge=0.0, le=1.0)
     guardrail_fail_closed: bool = True
     agent_graph_enabled: bool = False
     agent_run_enabled: bool = False
     memory_provider: Literal["none", "mem0"] = "none"
     mem0_token_ref: str | None = None
+    summary_provider: Literal["template", "anthropic"] = "template"
     llm_model_id: str = "grounded-template-v1"
+    anthropic_token_ref: str | None = None
+    anthropic_model: str = "claude-haiku-4-5"
+    anthropic_timeout_seconds: float = 8.0
+    anthropic_max_tokens: int = 600
+    summary_fail_open: bool = False
     databricks_host: str | None = None
     databricks_token: str | None = None
     databricks_sql_warehouse_id: str | None = None

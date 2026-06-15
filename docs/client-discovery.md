@@ -2,6 +2,11 @@
 
 These items must be answered before Phase 2 production write-back.
 
+Owner model:
+
+- Client delivery owner: supplies platform answers, credentials through approved secret channels, view names, OAuth details, and pilot territory scope.
+- Engineering owner: maintains readiness gates, validation scripts, redacted diagnostics, and adapter implementations.
+
 The backend exposes the current gate state at:
 
 ```text
@@ -28,3 +33,16 @@ Live-mode selectors currently gated:
 - `RGM_ADAPTER=databricks`
 - `STORE_MASTER_ADAPTER=snowflake`
 - `AUDIT_SINK=unity_catalog`
+
+Live data contract validation:
+
+```powershell
+python scripts/validate_live_data_contracts.py --manifest-only
+python scripts/validate_live_data_contracts.py --territory-code WEST-01 --rep-id REP-001 --store-id ST-001
+```
+
+The manifest command is safe for CI and public review. The live command must only run in a client-approved environment with credentials supplied outside the repository. Results can be summarized in:
+
+- `LIVE_DATA_CONTRACT_VALIDATED`
+- `LIVE_DATA_CONTRACT_LAST_VALIDATION_AT`
+- `LIVE_DATA_CONTRACT_VALIDATION_SUMMARY`

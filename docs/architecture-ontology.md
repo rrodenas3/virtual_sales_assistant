@@ -252,6 +252,8 @@ Implemented now:
 - Alembic migration scaffold.
 - Public-safety scan.
 - Client discovery readiness endpoint and live-mode blockers.
+- Config-gated Anthropic summary provider boundary with grounded identifier validation.
+- Unity Catalog audit DDL artifact for future Delta mirror provisioning.
 
 Deferred intentionally:
 
@@ -259,7 +261,7 @@ Deferred intentionally:
 - FastMCP dependency wiring. Mock-backed MCP tool functions use local JSON transport and share the backend adapter/service layer.
 - Production LangGraph supervisor mesh. A deterministic graph-style scaffold is present behind a feature flag and can route OSA summaries.
 - Active Mem0 memory layer. A null default and fail-closed Mem0 scaffold are implemented.
-- CopilotKit/AG-UI runtime.
+- CopilotKit/AG-UI runtime. The client-pilot path uses the custom `/agent/run` SSE bridge first.
 - MLflow/LangSmith/OpenTelemetry integrations beyond structured logs and local eval.
 - Hermes/Ollama local inference.
 - Real CRM/ERP write-back.
@@ -268,7 +270,8 @@ Deferred intentionally:
 ## 5. Next Architecture Steps
 
 1. Validate external JWT settings against the selected client IdP after SSO discovery.
-2. Confirm Databricks/Snowflake view contracts and credentials, then run production smoke tests against live adapters.
-3. Replace local JSON MCP transport with FastMCP dependency once runtime requirements are confirmed.
-4. Replace the deterministic graph scaffold with production LangGraph only when multi-agent routing adds value beyond deterministic services.
-5. Add MLflow evaluation once model/tool routing exists.
+2. Run the summary eval path with `SUMMARY_PROVIDER=anthropic` before claiming AI-assistant pilot readiness.
+3. Confirm Databricks/Snowflake view contracts and credentials, then run production smoke tests against live adapters.
+4. Replace local JSON MCP transport with FastMCP dependency once runtime requirements are confirmed.
+5. Replace the deterministic graph scaffold with production LangGraph only when multi-agent routing adds value beyond deterministic services.
+6. Add MLflow evaluation once model/tool routing exists.
