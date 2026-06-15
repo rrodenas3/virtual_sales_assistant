@@ -105,6 +105,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
                     "notes": "Dry-run CRM/ERP payload contract with approval ID and payload-hash binding.",
                 },
                 {
+                    "name": "guardrail_classifier_smoke",
+                    "command": "python scripts/guardrail_classifier_smoke.py --output-dir artifacts/guardrail-classifier-smoke",
+                    "notes": "Dry-run external classifier allow/block/fallback behavior at the configured risk threshold.",
+                },
+                {
                     "name": "pilot_env_handoff",
                     "command": (
                         "python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json "

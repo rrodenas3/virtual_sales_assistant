@@ -131,7 +131,7 @@ Exit gate:
 - `/api/v1/health/audit-sink` reports `ready=true` before Unity Catalog audit primary or dual-write mode is used.
 - `scripts/unity_audit_smoke.py` passes as a dry run before any credentialed audit mirror smoke is attempted.
 - Audit mirror smoke test writes a parameterized row to the approved table.
-- Guardrail classifier is either explicitly deferred or enabled with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; `/health/guardrails` must show the selected mode as ready.
+- Guardrail classifier is either explicitly deferred or enabled with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; `/health/guardrails` must show the selected mode as ready, and `scripts/guardrail_classifier_smoke.py` must pass before credentialed classifier smoke.
 
 ## Phase 4: CRM, ERP, And HITL Write-Back
 
@@ -226,6 +226,7 @@ python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/r
 python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke
 python scripts/unity_audit_smoke.py --output-dir artifacts/unity-audit-smoke
 python scripts/action_provider_smoke.py --output-dir artifacts/action-provider-smoke
+python scripts/guardrail_classifier_smoke.py --output-dir artifacts/guardrail-classifier-smoke
 python scripts/pilot_env_handoff.py --ai-demo-env artifacts/eval-ai/ai_demo_eval_env.json --live-data-env artifacts/contracts/live/readiness_env.json --output-dir artifacts/pilot-env
 ```
 

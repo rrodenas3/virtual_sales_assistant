@@ -102,13 +102,14 @@ This plan continues the MVP from the current public repository state. It hardens
 - API contract validation now detects stale running backends that expose an old route set before frontend smoke or pilot handoff.
 - Unity Catalog audit activation now has a dry-run smoke artifact that verifies the parameterized insert and DDL contract before any credentialed mirror write.
 - CRM/ERP write-back activation now has a dry-run action provider smoke artifact that verifies outbound request shape, approval ID, and payload-hash binding without live endpoints.
+- Guardrail classifier activation now has a dry-run smoke artifact covering below-threshold allow, threshold block, and fail-open pattern fallback behavior.
 
 ## Deferred Spec Areas
 
 - CopilotKit client package integration after the custom SSE pilot surface proves useful.
 - Live Unity Catalog audit provisioning and credentialed smoke tests beyond the parameterized insert path and dry-run smoke artifact.
 - LangSmith production wiring and a managed MLflow tracking server; local eval now emits MLflow-ready artifacts, dry-run handoff manifests, and optional logging.
-- Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract.
+- Production guardrail classifier endpoint selection and credentialed smoke tests beyond the local HTTP provider contract and dry-run classifier smoke.
 - Mem0 workspace provisioning, retention approval, and credentialed smoke tests beyond the HTTP adapter contract and readiness endpoint.
 - Live Databricks, Snowflake, CRM, ERP, shelf-image, and device credentialed smoke tests after readiness gates pass; CRM/ERP now has a dry-run payload smoke first.
 - Hermes/Ollama offline inference spike and offline local-agent tool calls.
