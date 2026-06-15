@@ -24,7 +24,23 @@ def test_readiness_reports_default_local_mode() -> None:
     body = response.json()
     assert body["ready"] is True
     assert body["selected_live_modes"] == []
+    assert body["view_contract_validated"] is False
+    assert body["last_validation_at"] is None
+    assert body["validation_summary"] is None
     assert any(gate["setting_name"] == "discovery_sso_provider" for gate in body["gates"])
+
+
+def test_readiness_reports_live_contract_validation_status(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "live_data_contract_validated", True)
+    monkeypatch.setattr(settings, "live_data_contract_last_validation_at", "2026-06-15T08:00:00Z")
+    monkeypatch.setattr(settings, "live_data_contract_validation_summary", "3 contracts valid")
+    with TestClient(app, headers={"Authorization": f"Bearer {MANAGER}"}) as client:
+        response = client.get("/api/v1/integrations/readiness")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["view_contract_validated"] is True
+    assert body["last_validation_at"] == "2026-06-15T08:00:00Z"
+    assert body["validation_summary"] == "3 contracts valid"
 
 
 def test_live_databricks_mode_is_blocked_by_missing_discovery(monkeypatch) -> None:

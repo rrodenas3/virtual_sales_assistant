@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     discovery_sso_provider: str | None = None
     discovery_data_residency: str | None = None
     discovery_offline_sync_policy: str | None = "browser-feedback-queue"
+    live_data_contract_validated: bool = False
+    live_data_contract_last_validation_at: str | None = None
+    live_data_contract_validation_summary: str | None = None
     territory_timezone: str = "Europe/Paris"
     osa_source_system: str = "mock"
     osa_model_version: str = "mock-v1"

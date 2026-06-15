@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from backend.api.schemas import DiscoveryGateOut, IntegrationReadinessResponse
 from backend.auth.mock_jwt import CurrentUser, get_current_user
+from backend.config import settings
 from backend.governance.discovery import discovery_gates, readiness_blockers, selected_live_modes
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
@@ -27,4 +28,7 @@ async def integration_readiness(current_user: CurrentUser = Depends(get_current_
             )
             for gate in discovery_gates()
         ],
+        view_contract_validated=settings.live_data_contract_validated,
+        last_validation_at=settings.live_data_contract_last_validation_at,
+        validation_summary=settings.live_data_contract_validation_summary,
     )

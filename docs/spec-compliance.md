@@ -8,7 +8,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 |---|---|---|---|
 | Product UX | Field assistant with before/during/after visit support | Workbench-first MVP, chat secondary | Implemented: route workbench, store detail, OOS alerts, RGM/action band, trace drawer |
 | Auth / identity | SSO/CRM-mapped rep identity, unresolved in discovery | Mock JWT with `sub`, `territory_code`, `role`; ignore client rep IDs; validate external JWT after discovery | Implemented: provider boundary, mock JWT, JWKS-backed external JWT validation, rep/store RBAC, unauthorized store access returns `404` |
-| Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active; Databricks/Snowflake parameterized query adapters scaffolded until credentials/contracts exist |
+| Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active; Databricks/Snowflake parameterized query adapters scaffolded; live contract manifest and validation script added for credentialed environments |
 | Priority scoring | Formula sketched in OSA MCP SQL | Deterministic service formula with explainable components | Implemented and tested |
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
 | Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes; summary routes can use graph routing behind `AGENT_GRAPH_ENABLED` with parity tests |
@@ -16,7 +16,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, fail-closed Mem0 scaffold |
 | Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, read-only policy stub, append-only Postgres audit behind `AuditSink`, Unity Catalog mirror scaffold |
-| Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness` and live-mode gate checks |
+| Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness`, live-mode gate checks, owner model, and live data contract validation status fields |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented as draft-only local persistence |
 | ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects | Implemented and tested |
@@ -77,7 +77,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 
 - No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, and OSA summary routes can opt into graph routing with audited parity coverage. The client-pilot path explicitly defers adding LangGraph dependencies until multi-agent routing adds value beyond current services.
 - No active Mem0 memory yet. The memory port exists, but the default provider is `none`.
-- No live Snowflake/Databricks/MCP credentials yet. Current mock adapters enforce the corrected data contract; live adapters build parameterized query statements and are ready for view-contract validation.
+- No live Snowflake/Databricks/MCP credentials yet. Current mock adapters enforce the corrected data contract; live adapters build parameterized query statements and `scripts/validate_live_data_contracts.py` is ready for view-contract validation in a credentialed environment.
 - No CopilotKit dependency in the core UI. The client-pilot path uses the custom `/agent/run` SSE bridge first and defers CopilotKit package integration.
 - Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but final AI-assistant pilot validation must include an eval run with `SUMMARY_PROVIDER=anthropic`.
 - No real ERP submit. `submit-sandbox` validates HITL policy and payload hash but has no external side effects.
@@ -88,7 +88,7 @@ These are not accidental gaps; they are deliberate corrections from the revised 
 
 Highest priority:
 
-1. Validate Databricks/Snowflake query adapters against confirmed live view contracts and credentials.
+1. Run `scripts/validate_live_data_contracts.py` against confirmed live view contracts and credentials, then record validation status in readiness settings.
 2. Replace local JSON MCP transport with FastMCP dependency once runtime requirements and data-source credentials are known.
 3. Replace the deterministic graph scaffold with production LangGraph only when multi-agent orchestration adds value beyond current services.
 4. Wire live CRM/ERP submit after discovery gates are answered.
@@ -118,5 +118,6 @@ npm run build
 
 cd ..
 python scripts/run_eval.py
+python scripts/validate_live_data_contracts.py --manifest-only
 bash ./scripts/public_safety_scan.sh
 ```

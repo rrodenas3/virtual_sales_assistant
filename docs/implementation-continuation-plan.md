@@ -52,6 +52,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - OSA summary routes can use the graph scaffold behind `AGENT_GRAPH_ENABLED`; audit payloads record `orchestration_mode`.
 - Live adapter row mapping is shared by helper functions; Snowflake no longer calls Databricks adapter methods by duck typing.
 - OSA summary generation has a provider boundary: `SUMMARY_PROVIDER=template|anthropic`. The official Anthropic SDK is the selected LLM client; production LangGraph and CopilotKit remain deferred for the client-pilot path.
+- Live data contract validation is scaffolded through `scripts/validate_live_data_contracts.py`, backend column manifests, row-level normalization checks, and readiness fields for validation status.
 
 ## Deferred Spec Areas
 
@@ -69,3 +70,4 @@ This plan continues the MVP from the current public repository state. It hardens
 - LangGraph: defer production dependency; keep current graph-style scaffold as a parity/migration harness.
 - CopilotKit: defer for pilot; use the existing custom `/agent/run` SSE bridge first.
 - Real AI gate: pilot validation must run the summary eval path once with `SUMMARY_PROVIDER=anthropic`; template-only pilot mode is not sufficient for AI-assistant validation.
+- Client discovery owner: delivery owns platform answers and approved secret provisioning; engineering owns readiness gates, validation scripts, and adapter code.
