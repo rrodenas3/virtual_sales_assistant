@@ -10,6 +10,12 @@ from scripts.validate_api_contract import REQUIRED_ROUTES, _contract_from_routes
 from scripts.validate_api_contract import build_local_contract  # noqa: E402
 
 
+def test_api_index_and_validator_share_pilot_route_contract() -> None:
+    from backend.api.contract import PILOT_ROUTE_SIGNATURES  # noqa: PLC0415
+
+    assert REQUIRED_ROUTES == set(PILOT_ROUTE_SIGNATURES)
+
+
 def test_local_api_contract_contains_pilot_routes() -> None:
     contract = build_local_contract()
 

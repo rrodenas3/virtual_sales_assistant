@@ -125,6 +125,7 @@ Whenever a locked decision changes or a deferred technology is activated, update
 - Repo-root local verification now has `scripts/verify_local.py`, which runs the public-safe lint/test/build/smoke gates and writes `artifacts/local-verification/local_verification.*`.
 - Runtime validation command manifests now include the repo-root local verification gate, so `/integrations/readiness`, readiness bundles, and pilot reports direct operators to the same pre-push proof path.
 - API contract validation now requires the full implemented pilot route surface, including health subroutes, admin filters, alerts pagination/filtering, HITL, CRM, sync, agent, and audit routes.
+- The pilot API route and response-field contract now lives in `backend.api.contract` and is reused by both `/api/v1` and `scripts/validate_api_contract.py`, removing duplicate route lists.
 
 ## Deferred Spec Areas
 
