@@ -14,6 +14,8 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from scripts.final_api_smoke import build_report as build_final_api_smoke_report  # noqa: E402
 from scripts.final_api_smoke import write_artifacts as write_final_api_smoke_artifacts  # noqa: E402
+from scripts.discovery_packet import build_report as build_discovery_packet  # noqa: E402
+from scripts.discovery_packet import write_artifacts as write_discovery_packet_artifacts  # noqa: E402
 from scripts.local_dev_smoke import build_report as build_local_dev_smoke_report  # noqa: E402
 from scripts.local_dev_smoke import write_artifacts as write_local_dev_smoke_artifacts  # noqa: E402
 from scripts.pilot_activation_runbook import build_report as build_pilot_activation_runbook  # noqa: E402
@@ -42,6 +44,7 @@ def build_handoff(
     demo_seed = build_demo_seed()
     demo_seed_failures = validate_demo_seed_manifest(demo_seed["manifest"])
     final_api_smoke = build_final_api_smoke_report()
+    discovery_packet = build_discovery_packet(target)  # type: ignore[arg-type]
     spec_decision_guard = build_spec_decision_guard_report()
     local_dev_smoke = (
         build_local_dev_smoke_report()
@@ -73,6 +76,7 @@ def build_handoff(
     checks = [
         _check("api_contract", api_contract["valid"], _api_contract_detail(api_contract)),
         _check("demo_seed", not demo_seed_failures, _demo_seed_detail(demo_seed["manifest"], demo_seed_failures)),
+        _check("discovery_packet", True, _discovery_packet_detail(discovery_packet)),
         _check("final_api_smoke", final_api_smoke["passed"], f"{len(final_api_smoke['checks'])} workflow checks"),
         _check("spec_decision_guard", spec_decision_guard["passed"], _spec_decision_guard_detail(spec_decision_guard)),
         _check("local_dev_smoke", local_dev_smoke["passed"], _local_dev_smoke_detail(local_dev_smoke)),
@@ -90,6 +94,7 @@ def build_handoff(
         "artifacts": {
             "api_contract": "api-contract/api_contract_report.json",
             "demo_seed": "demo-data/demo_seed_manifest.json",
+            "discovery_packet": "discovery-packet/discovery_packet.json",
             "final_api_smoke": "final-api-smoke/final_api_smoke.json",
             "spec_decision_guard": "spec-decision-guard/spec_decision_guard.json",
             "local_dev_smoke": "local-dev-smoke/local_dev_smoke.json",
@@ -102,6 +107,7 @@ def build_handoff(
         "next_blocking_actions": readiness_bundle["handoff_summary"]["next_blocking_actions"],
         "api_contract": api_contract,
         "demo_seed": demo_seed,
+        "discovery_packet": discovery_packet,
         "final_api_smoke": final_api_smoke,
         "spec_decision_guard": spec_decision_guard,
         "local_dev_smoke": local_dev_smoke,
@@ -117,6 +123,7 @@ def write_artifacts(handoff: dict[str, Any], output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     write_api_contract_artifacts(handoff["api_contract"], output_dir / "api-contract")
     write_demo_seed_artifacts(handoff["demo_seed"], output_dir / "demo-data")
+    write_discovery_packet_artifacts(handoff["discovery_packet"], output_dir / "discovery-packet")
     write_final_api_smoke_artifacts(handoff["final_api_smoke"], output_dir / "final-api-smoke")
     write_spec_decision_guard_artifacts(handoff["spec_decision_guard"], output_dir / "spec-decision-guard")
     if handoff["local_dev_smoke"].get("skipped"):
@@ -210,6 +217,14 @@ def _demo_seed_detail(manifest: dict[str, Any], failures: list[str]) -> str:
     if failures:
         return "; ".join(failures)
     return f"{manifest['store_count']} stores; {manifest['alert_count']} alerts; reps={len(manifest['reps'])}"
+
+
+def _discovery_packet_detail(report: dict[str, Any]) -> str:
+    return (
+        f"target={report['target']}; "
+        f"missing={report['missing_count']}; "
+        f"owners={len(report['owner_groups'])}"
+    )
 
 
 def _local_dev_smoke_detail(report: dict[str, Any]) -> str:

@@ -547,3 +547,33 @@ class ActivationRunbookResponse(BaseModel):
     blocked_phase_count: int
     phases: list[ActivationRunbookPhaseOut]
     public_safety_notes: list[str]
+
+
+class DiscoveryPacketGateOut(BaseModel):
+    topic: str
+    setting_name: str
+    status: Literal["answered", "defaulted", "missing"]
+    value_present: bool
+    required_for: list[str]
+    notes: str
+    owner: Literal["delivery", "engineering", "shared"]
+
+
+class DiscoveryOwnerGroupOut(BaseModel):
+    owner: Literal["delivery", "engineering", "shared"]
+    gate_count: int
+    missing_count: int
+    defaulted_count: int
+    gates: list[DiscoveryPacketGateOut]
+
+
+class DiscoveryPacketResponse(BaseModel):
+    generated_at: str
+    target: Literal["local", "ai-demo", "pilot"]
+    selected_live_modes: list[str]
+    gate_count: int
+    missing_count: int
+    defaulted_count: int
+    owner_groups: list[DiscoveryOwnerGroupOut]
+    next_actions: list[str]
+    public_safety_notes: list[str]

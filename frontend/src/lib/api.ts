@@ -7,6 +7,7 @@ import type {
   ApprovalQueueResponse,
   ApprovalResponse,
   DemoIdentity,
+  DiscoveryPacket,
   DemoRole,
   IntegrationReadinessResponse,
   ManagerTask,
@@ -232,6 +233,10 @@ export function getPilotGapReport(target: "local" | "ai-demo" | "pilot" = "pilot
 
 export function getActivationRunbook(target: "local" | "ai-demo" | "pilot" = "pilot"): Promise<ActivationRunbook> {
   return request(`/api/v1/integrations/activation-runbook?target=${encodeURIComponent(target)}`);
+}
+
+export function getDiscoveryPacket(target: "local" | "ai-demo" | "pilot" = "pilot"): Promise<DiscoveryPacket> {
+  return request(`/api/v1/integrations/discovery-packet?target=${encodeURIComponent(target)}`);
 }
 
 export function getTerritorySummary(): Promise<TerritorySummaryResponse> {

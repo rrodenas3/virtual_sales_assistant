@@ -203,6 +203,7 @@ GET  /api/v1/health/{ai,auth,data-platform,...}  Per-provider readiness
 GET  /api/v1/integrations/readiness              Activation targets + blocker list
 GET  /api/v1/integrations/pilot-gap-report       Owner-mapped pilot blockers + next commands
 GET  /api/v1/integrations/activation-runbook     Final VSA phase plan + exit gates
+GET  /api/v1/integrations/discovery-packet       Owner-grouped client discovery checklist
 GET  /api/v1/visits/today                        Ranked visit route (territory-scoped)
 GET  /api/v1/stores/{store_id}                   Store 360° view
 GET  /api/v1/stores/{store_id}/alerts            OOS alerts with rule engine output
@@ -287,6 +288,7 @@ FULL PILOT       Live data adapters, real SSO, real ERP/CRM, Unity Catalog audit
 GET /api/v1/integrations/readiness     # current target status and blockers
 GET /api/v1/integrations/pilot-gap-report?target=pilot
 GET /api/v1/integrations/activation-runbook?target=pilot
+GET /api/v1/integrations/discovery-packet?target=pilot
 ```
 
 ---

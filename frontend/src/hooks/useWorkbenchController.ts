@@ -13,6 +13,7 @@ import {
   getApprovalQueue,
   getCurrentIdentity,
   getDemoRole,
+  getDiscoveryPacket,
   getIntegrationReadiness,
   getManagerTasks,
   getMyManagerTasks,
@@ -41,6 +42,7 @@ import type {
   ApprovalQueueResponse,
   ApprovalResponse,
   DemoRole,
+  DiscoveryPacket,
   IntegrationReadinessResponse,
   ManagerTask,
   ManagerTaskListResponse,
@@ -88,6 +90,7 @@ export function useWorkbenchController() {
   const [readiness, setReadiness] = useState<IntegrationReadinessResponse | null>(null);
   const [pilotGapReport, setPilotGapReport] = useState<PilotGapReport | null>(null);
   const [activationRunbook, setActivationRunbook] = useState<ActivationRunbook | null>(null);
+  const [discoveryPacket, setDiscoveryPacket] = useState<DiscoveryPacket | null>(null);
   const [managerTasks, setManagerTasks] = useState<ManagerTaskListResponse | null>(null);
   const [myTasks, setMyTasks] = useState<ManagerTaskListResponse | null>(null);
   const [taskNotice, setTaskNotice] = useState<string | null>(null);
@@ -190,16 +193,18 @@ export function useWorkbenchController() {
 
   useEffect(() => {
     if (role !== "manager" && role !== "admin") return;
-    Promise.all([getIntegrationReadiness(), getPilotGapReport("pilot"), getActivationRunbook("pilot")])
-      .then(([readinessRows, gapRows, runbookRows]) => {
+    Promise.all([getIntegrationReadiness(), getPilotGapReport("pilot"), getActivationRunbook("pilot"), getDiscoveryPacket("pilot")])
+      .then(([readinessRows, gapRows, runbookRows, discoveryRows]) => {
         setReadiness(readinessRows);
         setPilotGapReport(gapRows);
         setActivationRunbook(runbookRows);
+        setDiscoveryPacket(discoveryRows);
       })
       .catch(() => {
         setReadiness(null);
         setPilotGapReport(null);
         setActivationRunbook(null);
+        setDiscoveryPacket(null);
       });
   }, [role]);
 
@@ -350,6 +355,7 @@ export function useWorkbenchController() {
     setReadiness(null);
     setPilotGapReport(null);
     setActivationRunbook(null);
+    setDiscoveryPacket(null);
     setManagerTasks(null);
     setMyTasks(null);
     setTaskNotice(null);
@@ -392,6 +398,7 @@ export function useWorkbenchController() {
     readiness,
     pilotGapReport,
     activationRunbook,
+    discoveryPacket,
     managerTasks,
     myTasks,
     adminAudit,

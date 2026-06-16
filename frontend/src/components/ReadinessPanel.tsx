@@ -1,4 +1,4 @@
-import type { ActivationRunbook, IntegrationReadinessResponse, PilotGapReport } from "../lib/types";
+import type { ActivationRunbook, DiscoveryPacket, IntegrationReadinessResponse, PilotGapReport } from "../lib/types";
 
 const TARGETS = ["local", "ai-demo", "pilot"] as const;
 
@@ -191,15 +191,46 @@ function ActivationRunbookSummary({ runbook }: { runbook: ActivationRunbook }) {
   );
 }
 
+function DiscoveryPacketSummary({ packet }: { packet: DiscoveryPacket }) {
+  return (
+    <div className="discoveryPacket" data-testid="discovery-packet">
+      <div className="runtimeCommandGroup__top">
+        <strong>{packet.target} discovery packet</strong>
+        <span>{packet.missing_count} missing</span>
+      </div>
+      <small>{packet.gate_count} gates / {packet.defaulted_count} defaulted / {packet.selected_live_modes.join(", ") || "no live modes selected"}</small>
+      <div className="discoveryPacketGrid">
+        {packet.owner_groups.map((group) => (
+          <article key={group.owner} className="discoveryOwnerGroup">
+            <div className="runtimeCommandGroup__top">
+              <strong>{group.owner}</strong>
+              <span>{group.missing_count} missing</span>
+            </div>
+            <div className="commandChips">
+              {group.gates.slice(0, 4).map((gate) => (
+                <span key={gate.setting_name}>{gate.setting_name}</span>
+              ))}
+              {group.gates.length > 4 && <span>+{group.gates.length - 4}</span>}
+            </div>
+          </article>
+        ))}
+      </div>
+      {packet.next_actions[0] && <small>{packet.next_actions[0]}</small>}
+    </div>
+  );
+}
+
 export function ReadinessPanel({
   readiness,
   pilotGapReport,
   activationRunbook,
+  discoveryPacket,
   variant
 }: {
   readiness: IntegrationReadinessResponse;
   pilotGapReport: PilotGapReport | null;
   activationRunbook: ActivationRunbook | null;
+  discoveryPacket: DiscoveryPacket | null;
   variant: "manager" | "admin";
 }) {
   const readinessOwnerSummary = discoveryOwnerSummary(readiness);
@@ -242,6 +273,7 @@ export function ReadinessPanel({
       )}
       {pilotGapReport && <PilotGapSummary report={pilotGapReport} />}
       {activationRunbook && <ActivationRunbookSummary runbook={activationRunbook} />}
+      {discoveryPacket && <DiscoveryPacketSummary packet={discoveryPacket} />}
       <ActivationTargets readiness={readiness} />
       <RuntimeCommands readiness={readiness} />
       <ActivationEvidence readiness={readiness} />

@@ -50,6 +50,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
             "notes": "Exports the deterministic public-safe mock territory, stores, reps, and OOS alerts.",
         },
         {
+            "name": "discovery_packet",
+            "command": f"python scripts/discovery_packet.py --target {target} --output-dir artifacts/discovery-packet/{target}",
+            "notes": "Writes the public-safe owner-grouped discovery checklist for activation handoff.",
+        },
+        {
             "name": "final_api_smoke",
             "command": "python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke",
             "notes": "End-to-end local API smoke covering rep, manager, admin, HITL, audit, and metrics paths.",

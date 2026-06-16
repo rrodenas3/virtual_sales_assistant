@@ -365,6 +365,31 @@ button { font: inherit; }
   border-color: color-mix(in oklch, var(--blue), white 42%);
   background: color-mix(in oklch, var(--blue), white 90%);
 }
+.discoveryPacket {
+  grid-column: 1 / -1;
+  border: 1px solid color-mix(in oklch, var(--blue), white 38%);
+  border-radius: 8px;
+  padding: 12px;
+  background: color-mix(in oklch, var(--blue), white 92%);
+}
+.discoveryPacket > small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+.discoveryPacketGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.discoveryOwnerGroup {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: color-mix(in oklch, var(--paper), white 32%);
+}
 .managerTable, .auditFeed, .approvalQueue, .taskQueue {
   display: grid;
   gap: 8px;
@@ -704,7 +729,7 @@ button { font: inherit; }
   .metricStrip { grid-template-columns: 1fr 1fr; }
   .readinessPanel { grid-template-columns: 1fr; }
   .readinessPanel__meta { justify-content: flex-start; }
-  .activationTargets, .runtimeCommands, .activationEvidenceGrid, .pilotGapGrid, .activationRunbookGrid { grid-template-columns: 1fr; }
+  .activationTargets, .runtimeCommands, .activationEvidenceGrid, .pilotGapGrid, .activationRunbookGrid, .discoveryPacketGrid { grid-template-columns: 1fr; }
   .managerRow, .auditRow, .approvalRow, .taskRow, .filterBar { grid-template-columns: 1fr; }
   .actionBand { grid-template-columns: 1fr; }
   .alertRow { grid-template-columns: 1fr; }

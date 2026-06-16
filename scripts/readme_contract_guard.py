@@ -17,6 +17,7 @@ REQUIRED_SNIPPETS = [
     "GET  /api/v1/integrations/readiness",
     "GET  /api/v1/integrations/pilot-gap-report",
     "GET  /api/v1/integrations/activation-runbook",
+    "GET  /api/v1/integrations/discovery-packet",
     "python scripts/pilot_readiness_report.py --target local",
     "python scripts/pilot_activation_runbook.py --target pilot",
     "docs/spec-compliance.md",

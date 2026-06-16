@@ -2,7 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from typing import Literal
 
-from backend.api.schemas import ActivationRunbookResponse, DiscoveryGateOut, IntegrationReadinessResponse, PilotGapReportResponse
+from backend.api.schemas import (
+    ActivationRunbookResponse,
+    DiscoveryGateOut,
+    DiscoveryPacketResponse,
+    IntegrationReadinessResponse,
+    PilotGapReportResponse,
+)
 from backend.auth.mock_jwt import CurrentUser, get_current_user
 from backend.auth.providers import auth_status
 from backend.config import settings
@@ -11,6 +17,7 @@ from backend.governance.activation_evidence import build_evidence_manifest_sets
 from backend.governance.activation_runbook import build_activation_runbook
 from backend.governance.action_providers import action_provider_status
 from backend.governance.data_platform import data_platform_status
+from backend.governance.discovery_packet import build_discovery_packet
 from backend.governance.discovery import discovery_gates, readiness_blockers, selected_live_modes
 from backend.governance.guardrails import guardrail_status
 from backend.governance.offline_agent import offline_agent_status
@@ -129,3 +136,13 @@ async def activation_runbook(
             runtime_validation_commands=runtime_validation_command_sets(),
         )
     )
+
+
+@router.get("/discovery-packet", response_model=DiscoveryPacketResponse)
+async def discovery_packet(
+    target: Literal["local", "ai-demo", "pilot"] = "pilot",
+    current_user: CurrentUser = Depends(get_current_user),
+) -> DiscoveryPacketResponse:
+    if current_user.role not in {"manager", "admin"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Manager or admin role required")
+    return DiscoveryPacketResponse(**build_discovery_packet(target))
