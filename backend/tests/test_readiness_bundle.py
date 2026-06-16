@@ -31,6 +31,7 @@ def test_readiness_bundle_combines_local_safe_artifacts() -> None:
         "demo_seed",
         "final_api_smoke",
         "local_dev_smoke",
+        "local_verification",
         "validation_suite",
     }
     assert bundle["required_manual_checks"]
@@ -45,6 +46,7 @@ def test_readiness_bundle_includes_pilot_runtime_commands() -> None:
         "local_readiness",
         "api_contract",
         "final_api_smoke",
+        "local_verification",
         "ai_demo_readiness",
         "summary_load_test",
         "live_data_contracts",
@@ -63,6 +65,7 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
     assert any(command["name"] == "demo_seed" for command in command_sets["local"])
     assert any(command["name"] == "final_api_smoke" for command in command_sets["local"])
     assert any(command["name"] == "local_dev_smoke" for command in command_sets["local"])
+    assert any(command["name"] == "local_verification" for command in command_sets["local"])
     assert command_sets["local"][-1]["name"] == "validation_suite"
     assert "--include-local-dev-smoke" in command_sets["local"][-1]["command"]
     assert any(command["name"] == "summary_load_test" for command in command_sets["ai-demo"])
