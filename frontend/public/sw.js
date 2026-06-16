@@ -1,7 +1,14 @@
-const CACHE_VERSION = "phantom-vsa-v2";
+const CACHE_VERSION = "phantom-vsa-v3";
 const APP_SHELL_CACHE = `${CACHE_VERSION}:app-shell`;
 const STATIC_CACHE = `${CACHE_VERSION}:static`;
-const APP_SHELL = ["/", "/manifest.webmanifest", "/pwa-icon.svg"];
+const APP_SHELL = ["/", "/manifest.webmanifest", "/offline-cache-policy.json", "/pwa-icon.svg"];
+const CACHE_POLICY = {
+  app_shell: "cache-first",
+  static_assets: "stale-while-revalidate",
+  api: "network-only",
+  api_read_fallback: "indexeddb-app-cache",
+  writes_cached: false
+};
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -30,7 +37,6 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.pathname.startsWith("/api/")) {
-    event.respondWith(networkFirst(request));
     return;
   }
 
@@ -67,15 +73,7 @@ async function staleWhileRevalidate(request, cacheName) {
   return cached || network;
 }
 
-async function networkFirst(request) {
-  const cache = await caches.open(STATIC_CACHE);
-  try {
-    const response = await fetch(request);
-    if (response.ok) await cache.put(request, response.clone());
-    return response;
-  } catch (error) {
-    const cached = await cache.match(request);
-    if (cached) return cached;
-    throw error;
-  }
-}
+self.addEventListener("message", (event) => {
+  if (event.data?.type !== "PHANTOM_CACHE_POLICY") return;
+  event.source?.postMessage({ type: "PHANTOM_CACHE_POLICY", policy: CACHE_POLICY });
+});

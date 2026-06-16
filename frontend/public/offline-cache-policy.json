@@ -1,0 +1,30 @@
+{
+  "version": "phantom-vsa-v3",
+  "policies": [
+    {
+      "scope": "app_shell",
+      "pattern": "/",
+      "strategy": "cache-first",
+      "cache": "app-shell",
+      "method": "GET",
+      "fallback": "cached app shell"
+    },
+    {
+      "scope": "static_assets",
+      "pattern": "/assets/*",
+      "strategy": "stale-while-revalidate",
+      "cache": "static",
+      "method": "GET",
+      "fallback": "cached static asset"
+    },
+    {
+      "scope": "api",
+      "pattern": "/api/*",
+      "strategy": "network-only",
+      "cache": "none",
+      "method": "GET/POST/PATCH/DELETE",
+      "fallback": "IndexedDB read cache in application code",
+      "writes_cached": false
+    }
+  ]
+}
