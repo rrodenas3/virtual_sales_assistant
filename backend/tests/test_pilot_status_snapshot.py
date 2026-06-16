@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from scripts.pilot_status_snapshot import build_snapshot, write_artifacts  # noqa: E402
+from scripts.readiness_bundle import build_bundle  # noqa: E402
+from scripts.validate_api_contract import build_local_contract  # noqa: E402
 
 
 def test_local_pilot_status_snapshot_summarizes_handoff_state() -> None:
@@ -35,3 +37,15 @@ def test_pilot_status_snapshot_writes_json_and_markdown(tmp_path: Path) -> None:
     assert "## Activation Targets" in markdown
     assert "local_verification" in markdown
     assert "## Evidence" in markdown
+
+
+def test_pilot_status_snapshot_reuses_prebuilt_inputs() -> None:
+    bundle = build_bundle("local")
+    api_contract = build_local_contract()
+
+    snapshot = build_snapshot("local", bundle=bundle, api_contract=api_contract)
+
+    assert snapshot["passed"] is True
+    assert snapshot["summary"]["api_contract_valid"] is api_contract["valid"]
+    assert snapshot["summary"]["api_route_count"] == api_contract["route_count"]
+    assert snapshot["summary"]["runtime_command_count"] == len(bundle["runtime_validation_commands"])
