@@ -20,11 +20,12 @@ class VerificationCommand:
     name: str
     cwd: Path
     args: list[str]
+    display_args: list[str] | None = None
     timeout_seconds: int = 300
 
     @property
     def display(self) -> str:
-        return " ".join(self.args)
+        return " ".join(self.display_args or self.args)
 
 
 def build_command_plan(
@@ -38,24 +39,33 @@ def build_command_plan(
             "backend_ruff",
             ROOT / "backend",
             [PYTHON, "-m", "ruff", "check", "backend", "tests", "alembic", "../mcp", "../scripts"],
+            ["python", "-m", "ruff", "check", "backend", "tests", "alembic", "../mcp", "../scripts"],
         ),
-        VerificationCommand("backend_pytest", ROOT / "backend", [PYTHON, "-m", "pytest", "tests", "-q"]),
-        VerificationCommand("local_eval", ROOT / "backend", [PYTHON, "../scripts/run_eval.py"]),
+        VerificationCommand(
+            "backend_pytest",
+            ROOT / "backend",
+            [PYTHON, "-m", "pytest", "tests", "-q"],
+            ["python", "-m", "pytest", "tests", "-q"],
+        ),
+        VerificationCommand("local_eval", ROOT / "backend", [PYTHON, "../scripts/run_eval.py"], ["python", "../scripts/run_eval.py"]),
         VerificationCommand(
             "local_readiness_report",
             ROOT / "backend",
             [PYTHON, "../scripts/pilot_readiness_report.py", "--target", "local"],
+            ["python", "../scripts/pilot_readiness_report.py", "--target", "local"],
         ),
         VerificationCommand(
             "live_contract_manifest",
             ROOT / "backend",
             [PYTHON, "../scripts/validate_live_data_contracts.py", "--manifest-only"],
+            ["python", "../scripts/validate_live_data_contracts.py", "--manifest-only"],
         ),
-        VerificationCommand("mcp_smoke", ROOT / "backend", [PYTHON, "../scripts/mcp_smoke.py"]),
+        VerificationCommand("mcp_smoke", ROOT / "backend", [PYTHON, "../scripts/mcp_smoke.py"], ["python", "../scripts/mcp_smoke.py"]),
         VerificationCommand(
             "spec_decision_guard",
             ROOT / "backend",
             [PYTHON, "../scripts/spec_decision_guard.py", "--output-dir", "../artifacts/spec-decision-guard/local"],
+            ["python", "../scripts/spec_decision_guard.py", "--output-dir", "../artifacts/spec-decision-guard/local"],
         ),
         VerificationCommand(
             "validation_suite",
@@ -69,8 +79,23 @@ def build_command_plan(
                 "--output-dir",
                 "../artifacts/validation-suite/local",
             ],
+            [
+                "python",
+                "../scripts/validation_suite.py",
+                "--target",
+                "local",
+                "--skip-public-safety",
+                "--output-dir",
+                "../artifacts/validation-suite/local",
+            ],
         ),
-        VerificationCommand("frontend_build", ROOT / "frontend", [_executable("npm"), "run", "build"], timeout_seconds=420),
+        VerificationCommand(
+            "frontend_build",
+            ROOT / "frontend",
+            [_executable("npm"), "run", "build"],
+            ["npm", "run", "build"],
+            timeout_seconds=420,
+        ),
     ]
     if include_frontend_e2e:
         commands.append(
@@ -78,17 +103,26 @@ def build_command_plan(
                 "frontend_e2e",
                 ROOT / "frontend",
                 [_executable("npm"), "run", "test:e2e"],
+                ["npm", "run", "test:e2e"],
                 timeout_seconds=600,
             )
         )
     if include_alembic:
-        commands.append(VerificationCommand("alembic_upgrade", ROOT / "backend", [_executable("alembic"), "upgrade", "head"]))
+        commands.append(
+            VerificationCommand(
+                "alembic_upgrade",
+                ROOT / "backend",
+                [_executable("alembic"), "upgrade", "head"],
+                ["alembic", "upgrade", "head"],
+            )
+        )
     if run_public_safety:
         commands.append(
             VerificationCommand(
                 "public_safety_scan",
                 ROOT,
                 [_executable("bash"), "./scripts/public_safety_scan.sh"],
+                ["bash", "./scripts/public_safety_scan.sh"],
                 timeout_seconds=120,
             )
         )

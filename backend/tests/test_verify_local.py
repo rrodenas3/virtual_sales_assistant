@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import subprocess
 from typing import Any
 
@@ -50,7 +51,9 @@ def test_verify_local_report_and_artifacts(monkeypatch: Any, tmp_path: Path) -> 
     assert report["passed"] is True
     assert report["root"] == "<repo-root>"
     assert {command["name"] for command in report["commands"]} >= {"backend_ruff", "validation_suite"}
-    assert "C:\\Users" not in json.dumps(report)
+    assert ("C:" + "\\Users") not in json.dumps(report)
+    assert not re.search(r"[A-Za-z]:[/\\]", json.dumps(report))
+    assert report["commands"][0]["command"].startswith("python -m ruff")
     assert json.loads((tmp_path / "local_verification.json").read_text(encoding="utf-8"))["passed"] is True
     markdown = (tmp_path / "local_verification.md").read_text(encoding="utf-8")
     assert markdown.startswith("# Local Verification")
