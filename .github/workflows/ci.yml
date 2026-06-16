@@ -50,6 +50,16 @@ jobs:
       - name: Local handoff bundle
         run: python ../scripts/local_handoff.py --target local --skip-public-safety --output-dir ../artifacts/local-handoff/ci
 
+      - name: Upload backend handoff artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-handoff-artifacts
+          path: |
+            artifacts/readiness/ci
+            artifacts/local-handoff/ci
+          if-no-files-found: ignore
+
       - name: Alembic smoke test
         env:
           DATABASE_URL: sqlite+aiosqlite:///./ci_alembic.db
