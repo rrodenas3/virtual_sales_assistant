@@ -39,18 +39,37 @@ class SummaryProvider(Protocol):
 
 def summary_provider_status() -> dict:
     blockers: list[str] = []
+    next_actions: list[str] = []
     anthropic_sdk_available = find_spec("anthropic") is not None
     anthropic_token_configured = bool(settings.anthropic_token_ref)
     provider_ready = settings.summary_provider == "anthropic" and anthropic_token_configured and anthropic_sdk_available
 
     if settings.summary_provider != "anthropic":
         blockers.append("SUMMARY_PROVIDER must be anthropic for AI-demo readiness")
+        next_actions.append("Set SUMMARY_PROVIDER=anthropic in the approved AI-demo runtime")
     if not anthropic_token_configured:
         blockers.append("ANTHROPIC_TOKEN_REF is required for anthropic summaries")
+        next_actions.append("Configure ANTHROPIC_TOKEN_REF through the approved secret channel")
     if not anthropic_sdk_available:
         blockers.append("anthropic SDK is not installed")
+        next_actions.append("Install backend dependencies that include the official anthropic SDK")
     if not settings.ai_demo_eval_validated:
         blockers.append("AI-demo eval must pass with provider=anthropic before AI-demo readiness")
+        if provider_ready:
+            next_actions.append("Run python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai")
+            next_actions.append(
+                "Run python scripts/ai_demo_eval_evidence.py --artifact-dir artifacts/eval-ai --output-dir artifacts/eval-ai"
+            )
+
+    if provider_ready and settings.ai_demo_eval_validated:
+        ai_demo_stage = "validated"
+        next_actions = ["No AI-demo action required"]
+    elif provider_ready:
+        ai_demo_stage = "provider_configured"
+    elif settings.summary_provider == "anthropic":
+        ai_demo_stage = "provider_blocked"
+    else:
+        ai_demo_stage = "template_scaffold"
 
     active_model = settings.anthropic_model if settings.summary_provider == "anthropic" else settings.llm_model_id
     return {
@@ -66,7 +85,10 @@ def summary_provider_status() -> dict:
         "ai_demo_eval_validation_summary": settings.ai_demo_eval_validation_summary,
         "summary_fail_open": settings.summary_fail_open,
         "ai_demo_ready": provider_ready and settings.ai_demo_eval_validated,
+        "ai_demo_stage": ai_demo_stage,
         "ai_demo_blockers": blockers,
+        "ai_demo_next_actions": next_actions,
+        "ai_demo_validation_command": "python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai",
     }
 
 

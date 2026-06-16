@@ -34,6 +34,9 @@ def test_readiness_reports_default_local_mode() -> None:
     assert body["ai_demo_eval_validated"] is False
     assert body["ai_demo_eval_last_validation_at"] is None
     assert body["ai_demo_eval_validation_summary"] is None
+    assert body["ai_demo_stage"] == "template_scaffold"
+    assert body["ai_demo_next_actions"][0] == "Set SUMMARY_PROVIDER=anthropic in the approved AI-demo runtime"
+    assert body["ai_demo_validation_command"] == "python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai"
     assert body["provider_blockers"] == []
     assert body["provider_readiness"]["auth"]["provider"] == "mock"
     assert body["provider_readiness"]["data_platform"]["ready"] is True
@@ -89,6 +92,8 @@ def test_readiness_reports_ai_demo_provider_state(monkeypatch) -> None:
     assert body["ai_demo_eval_validated"] is True
     assert body["ai_demo_eval_last_validation_at"] == "2026-06-15T10:00:00Z"
     assert body["ai_demo_eval_validation_summary"] == "provider=anthropic passed"
+    assert body["ai_demo_stage"] == "validated"
+    assert body["ai_demo_next_actions"] == ["No AI-demo action required"]
     assert body["ai_demo_blockers"] == []
     targets = {target["target"]: target for target in body["activation_targets"]}
     assert targets["ai-demo"]["ready"] is False

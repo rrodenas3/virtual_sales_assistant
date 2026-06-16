@@ -257,10 +257,13 @@ test.beforeEach(async ({ page }) => {
         ai_demo_eval_validated: false,
         ai_demo_eval_last_validation_at: null,
         ai_demo_eval_validation_summary: null,
+        ai_demo_stage: "template_scaffold",
         ai_demo_blockers: [
           "SUMMARY_PROVIDER must be anthropic for AI-demo readiness",
           "AI-demo eval must pass with provider=anthropic before AI-demo readiness"
         ],
+        ai_demo_next_actions: ["Set SUMMARY_PROVIDER=anthropic in the approved AI-demo runtime"],
+        ai_demo_validation_command: "python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai",
         activation_targets: [
           {
             target: "local",
@@ -517,6 +520,8 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("readiness-panel")).toContainText("pilot");
   await expect(page.getByTestId("readiness-panel")).toContainText("SUMMARY_PROVIDER must be anthropic");
   await expect(page.getByTestId("readiness-panel")).toContainText("AI eval pending");
+  await expect(page.getByTestId("readiness-panel")).toContainText("stage template_scaffold");
+  await expect(page.getByTestId("readiness-panel")).toContainText("Set SUMMARY_PROVIDER=anthropic");
   await expect(page.getByTestId("readiness-panel")).toContainText("ai_summary_eval");
   await expect(page.getByTestId("readiness-panel")).toContainText("ai_demo_eval_evidence");
   await expect(page.getByTestId("readiness-panel")).toContainText("summary_load_test");
@@ -539,6 +544,7 @@ test("admin can review readiness and audit detail", async ({ page }) => {
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("mock contracts");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("AI provider blocked");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("AI eval pending");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("stage template_scaffold");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("local");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("Live data contracts must be validated");

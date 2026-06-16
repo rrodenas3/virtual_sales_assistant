@@ -101,6 +101,8 @@ function AIDemoEvidence({ readiness }: { readiness: IntegrationReadinessResponse
       <span className={readiness.ai_demo_eval_validated ? "evidencePill evidencePill--ready" : "evidencePill"}>
         {readiness.ai_demo_eval_validated ? "AI eval validated" : "AI eval pending"}
       </span>
+      <span className="evidencePill">stage {readiness.ai_demo_stage}</span>
+      {readiness.ai_demo_next_actions[0] && <span className="evidencePill">{readiness.ai_demo_next_actions[0]}</span>}
       {readiness.ai_demo_eval_validation_summary && <span className="evidencePill">{readiness.ai_demo_eval_validation_summary}</span>}
     </div>
   );
