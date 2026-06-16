@@ -17,6 +17,7 @@ python scripts/pilot_readiness_report.py --target local --output-dir artifacts/r
 python scripts/validate_api_contract.py --base-url http://localhost:8000 --output-dir artifacts/api-contract
 python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke
 python scripts/readiness_bundle.py --target local --output-dir artifacts/readiness/bundle-local
+python scripts/local_handoff.py --target local --output-dir artifacts/local-handoff
 ```
 
 Exit gate:
