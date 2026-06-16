@@ -16,11 +16,12 @@ def test_local_handoff_combines_operator_proof_bundle() -> None:
     assert handoff["passed"] is True
     assert handoff["public_safety_scan"]["skipped"] is True
     assert handoff["api_contract"]["valid"] is True
+    assert handoff["demo_seed"]["manifest"]["alert_count"] == 125
     assert handoff["final_api_smoke"]["passed"] is True
     assert handoff["readiness_bundle"]["passed"] is True
     assert handoff["next_blocking_actions"]
     check_names = {check["name"] for check in handoff["checks"]}
-    assert check_names == {"api_contract", "final_api_smoke", "readiness_bundle", "public_safety_scan"}
+    assert check_names == {"api_contract", "demo_seed", "final_api_smoke", "readiness_bundle", "public_safety_scan"}
 
 
 def test_local_handoff_writes_nested_artifacts(tmp_path: Path) -> None:
@@ -35,6 +36,9 @@ def test_local_handoff_writes_nested_artifacts(tmp_path: Path) -> None:
     assert "## Next Blocking Actions" in handoff_md
     assert (tmp_path / "api-contract" / "api_contract_report.json").exists()
     assert (tmp_path / "api-contract" / "api_contract_report.md").exists()
+    assert (tmp_path / "demo-data" / "demo_seed_manifest.json").exists()
+    assert (tmp_path / "demo-data" / "store_master_seed.json").exists()
+    assert (tmp_path / "demo-data" / "oos_alert_seed.json").exists()
     assert (tmp_path / "final-api-smoke" / "final_api_smoke.json").exists()
     assert (tmp_path / "final-api-smoke" / "final_api_smoke.md").exists()
     assert (tmp_path / "readiness-bundle" / "readiness_bundle.json").exists()

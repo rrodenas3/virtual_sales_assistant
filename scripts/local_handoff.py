@@ -16,12 +16,16 @@ from scripts.final_api_smoke import build_report as build_final_api_smoke_report
 from scripts.final_api_smoke import write_artifacts as write_final_api_smoke_artifacts  # noqa: E402
 from scripts.readiness_bundle import build_bundle as build_readiness_bundle  # noqa: E402
 from scripts.readiness_bundle import write_artifacts as write_readiness_bundle_artifacts  # noqa: E402
+from scripts.seed_demo_data import build_demo_seed, validate_manifest as validate_demo_seed_manifest  # noqa: E402
+from scripts.seed_demo_data import write_artifacts as write_demo_seed_artifacts  # noqa: E402
 from scripts.validate_api_contract import build_local_contract  # noqa: E402
 from scripts.validate_api_contract import write_artifacts as write_api_contract_artifacts  # noqa: E402
 
 
 def build_handoff(target: str, *, run_public_safety: bool = True) -> dict[str, Any]:
     api_contract = build_local_contract()
+    demo_seed = build_demo_seed()
+    demo_seed_failures = validate_demo_seed_manifest(demo_seed["manifest"])
     final_api_smoke = build_final_api_smoke_report()
     readiness_bundle = build_readiness_bundle(target)
     public_safety = (
@@ -36,6 +40,7 @@ def build_handoff(target: str, *, run_public_safety: bool = True) -> dict[str, A
     )
     checks = [
         _check("api_contract", api_contract["valid"], _api_contract_detail(api_contract)),
+        _check("demo_seed", not demo_seed_failures, _demo_seed_detail(demo_seed["manifest"], demo_seed_failures)),
         _check("final_api_smoke", final_api_smoke["passed"], f"{len(final_api_smoke['checks'])} workflow checks"),
         _check("readiness_bundle", readiness_bundle["passed"], f"target={target}"),
         _check("public_safety_scan", public_safety["passed"], public_safety.get("detail", "")),
@@ -47,12 +52,14 @@ def build_handoff(target: str, *, run_public_safety: bool = True) -> dict[str, A
         "checks": checks,
         "artifacts": {
             "api_contract": "api-contract/api_contract_report.json",
+            "demo_seed": "demo-data/demo_seed_manifest.json",
             "final_api_smoke": "final-api-smoke/final_api_smoke.json",
             "readiness_bundle": "readiness-bundle/readiness_bundle.json",
             "local_handoff": "local_handoff.json",
         },
         "next_blocking_actions": readiness_bundle["handoff_summary"]["next_blocking_actions"],
         "api_contract": api_contract,
+        "demo_seed": demo_seed,
         "final_api_smoke": final_api_smoke,
         "readiness_bundle": readiness_bundle,
         "public_safety_scan": public_safety,
@@ -62,6 +69,7 @@ def build_handoff(target: str, *, run_public_safety: bool = True) -> dict[str, A
 def write_artifacts(handoff: dict[str, Any], output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     write_api_contract_artifacts(handoff["api_contract"], output_dir / "api-contract")
+    write_demo_seed_artifacts(handoff["demo_seed"], output_dir / "demo-data")
     write_final_api_smoke_artifacts(handoff["final_api_smoke"], output_dir / "final-api-smoke")
     write_readiness_bundle_artifacts(handoff["readiness_bundle"], output_dir / "readiness-bundle")
     (output_dir / "local_handoff.json").write_text(
@@ -132,6 +140,12 @@ def _api_contract_detail(contract: dict[str, Any]) -> str:
         f"missing_routes={len(contract['missing_required_routes'])}; "
         f"missing_query_params={len(contract['missing_required_query_params'])}"
     )
+
+
+def _demo_seed_detail(manifest: dict[str, Any], failures: list[str]) -> str:
+    if failures:
+        return "; ".join(failures)
+    return f"{manifest['store_count']} stores; {manifest['alert_count']} alerts; reps={len(manifest['reps'])}"
 
 
 def _check(name: str, passed: bool, detail: str) -> dict[str, Any]:
