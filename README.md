@@ -121,6 +121,12 @@ To verify the full local loop once both services are running:
 python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke
 ```
 
+To generate one consolidated local validation bundle:
+
+```powershell
+python scripts/validation_suite.py --target local --include-local-dev-smoke --output-dir artifacts/validation-suite
+```
+
 ## Local MCP Transports
 
 The `mcp/` servers expose a lightweight local JSON transport around the same backend adapter/service layer used by REST.

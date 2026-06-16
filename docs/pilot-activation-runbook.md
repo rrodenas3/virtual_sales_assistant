@@ -19,6 +19,7 @@ python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke
 python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke
 python scripts/readiness_bundle.py --target local --output-dir artifacts/readiness/bundle-local
 python scripts/local_handoff.py --target local --include-local-dev-smoke --output-dir artifacts/local-handoff
+python scripts/validation_suite.py --target local --include-local-dev-smoke --output-dir artifacts/validation-suite
 ```
 
 Exit gate:
@@ -34,6 +35,7 @@ Exit gate:
 - Readiness MCP smoke passes for every local MCP server manifest.
 - Readiness memory gate passes with the disabled default provider or a fully configured selected provider.
 - Readiness bundle artifacts exist for handoff review.
+- Validation suite artifacts exist for the consolidated operator handoff.
 - Readiness bundle includes runtime validation commands for the selected activation target.
 - `SUMMARY_PROVIDER=template` is acceptable only for this phase.
 
