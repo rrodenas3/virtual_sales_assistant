@@ -29,6 +29,7 @@ import { clearQueuedFeedback, getQueuedFeedback, queueFeedback } from "./lib/off
 import { cacheGet, cacheKey, cacheSet } from "./lib/offlineCache";
 import { AssignedWorkPanel } from "./components/AssignedWorkPanel";
 import { ManagerCommandView } from "./components/ManagerCommandView";
+import { AdminAuditView } from "./components/AdminAuditView";
 import type {
   AlertFeedback,
   AdminAuditEventDetailResponse,
@@ -51,7 +52,6 @@ import type {
   VisitPriority
 } from "./lib/types";
 import { TraceDrawer } from "./components/TraceDrawer";
-import { ReadinessPanel } from "./components/ReadinessPanel";
 
 export function App() {
   const [visits, setVisits] = useState<VisitPriority[]>([]);
@@ -387,32 +387,14 @@ export function App() {
       )}
 
       {role === "admin" && adminAudit && (
-        <section className="leadershipPane">
-          {readiness && <ReadinessPanel readiness={readiness} variant="admin" />}
-          <div className="sectionHead">
-            <div>
-              <p className="eyebrow">Audit</p>
-              <h3>{adminAudit.events.length} recent events</h3>
-            </div>
-          </div>
-          <div className="filterBar">
-            <input placeholder="event type" value={auditFilters.event_type} onChange={(event) => setAuditFilters((current) => ({ ...current, event_type: event.target.value }))} />
-            <input placeholder="rep id" value={auditFilters.rep_id} onChange={(event) => setAuditFilters((current) => ({ ...current, rep_id: event.target.value }))} />
-            <input placeholder="resource type" value={auditFilters.resource_type} onChange={(event) => setAuditFilters((current) => ({ ...current, resource_type: event.target.value }))} />
-          </div>
-          <div className="auditFeed">
-            {adminAudit.events.map((event) => (
-              <button key={event.event_id} className="auditRow" onClick={() => openAuditDetail(event.event_id)}>
-                <strong>{event.event_type}</strong>
-                <span>{event.rep_id} / {event.resource_type} / {event.resource_id ?? "none"}</span>
-                <span>{new Date(event.created_at).toLocaleString()}</span>
-              </button>
-            ))}
-          </div>
-          {auditDetail && (
-            <pre className="summaryBox auditDetail">{JSON.stringify(auditDetail.event, null, 2)}</pre>
-          )}
-        </section>
+        <AdminAuditView
+          readiness={readiness}
+          adminAudit={adminAudit}
+          auditDetail={auditDetail}
+          auditFilters={auditFilters}
+          onFiltersChange={setAuditFilters}
+          onOpenAuditDetail={openAuditDetail}
+        />
       )}
 
       {role === "rep" && (
