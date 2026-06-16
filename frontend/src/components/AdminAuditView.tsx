@@ -3,6 +3,7 @@ import type {
   ActivationRunbook,
   AdminAuditEventDetailResponse,
   AdminAuditEventsResponse,
+  DiscoveryPacket,
   IntegrationReadinessResponse,
   PilotGapReport
 } from "../lib/types";
@@ -17,6 +18,7 @@ export function AdminAuditView({
   readiness,
   pilotGapReport,
   activationRunbook,
+  discoveryPacket,
   adminAudit,
   auditDetail,
   auditFilters,
@@ -26,6 +28,7 @@ export function AdminAuditView({
   readiness: IntegrationReadinessResponse | null;
   pilotGapReport: PilotGapReport | null;
   activationRunbook: ActivationRunbook | null;
+  discoveryPacket: DiscoveryPacket | null;
   adminAudit: AdminAuditEventsResponse;
   auditDetail: AdminAuditEventDetailResponse | null;
   auditFilters: AuditFilters;
@@ -39,6 +42,7 @@ export function AdminAuditView({
           readiness={readiness}
           pilotGapReport={pilotGapReport}
           activationRunbook={activationRunbook}
+          discoveryPacket={discoveryPacket}
           variant="admin"
         />
       )}

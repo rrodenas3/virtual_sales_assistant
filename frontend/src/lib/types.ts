@@ -295,6 +295,32 @@ export type ActivationRunbook = {
   public_safety_notes: string[];
 };
 
+export type DiscoveryPacket = {
+  generated_at: string;
+  target: "local" | "ai-demo" | "pilot";
+  selected_live_modes: string[];
+  gate_count: number;
+  missing_count: number;
+  defaulted_count: number;
+  owner_groups: {
+    owner: "delivery" | "engineering" | "shared";
+    gate_count: number;
+    missing_count: number;
+    defaulted_count: number;
+    gates: {
+      topic: string;
+      setting_name: string;
+      status: "answered" | "defaulted" | "missing";
+      value_present: boolean;
+      required_for: string[];
+      notes: string;
+      owner: "delivery" | "engineering" | "shared";
+    }[];
+  }[];
+  next_actions: string[];
+  public_safety_notes: string[];
+};
+
 export type DemoRole = "rep" | "manager" | "admin";
 
 export type DemoIdentity = {

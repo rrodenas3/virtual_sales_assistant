@@ -33,6 +33,7 @@ def test_local_readiness_report_includes_scaffold_smoke() -> None:
         "local_readiness",
         "api_contract",
         "demo_seed",
+        "discovery_packet",
         "final_api_smoke",
         "local_dev_smoke",
         "local_verification",

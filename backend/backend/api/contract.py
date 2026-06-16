@@ -16,6 +16,7 @@ PILOT_ROUTE_SIGNATURES: tuple[str, ...] = (
     "GET /api/v1/integrations/readiness",
     "GET /api/v1/integrations/pilot-gap-report?target=local",
     "GET /api/v1/integrations/activation-runbook?target=pilot",
+    "GET /api/v1/integrations/discovery-packet?target=pilot",
     "GET /api/v1/metrics/pilot",
     "GET /api/v1/manager/territory-summary?territory_code=WEST-01",
     "GET /api/v1/manager/approval-queue?territory_code=WEST-01",
@@ -82,5 +83,13 @@ REQUIRED_RESPONSE_FIELDS: dict[str, set[str]] = {
         "phase_count",
         "phases",
         "ready_phase_count",
+    },
+    "DiscoveryPacketResponse": {
+        "defaulted_count",
+        "gate_count",
+        "missing_count",
+        "next_actions",
+        "owner_groups",
+        "target",
     },
 }

@@ -671,6 +671,93 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
+  await page.route("**/api/v1/integrations/discovery-packet**", async (route) => {
+    await route.fulfill({
+      json: {
+        generated_at: "2026-06-15T00:00:00Z",
+        target: "pilot",
+        selected_live_modes: [],
+        gate_count: 6,
+        missing_count: 4,
+        defaulted_count: 2,
+        owner_groups: [
+          {
+            owner: "delivery",
+            gate_count: 4,
+            missing_count: 3,
+            defaulted_count: 1,
+            gates: [
+              {
+                topic: "Data sharing model",
+                setting_name: "discovery_data_sharing_model",
+                status: "missing",
+                value_present: false,
+                required_for: ["databricks", "snowflake", "unity_catalog"],
+                notes: "Required before live data or audit integrations.",
+                owner: "delivery"
+              },
+              {
+                topic: "SSO provider",
+                setting_name: "discovery_sso_provider",
+                status: "missing",
+                value_present: false,
+                required_for: ["external_jwt"],
+                notes: "Required before external JWT validation.",
+                owner: "delivery"
+              },
+              {
+                topic: "ERP sandbox endpoint",
+                setting_name: "discovery_erp_sandbox",
+                status: "missing",
+                value_present: false,
+                required_for: ["erp_submit"],
+                notes: "Required before real order submission.",
+                owner: "delivery"
+              },
+              {
+                topic: "Rep device",
+                setting_name: "discovery_rep_device",
+                status: "defaulted",
+                value_present: true,
+                required_for: ["offline", "offline_agent"],
+                notes: "Required before native/offline runtime decisions.",
+                owner: "delivery"
+              }
+            ]
+          },
+          {
+            owner: "shared",
+            gate_count: 2,
+            missing_count: 1,
+            defaulted_count: 1,
+            gates: [
+              {
+                topic: "Guardrail classifier endpoint",
+                setting_name: "guardrail_classifier_endpoint",
+                status: "missing",
+                value_present: false,
+                required_for: ["guardrail_classifier"],
+                notes: "Required before external classifier guardrails.",
+                owner: "shared"
+              },
+              {
+                topic: "Offline sync policy",
+                setting_name: "discovery_offline_sync_policy",
+                status: "defaulted",
+                value_present: true,
+                required_for: ["offline", "offline_agent"],
+                notes: "Required before broader offline write queues.",
+                owner: "shared"
+              }
+            ]
+          }
+        ],
+        next_actions: ["delivery: answer discovery_data_sharing_model, discovery_sso_provider, discovery_erp_sandbox"],
+        public_safety_notes: ["Actual values, endpoint URLs, tokens, local paths, and client-confidential identifiers are not included."]
+      }
+    });
+  });
+
   await page.route("**/api/v1/admin/audit-events?**", async (route) => {
     await route.fulfill({
       json: {
@@ -906,6 +993,10 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("activation-runbook")).toContainText("Real AI Demo Readiness");
   await expect(page.getByTestId("activation-runbook")).toContainText("ai_summary_eval");
   await expect(page.getByTestId("activation-runbook")).toContainText("Final VSA Pilot Gate");
+  await expect(page.getByTestId("discovery-packet")).toContainText("pilot discovery packet");
+  await expect(page.getByTestId("discovery-packet")).toContainText("4 missing");
+  await expect(page.getByTestId("discovery-packet")).toContainText("delivery");
+  await expect(page.getByTestId("discovery-packet")).toContainText("discovery_sso_provider");
   await expect(page.getByTestId("activation-evidence")).toContainText("local evidence");
   await expect(page.getByTestId("activation-evidence")).toContainText("ai_demo_eval");
   await expect(page.getByTestId("activation-evidence")).toContainText("pilot_env_handoff");
@@ -942,6 +1033,8 @@ test("admin can review readiness and audit detail", async ({ page }) => {
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("Final VSA runbook");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("Live Data Contract Readiness");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot_env_handoff");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot discovery packet");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("guardrail_classifier_endpoint");
   await expect(page.getByTestId("activation-evidence")).toContainText("live_data_contracts");
   await expect(page.getByTestId("activation-evidence")).toContainText("4 artifacts");
   await expect(page.getByLabel("pilot required artifacts")).toContainText("pilot-env/pilot_validation.env.snippet");

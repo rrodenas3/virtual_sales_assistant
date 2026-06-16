@@ -29,6 +29,7 @@ def test_readiness_bundle_combines_local_safe_artifacts() -> None:
         "local_readiness",
         "api_contract",
         "demo_seed",
+        "discovery_packet",
         "final_api_smoke",
         "local_dev_smoke",
         "local_verification",
@@ -49,6 +50,7 @@ def test_readiness_bundle_includes_pilot_runtime_commands() -> None:
         "local_readiness",
         "api_contract",
         "final_api_smoke",
+        "discovery_packet",
         "local_verification",
         "pilot_status_snapshot",
         "pilot_gap_report",
@@ -69,6 +71,7 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
     assert command_sets["local"][1]["name"] == "spec_decision_guard"
     assert any(command["name"] == "api_contract" for command in command_sets["local"])
     assert any(command["name"] == "demo_seed" for command in command_sets["local"])
+    assert any(command["name"] == "discovery_packet" for command in command_sets["local"])
     assert any(command["name"] == "final_api_smoke" for command in command_sets["local"])
     assert any(command["name"] == "local_dev_smoke" for command in command_sets["local"])
     assert any(command["name"] == "local_verification" for command in command_sets["local"])

@@ -2,6 +2,7 @@ import { ReadinessPanel } from "./ReadinessPanel";
 import type {
   ActivationRunbook,
   ApprovalQueueResponse,
+  DiscoveryPacket,
   IntegrationReadinessResponse,
   ManagerTask,
   ManagerTaskListResponse,
@@ -15,6 +16,7 @@ export function ManagerCommandView({
   readiness,
   pilotGapReport,
   activationRunbook,
+  discoveryPacket,
   managerTasks,
   approvalQueue,
   onOpenStore,
@@ -26,6 +28,7 @@ export function ManagerCommandView({
   readiness: IntegrationReadinessResponse | null;
   pilotGapReport: PilotGapReport | null;
   activationRunbook: ActivationRunbook | null;
+  discoveryPacket: DiscoveryPacket | null;
   managerTasks: ManagerTaskListResponse | null;
   approvalQueue: ApprovalQueueResponse | null;
   onOpenStore: (row: TerritoryStoreSummary) => void;
@@ -40,6 +43,7 @@ export function ManagerCommandView({
           readiness={readiness}
           pilotGapReport={pilotGapReport}
           activationRunbook={activationRunbook}
+          discoveryPacket={discoveryPacket}
           variant="manager"
         />
       )}
