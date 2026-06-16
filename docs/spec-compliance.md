@@ -128,7 +128,7 @@ Later:
 
 ```powershell
 cd backend
-python -m ruff check backend tests alembic ..\mcp ..\scripts\run_eval.py
+python -m ruff check backend tests alembic ..\mcp ..\scripts
 python -m pytest tests -q
 alembic upgrade head
 

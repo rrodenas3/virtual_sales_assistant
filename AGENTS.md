@@ -152,7 +152,7 @@ Run all of these before every commit. CI runs them in the same order.
 
 ```powershell
 # From phantom/backend/
-python -m ruff check backend tests alembic ../mcp ../scripts/run_eval.py ../scripts/validate_live_data_contracts.py ../scripts/pilot_readiness_report.py ../scripts/log_eval_to_mlflow.py ../scripts/load_test.py ../scripts/mcp_smoke.py ../scripts/readiness_bundle.py
+python -m ruff check backend tests alembic ../mcp ../scripts
 python -m pytest tests -q
 python ../scripts/run_eval.py
 python ../scripts/pilot_readiness_report.py --target local
