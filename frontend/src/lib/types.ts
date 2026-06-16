@@ -223,6 +223,21 @@ export type IntegrationReadinessResponse = {
       notes: string;
     }[]
   >;
+  activation_evidence_manifests: Record<
+    "local" | "ai-demo" | "pilot",
+    {
+      target: "local" | "ai-demo" | "pilot";
+      sections: {
+        name: string;
+        required_for: Array<"local" | "ai-demo" | "pilot">;
+        artifacts: string[];
+        env_keys: Record<string, string>;
+        notes: string;
+      }[];
+      required_env_keys: string[];
+      required_artifacts: string[];
+    }
+  >;
 };
 
 export type DemoRole = "rep" | "manager" | "admin";

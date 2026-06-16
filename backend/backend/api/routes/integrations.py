@@ -5,6 +5,7 @@ from backend.auth.mock_jwt import CurrentUser, get_current_user
 from backend.auth.providers import auth_status
 from backend.config import settings
 from backend.governance.activation import build_activation_targets, flatten_provider_blockers, runtime_validation_command_sets
+from backend.governance.activation_evidence import build_evidence_manifest_sets
 from backend.governance.action_providers import action_provider_status
 from backend.governance.data_platform import data_platform_status
 from backend.governance.discovery import discovery_gates, readiness_blockers, selected_live_modes
@@ -80,4 +81,5 @@ async def integration_readiness(current_user: CurrentUser = Depends(get_current_
             summary_status=summary_status,
         ),
         runtime_validation_commands=runtime_validation_command_sets(),
+        activation_evidence_manifests=build_evidence_manifest_sets(),
     )

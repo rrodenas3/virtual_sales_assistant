@@ -16,7 +16,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services, and CI-backed manifest smoke; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, discovery-gated Mem0 HTTP contract, summary audit metadata, `/health/memory` readiness, and dry-run scoped memory smoke |
 | Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, guardrail health/readiness gates, read-only policy stub, append-only Postgres audit behind `AuditSink`, audit-sink readiness, parameterized Unity Catalog audit insert path, identifier validation, DDL drift tests, dry-run Unity audit smoke artifacts, and dry-run guardrail classifier smoke |
-| Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness`, live-mode gate checks, provider readiness aggregation, local/AI-demo/pilot activation target blockers in UI and handoff artifacts, target runtime command manifest in API/UI/artifacts, machine-readable owner model, AI-demo stage/next-action evidence, AI-demo eval evidence status, live data contract validation status fields, and public-safe pilot env handoff |
+| Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness`, live-mode gate checks, provider readiness aggregation, local/AI-demo/pilot activation target blockers in UI and handoff artifacts, target runtime command manifest in API/UI/artifacts, activation evidence manifests in API/UI/artifacts, machine-readable owner model, AI-demo stage/next-action evidence, AI-demo eval evidence status, live data contract validation status fields, and public-safe pilot env handoff |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented: local draft provider default plus discovery-gated external CRM HTTP adapter, action-provider readiness, and dry-run outbound payload smoke |
 | ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects by default | Implemented: sandbox provider default plus discovery-gated external ERP HTTP adapter, action-provider readiness, and dry-run approval/hash payload smoke |
@@ -128,7 +128,7 @@ Later:
 
 ```powershell
 cd backend
-python -m ruff check backend tests alembic ..\mcp ..\scripts\run_eval.py
+python -m ruff check backend tests alembic ..\mcp ..\scripts
 python -m pytest tests -q
 alembic upgrade head
 

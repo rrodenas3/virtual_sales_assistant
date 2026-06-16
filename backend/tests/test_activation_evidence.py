@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from scripts.activation_evidence import build_evidence_manifest  # noqa: E402
+from backend.governance.activation_evidence import build_evidence_manifest  # noqa: E402
 
 
 def test_local_evidence_manifest_is_scaffold_only() -> None:

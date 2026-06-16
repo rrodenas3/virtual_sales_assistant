@@ -212,7 +212,8 @@ button { font: inherit; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
-.runtimeCommandGroup {
+.runtimeCommandGroup,
+.activationEvidenceGroup {
   border: 1px dashed var(--line);
   border-radius: 8px;
   padding: 9px 11px;
@@ -220,14 +221,20 @@ button { font: inherit; }
 }
 .runtimeCommandGroup strong,
 .runtimeCommandGroup span,
-.runtimeCommandGroup code {
+.runtimeCommandGroup code,
+.activationEvidenceGroup strong,
+.activationEvidenceGroup span,
+.activationEvidenceGroup small {
   display: block;
 }
-.runtimeCommandGroup strong {
+.runtimeCommandGroup strong,
+.activationEvidenceGroup strong {
   font-family: "Archivo", sans-serif;
   font-size: 0.84rem;
 }
-.runtimeCommandGroup span {
+.runtimeCommandGroup span,
+.activationEvidenceGroup span,
+.activationEvidenceGroup small {
   color: var(--muted);
   font-size: 0.78rem;
   line-height: 1.35;
@@ -244,6 +251,19 @@ button { font: inherit; }
   font-size: 0.72rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
+}
+.activationEvidenceGrid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.activationEvidenceGroup {
+  border-style: solid;
+}
+.activationEvidenceGroup small {
+  color: var(--accent-dark);
+  font-weight: 700;
 }
 .managerTable, .auditFeed, .approvalQueue, .taskQueue {
   display: grid;
@@ -584,7 +604,7 @@ button { font: inherit; }
   .metricStrip { grid-template-columns: 1fr 1fr; }
   .readinessPanel { grid-template-columns: 1fr; }
   .readinessPanel__meta { justify-content: flex-start; }
-  .activationTargets, .runtimeCommands { grid-template-columns: 1fr; }
+  .activationTargets, .runtimeCommands, .activationEvidenceGrid { grid-template-columns: 1fr; }
   .managerRow, .auditRow, .approvalRow, .taskRow, .filterBar { grid-template-columns: 1fr; }
   .actionBand { grid-template-columns: 1fr; }
   .alertRow { grid-template-columns: 1fr; }

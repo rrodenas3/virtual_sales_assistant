@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from backend.clients.sql import DatabricksSQLClient, SnowflakeSQLClient  # noqa: E402
 from backend.config import settings  # noqa: E402
+from backend.governance.activation_evidence import LIVE_DATA_READINESS_ENV_MANIFEST  # noqa: E402
 from backend.governance.live_contracts import (  # noqa: E402
     contract_manifest,
     live_data_contracts,
@@ -78,11 +79,7 @@ def readiness_env_from_report(report: dict[str, object]) -> dict[str, object]:
 
 
 def readiness_env_manifest() -> dict[str, str]:
-    return {
-        "LIVE_DATA_CONTRACT_VALIDATED": "true only after all selected live data contracts validate",
-        "LIVE_DATA_CONTRACT_LAST_VALIDATION_AT": "UTC timestamp from the credentialed validation run",
-        "LIVE_DATA_CONTRACT_VALIDATION_SUMMARY": "short validation summary copied from readiness_env.json",
-    }
+    return dict(LIVE_DATA_READINESS_ENV_MANIFEST)
 
 
 def failure_examples() -> dict[str, str]:
