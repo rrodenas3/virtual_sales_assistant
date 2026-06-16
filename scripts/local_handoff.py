@@ -16,6 +16,8 @@ from scripts.final_api_smoke import build_report as build_final_api_smoke_report
 from scripts.final_api_smoke import write_artifacts as write_final_api_smoke_artifacts  # noqa: E402
 from scripts.local_dev_smoke import build_report as build_local_dev_smoke_report  # noqa: E402
 from scripts.local_dev_smoke import write_artifacts as write_local_dev_smoke_artifacts  # noqa: E402
+from scripts.pilot_status_snapshot import build_snapshot as build_pilot_status_snapshot  # noqa: E402
+from scripts.pilot_status_snapshot import write_artifacts as write_pilot_status_snapshot_artifacts  # noqa: E402
 from scripts.readiness_bundle import build_bundle as build_readiness_bundle  # noqa: E402
 from scripts.readiness_bundle import write_artifacts as write_readiness_bundle_artifacts  # noqa: E402
 from scripts.seed_demo_data import build_demo_seed, validate_manifest as validate_demo_seed_manifest  # noqa: E402
@@ -47,6 +49,7 @@ def build_handoff(
         }
     )
     readiness_bundle = build_readiness_bundle(target)
+    pilot_status_snapshot = build_pilot_status_snapshot(target)  # type: ignore[arg-type]
     public_safety = (
         run_public_safety_scan()
         if run_public_safety
@@ -64,6 +67,7 @@ def build_handoff(
         _check("spec_decision_guard", spec_decision_guard["passed"], _spec_decision_guard_detail(spec_decision_guard)),
         _check("local_dev_smoke", local_dev_smoke["passed"], _local_dev_smoke_detail(local_dev_smoke)),
         _check("readiness_bundle", readiness_bundle["passed"], f"target={target}"),
+        _check("pilot_status_snapshot", pilot_status_snapshot["passed"], _pilot_status_snapshot_detail(pilot_status_snapshot)),
         _check("public_safety_scan", public_safety["passed"], public_safety.get("detail", "")),
     ]
     return {
@@ -78,6 +82,7 @@ def build_handoff(
             "spec_decision_guard": "spec-decision-guard/spec_decision_guard.json",
             "local_dev_smoke": "local-dev-smoke/local_dev_smoke.json",
             "readiness_bundle": "readiness-bundle/readiness_bundle.json",
+            "pilot_status_snapshot": "pilot-status/pilot_status_snapshot.json",
             "local_handoff": "local_handoff.json",
         },
         "next_blocking_actions": readiness_bundle["handoff_summary"]["next_blocking_actions"],
@@ -87,6 +92,7 @@ def build_handoff(
         "spec_decision_guard": spec_decision_guard,
         "local_dev_smoke": local_dev_smoke,
         "readiness_bundle": readiness_bundle,
+        "pilot_status_snapshot": pilot_status_snapshot,
         "public_safety_scan": public_safety,
     }
 
@@ -111,6 +117,7 @@ def write_artifacts(handoff: dict[str, Any], output_dir: Path) -> None:
     else:
         write_local_dev_smoke_artifacts(handoff["local_dev_smoke"], output_dir / "local-dev-smoke")
     write_readiness_bundle_artifacts(handoff["readiness_bundle"], output_dir / "readiness-bundle")
+    write_pilot_status_snapshot_artifacts(handoff["pilot_status_snapshot"], output_dir / "pilot-status")
     (output_dir / "local_handoff.json").write_text(
         json.dumps(handoff, indent=2, sort_keys=True),
         encoding="utf-8",
@@ -198,6 +205,15 @@ def _local_dev_smoke_detail(report: dict[str, Any]) -> str:
 def _spec_decision_guard_detail(report: dict[str, Any]) -> str:
     failed = [check["name"] for check in report["checks"] if not check["passed"]]
     return "all locked decisions enforced" if not failed else f"failed={','.join(failed)}"
+
+
+def _pilot_status_snapshot_detail(snapshot: dict[str, Any]) -> str:
+    summary = snapshot["summary"]
+    return (
+        f"routes={summary['required_route_count']}; "
+        f"commands={summary['runtime_command_count']}; "
+        f"evidence_sections={summary['activation_evidence_sections']}"
+    )
 
 
 def _check(name: str, passed: bool, detail: str) -> dict[str, Any]:

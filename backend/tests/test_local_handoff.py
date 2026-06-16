@@ -21,6 +21,7 @@ def test_local_handoff_combines_operator_proof_bundle() -> None:
     assert handoff["spec_decision_guard"]["passed"] is True
     assert handoff["local_dev_smoke"]["skipped"] is True
     assert handoff["readiness_bundle"]["passed"] is True
+    assert handoff["pilot_status_snapshot"]["passed"] is True
     assert handoff["next_blocking_actions"]
     check_names = {check["name"] for check in handoff["checks"]}
     assert check_names == {
@@ -30,6 +31,7 @@ def test_local_handoff_combines_operator_proof_bundle() -> None:
         "spec_decision_guard",
         "local_dev_smoke",
         "readiness_bundle",
+        "pilot_status_snapshot",
         "public_safety_scan",
     }
 
@@ -72,3 +74,5 @@ def test_local_handoff_writes_nested_artifacts(tmp_path: Path) -> None:
     assert (tmp_path / "local-dev-smoke" / "local_dev_smoke.md").exists()
     assert (tmp_path / "readiness-bundle" / "readiness_bundle.json").exists()
     assert (tmp_path / "readiness-bundle" / "readiness_bundle.md").exists()
+    assert (tmp_path / "pilot-status" / "pilot_status_snapshot.json").exists()
+    assert (tmp_path / "pilot-status" / "pilot_status_snapshot.md").exists()
