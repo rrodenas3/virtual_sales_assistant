@@ -37,6 +37,28 @@ function RuntimeCommands({ readiness }: { readiness: IntegrationReadinessRespons
   );
 }
 
+function ActivationEvidence({ readiness }: { readiness: IntegrationReadinessResponse }) {
+  const targets = ["local", "ai-demo", "pilot"] as const;
+  return (
+    <div className="activationEvidenceGrid" data-testid="activation-evidence">
+      {targets.map((target) => {
+        const manifest = readiness.activation_evidence_manifests[target];
+        return (
+          <div key={target} className="activationEvidenceGroup">
+            <strong>{target} evidence</strong>
+            <span>
+              {manifest.sections.map((section) => section.name).join(", ")}
+            </span>
+            <small>
+              {manifest.required_artifacts.length} artifacts / {manifest.required_env_keys.length} env keys
+            </small>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function discoveryOwnerSummary(readiness: IntegrationReadinessResponse): string | null {
   if (readiness.blockers.length === 0) return null;
   const blockerSet = new Set(readiness.blockers);
@@ -113,6 +135,7 @@ export function ReadinessPanel({
       )}
       <ActivationTargets readiness={readiness} />
       <RuntimeCommands readiness={readiness} />
+      <ActivationEvidence readiness={readiness} />
     </div>
   );
 }

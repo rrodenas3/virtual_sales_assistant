@@ -4,18 +4,20 @@ import argparse
 from datetime import UTC, datetime
 import json
 from pathlib import Path
+import sys
 from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "backend"))
+
+from backend.governance.activation_evidence import AI_DEMO_EVAL_ENV_MANIFEST  # noqa: E402
 
 
 REQUIRED_PROVIDER = "anthropic"
 
 
 def evidence_env_manifest() -> dict[str, str]:
-    return {
-        "AI_DEMO_EVAL_VALIDATED": "true only after the approved provider eval passes",
-        "AI_DEMO_EVAL_LAST_VALIDATION_AT": "UTC timestamp from the approved provider eval run",
-        "AI_DEMO_EVAL_VALIDATION_SUMMARY": "short eval summary copied from ai_demo_eval_env.json",
-    }
+    return dict(AI_DEMO_EVAL_ENV_MANIFEST)
 
 
 def evidence_from_eval_result(eval_result: dict[str, Any], validated_at: str | None = None) -> dict[str, Any]:

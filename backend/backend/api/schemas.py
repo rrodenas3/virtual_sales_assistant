@@ -446,6 +446,21 @@ class RuntimeValidationCommandOut(BaseModel):
     notes: str
 
 
+class ActivationEvidenceSectionOut(BaseModel):
+    name: str
+    required_for: list[Literal["local", "ai-demo", "pilot"]]
+    artifacts: list[str]
+    env_keys: dict[str, str]
+    notes: str
+
+
+class ActivationEvidenceManifestOut(BaseModel):
+    target: Literal["local", "ai-demo", "pilot"]
+    sections: list[ActivationEvidenceSectionOut]
+    required_env_keys: list[str]
+    required_artifacts: list[str]
+
+
 class IntegrationReadinessResponse(BaseModel):
     ready: bool
     selected_live_modes: list[str]
@@ -469,3 +484,7 @@ class IntegrationReadinessResponse(BaseModel):
     ai_demo_validation_command: str | None = None
     activation_targets: list[ActivationTargetReadiness] = Field(default_factory=list)
     runtime_validation_commands: dict[str, list[RuntimeValidationCommandOut]] = Field(default_factory=dict)
+    activation_evidence_manifests: dict[
+        Literal["local", "ai-demo", "pilot"],
+        ActivationEvidenceManifestOut,
+    ] = Field(default_factory=dict)

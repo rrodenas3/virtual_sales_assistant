@@ -341,6 +341,134 @@ test.beforeEach(async ({ page }) => {
               notes: "Runs the consolidated pilot handoff bundle."
             }
           ]
+        },
+        activation_evidence_manifests: {
+          local: {
+            target: "local",
+            sections: [
+              {
+                name: "local_scaffold",
+                required_for: ["local", "ai-demo", "pilot"],
+                artifacts: [
+                  "local-handoff/local_handoff.json",
+                  "local-handoff/spec-decision-guard/spec_decision_guard.json",
+                  "local-handoff/readiness-bundle/readiness_bundle.json"
+                ],
+                env_keys: {},
+                notes: "Local scaffold proof must stay green for every target."
+              }
+            ],
+            required_env_keys: [],
+            required_artifacts: [
+              "local-handoff/local_handoff.json",
+              "local-handoff/spec-decision-guard/spec_decision_guard.json",
+              "local-handoff/readiness-bundle/readiness_bundle.json"
+            ]
+          },
+          "ai-demo": {
+            target: "ai-demo",
+            sections: [
+              {
+                name: "local_scaffold",
+                required_for: ["local", "ai-demo", "pilot"],
+                artifacts: ["local-handoff/local_handoff.json"],
+                env_keys: {},
+                notes: "Local scaffold proof must stay green for every target."
+              },
+              {
+                name: "ai_demo_eval",
+                required_for: ["ai-demo", "pilot"],
+                artifacts: [
+                  "eval-ai/osa_eval_results.json",
+                  "eval-ai/mlflow_handoff.json",
+                  "eval-ai/ai_demo_eval_evidence.json",
+                  "eval-ai/ai_demo_eval_env.json",
+                  "load/summary/load_test_report.json"
+                ],
+                env_keys: {
+                  AI_DEMO_EVAL_VALIDATED: "true only after the approved provider eval passes",
+                  AI_DEMO_EVAL_LAST_VALIDATION_AT: "UTC timestamp from the approved provider eval run",
+                  AI_DEMO_EVAL_VALIDATION_SUMMARY: "short eval summary copied from ai_demo_eval_env.json"
+                },
+                notes: "Generated only after the approved Anthropic provider eval and summary load test pass."
+              }
+            ],
+            required_env_keys: [
+              "AI_DEMO_EVAL_LAST_VALIDATION_AT",
+              "AI_DEMO_EVAL_VALIDATED",
+              "AI_DEMO_EVAL_VALIDATION_SUMMARY"
+            ],
+            required_artifacts: [
+              "local-handoff/local_handoff.json",
+              "eval-ai/osa_eval_results.json",
+              "eval-ai/mlflow_handoff.json",
+              "eval-ai/ai_demo_eval_evidence.json",
+              "eval-ai/ai_demo_eval_env.json",
+              "load/summary/load_test_report.json"
+            ]
+          },
+          pilot: {
+            target: "pilot",
+            sections: [
+              {
+                name: "local_scaffold",
+                required_for: ["local", "ai-demo", "pilot"],
+                artifacts: ["local-handoff/local_handoff.json"],
+                env_keys: {},
+                notes: "Local scaffold proof must stay green for every target."
+              },
+              {
+                name: "ai_demo_eval",
+                required_for: ["ai-demo", "pilot"],
+                artifacts: ["eval-ai/osa_eval_results.json"],
+                env_keys: { AI_DEMO_EVAL_VALIDATED: "true only after the approved provider eval passes" },
+                notes: "Generated only after the approved Anthropic provider eval and summary load test pass."
+              },
+              {
+                name: "live_data_contracts",
+                required_for: ["pilot"],
+                artifacts: [
+                  "contracts/live/live_data_contract_report.json",
+                  "contracts/live/readiness_env.json"
+                ],
+                env_keys: {
+                  LIVE_DATA_CONTRACT_VALIDATED: "true only after all selected live data contracts validate",
+                  LIVE_DATA_CONTRACT_LAST_VALIDATION_AT: "UTC timestamp from the credentialed validation run",
+                  LIVE_DATA_CONTRACT_VALIDATION_SUMMARY: "short validation summary copied from readiness_env.json"
+                },
+                notes: "Generated only in an approved credentialed environment."
+              },
+              {
+                name: "provider_dry_runs",
+                required_for: ["pilot"],
+                artifacts: ["unity-audit-smoke/unity_audit_smoke.json"],
+                env_keys: {},
+                notes: "Dry-run proof for live write, audit, guardrail, and memory contracts before credentialed smoke."
+              },
+              {
+                name: "pilot_env_handoff",
+                required_for: ["pilot"],
+                artifacts: ["pilot-env/pilot_validation.env.snippet"],
+                env_keys: {
+                  AI_DEMO_EVAL_VALIDATED: "public-safe pilot validation evidence",
+                  LIVE_DATA_CONTRACT_VALIDATED: "public-safe pilot validation evidence"
+                },
+                notes: "Merges non-secret AI-demo and live-data validation values for approved runtime configuration."
+              }
+            ],
+            required_env_keys: [
+              "AI_DEMO_EVAL_VALIDATED",
+              "LIVE_DATA_CONTRACT_VALIDATED",
+              "LIVE_DATA_CONTRACT_LAST_VALIDATION_AT",
+              "LIVE_DATA_CONTRACT_VALIDATION_SUMMARY"
+            ],
+            required_artifacts: [
+              "local-handoff/local_handoff.json",
+              "eval-ai/osa_eval_results.json",
+              "contracts/live/readiness_env.json",
+              "pilot-env/pilot_validation.env.snippet"
+            ]
+          }
         }
       }
     });
@@ -568,6 +696,9 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("readiness-panel")).toContainText("summary_load_test");
   await expect(page.getByTestId("runtime-commands")).toContainText("local_dev_smoke");
   await expect(page.getByTestId("runtime-commands")).toContainText("validation_suite");
+  await expect(page.getByTestId("activation-evidence")).toContainText("local evidence");
+  await expect(page.getByTestId("activation-evidence")).toContainText("ai_demo_eval");
+  await expect(page.getByTestId("activation-evidence")).toContainText("pilot_env_handoff");
   await expect(page.getByLabel("local next validation command")).toContainText("bash ./scripts/public_safety_scan.sh");
   await expect(page.getByLabel("ai-demo next validation command")).toContainText("python scripts/run_eval.py");
   await expect(page.getByText("0 assigned tasks")).toBeVisible();
@@ -594,6 +725,8 @@ test("admin can review readiness and audit detail", async ({ page }) => {
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("Live data contracts must be validated");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot_readiness");
+  await expect(page.getByTestId("activation-evidence")).toContainText("live_data_contracts");
+  await expect(page.getByTestId("activation-evidence")).toContainText("4 artifacts");
   await expect(page.getByLabel("pilot next validation command")).toContainText("python scripts/pilot_readiness_report.py");
   await expect(page.getByText("1 recent events")).toBeVisible();
 

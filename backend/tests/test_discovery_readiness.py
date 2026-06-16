@@ -63,6 +63,12 @@ def test_readiness_reports_default_local_mode() -> None:
     assert any(command["name"] == "ai_demo_eval_evidence" for command in body["runtime_validation_commands"]["ai-demo"])
     assert any(command["name"] == "pilot_readiness" for command in body["runtime_validation_commands"]["pilot"])
     assert body["runtime_validation_commands"]["pilot"][-1]["name"] == "validation_suite"
+    evidence = body["activation_evidence_manifests"]
+    assert evidence["local"]["sections"][0]["name"] == "local_scaffold"
+    assert evidence["ai-demo"]["sections"][1]["name"] == "ai_demo_eval"
+    assert "AI_DEMO_EVAL_VALIDATED" in evidence["ai-demo"]["required_env_keys"]
+    assert "LIVE_DATA_CONTRACT_VALIDATED" in evidence["pilot"]["required_env_keys"]
+    assert "pilot-env/pilot_validation.env.snippet" in evidence["pilot"]["required_artifacts"]
 
 
 def test_readiness_reports_live_contract_validation_status(monkeypatch) -> None:

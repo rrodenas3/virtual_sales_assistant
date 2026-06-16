@@ -3,17 +3,16 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import sys
 from typing import Any
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "backend"))
 
-ALLOWED_ENV_KEYS = {
-    "AI_DEMO_EVAL_VALIDATED",
-    "AI_DEMO_EVAL_LAST_VALIDATION_AT",
-    "AI_DEMO_EVAL_VALIDATION_SUMMARY",
-    "LIVE_DATA_CONTRACT_VALIDATED",
-    "LIVE_DATA_CONTRACT_LAST_VALIDATION_AT",
-    "LIVE_DATA_CONTRACT_VALIDATION_SUMMARY",
-}
+from backend.governance.activation_evidence import PILOT_VALIDATION_ENV_KEYS  # noqa: E402
+
+
+ALLOWED_ENV_KEYS = set(PILOT_VALIDATION_ENV_KEYS)
 
 
 def build_handoff(ai_demo_env_path: Path | None, live_data_env_path: Path | None) -> dict[str, Any]:
