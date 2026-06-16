@@ -29,6 +29,7 @@ def test_local_readiness_report_includes_scaffold_smoke() -> None:
     assert report["discovery_owner_blockers"] == {}
     assert {command["name"] for command in report["runtime_validation_commands"]} == {
         "public_safety_scan",
+        "spec_decision_guard",
         "local_readiness",
         "api_contract",
         "demo_seed",

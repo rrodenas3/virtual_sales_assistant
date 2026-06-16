@@ -30,6 +30,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
             "notes": "Required before sharing or publishing artifacts.",
         },
         {
+            "name": "spec_decision_guard",
+            "command": "python scripts/spec_decision_guard.py --output-dir artifacts/spec-decision-guard",
+            "notes": "Verifies corrections #9/#10 remain enforced and forbidden Phase 1 dependencies are absent.",
+        },
+        {
             "name": "local_readiness",
             "command": "python scripts/pilot_readiness_report.py --target local --output-dir artifacts/readiness/local",
             "notes": "Safe local scaffold gate using mock/default providers.",

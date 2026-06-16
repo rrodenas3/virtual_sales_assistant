@@ -22,11 +22,13 @@ def test_validation_suite_combines_local_handoff_and_commands() -> None:
         "api_contract",
         "demo_seed",
         "final_api_smoke",
+        "spec_decision_guard",
         "local_dev_smoke",
         "readiness_bundle",
         "public_safety_scan",
     } <= check_names
     assert any(command["name"] == "local_dev_smoke" for command in suite["runtime_validation_commands"])
+    assert any(command["name"] == "spec_decision_guard" for command in suite["runtime_validation_commands"])
     assert suite["runtime_validation_commands"][-1]["name"] == "validation_suite"
     assert suite["activation_targets"][0]["target"] == "local"
 
@@ -43,4 +45,5 @@ def test_validation_suite_writes_nested_artifacts(tmp_path: Path) -> None:
     assert "## Runtime Validation Commands" in markdown
     assert "local_dev_smoke" in markdown
     assert (tmp_path / "local-handoff" / "local_handoff.json").exists()
+    assert (tmp_path / "local-handoff" / "spec-decision-guard" / "spec_decision_guard.json").exists()
     assert (tmp_path / "local-handoff" / "readiness-bundle" / "readiness_bundle.json").exists()

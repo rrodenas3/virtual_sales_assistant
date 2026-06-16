@@ -23,6 +23,7 @@ def test_readiness_bundle_combines_local_safe_artifacts() -> None:
     command_names = {command["name"] for command in bundle["runtime_validation_commands"]}
     assert command_names == {
         "public_safety_scan",
+        "spec_decision_guard",
         "local_readiness",
         "api_contract",
         "demo_seed",
@@ -55,6 +56,7 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
 
     assert set(command_sets) == {"local", "ai-demo", "pilot"}
     assert command_sets["local"][0]["name"] == "public_safety_scan"
+    assert command_sets["local"][1]["name"] == "spec_decision_guard"
     assert any(command["name"] == "api_contract" for command in command_sets["local"])
     assert any(command["name"] == "demo_seed" for command in command_sets["local"])
     assert any(command["name"] == "final_api_smoke" for command in command_sets["local"])
