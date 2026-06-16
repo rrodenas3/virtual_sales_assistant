@@ -70,7 +70,9 @@ def test_ai_health_reports_template_mode_as_not_ai_demo_ready(monkeypatch) -> No
     assert body["selected_provider"] == "template"
     assert body["active_model"] == "grounded-template-v1"
     assert body["ai_demo_ready"] is False
+    assert body["ai_demo_stage"] == "template_scaffold"
     assert "SUMMARY_PROVIDER must be anthropic for AI-demo readiness" in body["ai_demo_blockers"]
+    assert body["ai_demo_next_actions"][0] == "Set SUMMARY_PROVIDER=anthropic in the approved AI-demo runtime"
 
 
 def test_request_middleware_logs_structured_http_event(monkeypatch, caplog) -> None:

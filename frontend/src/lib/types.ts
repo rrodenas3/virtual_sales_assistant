@@ -205,7 +205,10 @@ export type IntegrationReadinessResponse = {
   ai_demo_eval_validated: boolean;
   ai_demo_eval_last_validation_at: string | null;
   ai_demo_eval_validation_summary: string | null;
+  ai_demo_stage: "template_scaffold" | "provider_blocked" | "provider_configured" | "validated";
   ai_demo_blockers: string[];
+  ai_demo_next_actions: string[];
+  ai_demo_validation_command: string | null;
   activation_targets: {
     target: "local" | "ai-demo" | "pilot";
     ready: boolean;
@@ -283,7 +286,7 @@ export type ManagerTask = {
   task_type: "shelf_check" | "follow_up" | "promo_check" | "order_review";
   priority: "low" | "medium" | "high";
   due_date: string | null;
-  status: string;
+  status: "OPEN" | "COMPLETED" | "BLOCKED" | "CANCELLED";
   payload_json: {
     notes?: string | null;
     linked_alert_ids?: string[];

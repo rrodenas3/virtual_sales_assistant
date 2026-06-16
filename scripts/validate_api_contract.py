@@ -19,8 +19,8 @@ REQUIRED_ROUTES = {
     "GET /api/v1/integrations/readiness",
     "GET /api/v1/manager/territory-summary?territory_code=WEST-01",
     "GET /api/v1/manager/approval-queue?territory_code=WEST-01",
-    "GET /api/v1/manager/tasks?territory_code=WEST-01",
-    "GET /api/v1/manager/my-tasks",
+    "GET /api/v1/manager/tasks?territory_code=WEST-01&status=OPEN",
+    "GET /api/v1/manager/my-tasks?status=OPEN",
     "POST /api/v1/manager/tasks",
     "POST /api/v1/manager/tasks/{task_id}/status",
     "POST /api/v1/agent/osa-summary",
@@ -57,6 +57,7 @@ def write_artifacts(contract: dict[str, Any], output_dir: Path) -> None:
         f"- Valid: `{contract['valid']}`",
         f"- Route count: `{contract['route_count']}`",
         f"- Missing required routes: `{', '.join(contract['missing_required_routes']) or 'none'}`",
+        f"- Missing required query params: `{', '.join(contract['missing_required_query_params']) or 'none'}`",
         "",
         "## Required Routes",
         "",
@@ -68,25 +69,59 @@ def write_artifacts(contract: dict[str, Any], output_dir: Path) -> None:
 def _contract_from_routes(routes: list[str], source: str) -> dict[str, Any]:
     normalized_routes = {_normalize_route(route) for route in routes}
     missing = sorted(route for route in REQUIRED_ROUTES if _normalize_route(route) not in normalized_routes)
+    available_query_params = _query_params_by_route(routes)
+    missing_query_params = sorted(
+        f"{_normalize_route(route)}?{param}"
+        for route in REQUIRED_ROUTES
+        for param in _query_param_names(route)
+        if param not in available_query_params.get(_normalize_route(route), set())
+    )
     return {
-        "valid": not missing,
+        "valid": not missing and not missing_query_params,
         "source": source,
         "route_count": len(routes),
         "required_routes": sorted(REQUIRED_ROUTES),
         "missing_required_routes": missing,
+        "missing_required_query_params": missing_query_params,
     }
 
 
 def _route_signature(route: Any) -> str:
     methods = sorted(method for method in route.methods if method not in {"HEAD", "OPTIONS"})
     method = methods[0] if methods else "GET"
-    return f"{method} {route.path}"
+    dependant = getattr(route, "dependant", None)
+    query_params = sorted(
+        getattr(param, "alias", None) or getattr(param, "name", "")
+        for param in getattr(dependant, "query_params", [])
+    )
+    query = f"?{'&'.join(query_params)}" if query_params else ""
+    return f"{method} {route.path}{query}"
 
 
 def _normalize_route(route: str) -> str:
     method, _, path = route.partition(" ")
     path = path.split("?", 1)[0]
     return f"{method} {path}"
+
+
+def _query_param_names(route: str) -> set[str]:
+    _, _, path = route.partition(" ")
+    _, separator, query = path.partition("?")
+    if not separator:
+        return set()
+    names = set()
+    for pair in query.split("&"):
+        name, _, _ = pair.partition("=")
+        if name:
+            names.add(name)
+    return names
+
+
+def _query_params_by_route(routes: list[str]) -> dict[str, set[str]]:
+    params: dict[str, set[str]] = {}
+    for route in routes:
+        params.setdefault(_normalize_route(route), set()).update(_query_param_names(route))
+    return params
 
 
 def main() -> None:

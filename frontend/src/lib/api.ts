@@ -236,8 +236,11 @@ export function getManagerTasks(): Promise<ManagerTaskListResponse> {
   return request(`/api/v1/manager/tasks?territory_code=${encodeURIComponent(getCurrentTerritory())}`);
 }
 
-export function getMyManagerTasks(): Promise<ManagerTaskListResponse> {
-  return request("/api/v1/manager/my-tasks");
+export function getMyManagerTasks(status?: ManagerTask["status"]): Promise<ManagerTaskListResponse> {
+  const params = new URLSearchParams();
+  if (status) params.set("status", status);
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  return request(`/api/v1/manager/my-tasks${suffix}`);
 }
 
 export function createManagerTask(params: {
