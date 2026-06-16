@@ -6,6 +6,17 @@
 > Every AI output is grounded. Every write action requires human approval.
 > Every event is immutably audited — from data source to ERP submission.
 
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)
+![Anthropic](https://img.shields.io/badge/Anthropic-Claude%20Haiku-FF6B35?style=flat)
+![Databricks](https://img.shields.io/badge/Databricks-OSA%20%2B%20RGM-FF3621?style=flat&logo=databricks&logoColor=white)
+![Snowflake](https://img.shields.io/badge/Snowflake-Store%20Master-29B5E8?style=flat&logo=snowflake&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat&logo=postgresql&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?style=flat&logo=github-actions&logoColor=white)
+
+> Full-stack enterprise MVP built for a CPG pilot engagement — sole architect across backend, agent orchestration, data integration, frontend, CI pipeline, and governance layer.
+
 ---
 
 ![PHANTOM VSA — Unified Platform Architecture](docs/phantom-vsa-architecture.png)
@@ -22,7 +33,7 @@
 
 ## What This Is
 
-PHANTOM VSA is a production-architecture CPG field sales intelligence platform built on a governed multi-agent design. It gives field representatives, territory managers, and platform administrators a unified workflow across four intelligence domains:
+PHANTOM VSA is an enterprise-grade CPG field sales intelligence platform built on a governed multi-agent design. It gives field representatives, territory managers, and platform administrators a unified workflow across four intelligence domains:
 
 | Domain | What it does |
 |---|---|
@@ -30,6 +41,12 @@ PHANTOM VSA is a production-architecture CPG field sales intelligence platform b
 | **Know Your Store** | Surfaces ML-predicted on-shelf availability (OOS) alerts per SKU per store. A deterministic rule engine converts risk scores into grounded actions with confidence labels. |
 | **Assortment Mentalization** | Generates Revenue Growth Management recommendations — promo moves, assortment gaps, and upsell opportunities — scored against store revenue and compliance signals. |
 | **Agentic Order Execution** | Lets a rep draft replenishment orders against OOS alerts. Every draft is cryptographically hash-bound. No ERP write executes without verified manager approval. |
+
+### The Application
+
+![PHANTOM VSA — Rep Workbench](docs/phantom-vsa-workbench.png)
+
+*Rep workbench: priority-ranked store route, OOS alerts with rule engine output and confidence labels, RGM recommendations, grounded AI summary, and HITL order drafting. Role switcher gives access to Manager command view and Admin governance console.*
 
 ---
 
@@ -148,7 +165,7 @@ The LLM summary path (`SUMMARY_PROVIDER=anthropic`) receives only alert IDs alre
 
 ## Scale at a Glance
 
-| | |
+| Metric | Value |
 |---|---|
 | API endpoints | 30+ across 16 routers |
 | Pydantic schemas | 40+ request / response models |
@@ -203,45 +220,24 @@ python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke
 
 ## API Surface
 
-### Core sales workflow
+The API is organised into two surfaces that share the same adapter and service layer — no logic is duplicated between them.
+
+**Core sales workflow** — visit prioritisation, store intelligence, OOS alerts, RGM recommendations, grounded AI summary, shelf image analysis, alert feedback, and session audit.
+
+**HITL order and manager workflow** — order draft creation (hash computed), manager approval (hash stored), ERP submission (hash verified), CRM visit log, offline feedback sync, territory summary, approval queue, task assignment, pilot metrics, and admin audit feed.
+
+Key endpoints:
 
 ```
-GET  /api/v1/health                              System and provider health
-GET  /api/v1/health/{ai,auth,data-platform,...}  Per-provider readiness
-GET  /api/v1/integrations/readiness              Activation targets + blocker list
-GET  /api/v1/integrations/pilot-gap-report       Owner-mapped pilot blockers + next commands
-GET  /api/v1/integrations/activation-runbook     Final VSA phase plan + exit gates
-GET  /api/v1/integrations/discovery-packet       Owner-grouped client discovery checklist
-GET  /api/v1/integrations/ai-demo-activation-pack  Public-safe real-AI demo activation proof
-GET  /api/v1/visits/today                        Ranked visit route (territory-scoped)
-GET  /api/v1/stores/{store_id}                   Store 360° view
+GET  /api/v1/visits/today                        Priority-ranked visit route
 GET  /api/v1/stores/{store_id}/alerts            OOS alerts with rule engine output
-GET  /api/v1/stores/{store_id}/rgm-recommendations  Promo, gap, and upsell recommendations
-POST /api/v1/stores/{store_id}/shelf-image-analysis  Shelf image analysis (mock default)
-POST /api/v1/alerts/{alert_id}/feedback          Rep confirms / dismisses / flags alert
 POST /api/v1/agent/osa-summary                   Grounded OSA summary (LLM or template)
-POST /api/v1/agent/run                           SSE supervisor/action stream (event-by-event)
-GET  /api/v1/audit/session/{session_id}          Full session audit trail
-```
-
-### HITL order and manager workflow
-
-```
-POST /api/v1/orders/drafts                       Create order draft (hash computed)
-GET  /api/v1/orders/drafts/{draft_id}            Retrieve draft with payload hash
+POST /api/v1/agent/run                           Grounded OSA summary SSE stream
+POST /api/v1/orders/drafts                       Create order draft (SHA-256 hash computed)
 POST /api/v1/approvals/{draft_id}/approve        Manager approves (hash stored)
-POST /api/v1/approvals/{draft_id}/reject         Manager rejects
 POST /api/v1/orders/drafts/{draft_id}/submit-sandbox  Submit after hash verification
-POST /api/v1/crm/visit-log-drafts                CRM visit log draft
-POST /api/v1/sync/feedback-events                Offline feedback queue sync
-GET  /api/v1/manager/territory-summary           All stores ranked per territory
-GET  /api/v1/manager/approval-queue              All pending order drafts
-POST /api/v1/manager/tasks                       Assign task to rep
-GET  /api/v1/manager/tasks                       List tasks (filterable by status)
-POST /api/v1/manager/tasks/{task_id}/status      Rep updates task status
-GET  /api/v1/metrics/pilot                       Alert precision, summary count, cost
-GET  /api/v1/admin/audit-events                  Admin audit feed (cursor-paginated)
-GET  /api/v1/admin/audit-events/{event_id}       Single event detail
+GET  /api/v1/integrations/readiness              Activation targets + blocker list
+GET  /api/v1/admin/audit-events                  Append-only audit feed
 ```
 
 ---
@@ -251,10 +247,7 @@ GET  /api/v1/admin/audit-events/{event_id}       Single event detail
 Seven MCP servers share the same backend adapter and service layer as the REST API. No logic is duplicated between the two surfaces.
 
 ```bash
-# List tools for a server
 python -m mcp.osa.server --list
-
-# Call a tool directly
 python -m mcp.osa.server --call get_visit_priority \
   --args-json '{"rep_id":"REP-001","territory_code":"WEST-01","visit_date":"2026-06-16"}'
 ```
@@ -273,13 +266,6 @@ Every push runs three GitHub Actions jobs:
 | `frontend` | npm build, Playwright workbench smoke (rep route → store → alerts → summary → feedback) |
 | `public-safety` | Scans for accidental credential markers, absolute machine paths, and internal document references |
 
-```bash
-python scripts/run_eval.py                                    # eval harness
-python scripts/pilot_readiness_report.py --target local       # readiness
-python scripts/pilot_readiness_report.py --target ai-demo     # AI demo gate
-python scripts/pilot_activation_runbook.py --target pilot      # final VSA phase plan
-```
-
 ---
 
 ## Pilot Activation Ladder
@@ -294,11 +280,9 @@ FULL PILOT       Live data adapters, real SSO, real ERP/CRM, Unity Catalog audit
 ```
 
 ```bash
-GET /api/v1/integrations/readiness     # current target status and blockers
-GET /api/v1/integrations/pilot-gap-report?target=pilot
-GET /api/v1/integrations/activation-runbook?target=pilot
-GET /api/v1/integrations/discovery-packet?target=pilot
-GET /api/v1/integrations/ai-demo-activation-pack
+GET /api/v1/integrations/readiness          # current target status and blockers
+python scripts/pilot_readiness_report.py --target local
+python scripts/pilot_readiness_report.py --target ai-demo
 ```
 
 ---
@@ -307,14 +291,10 @@ GET /api/v1/integrations/ai-demo-activation-pack
 
 | Document | Purpose |
 |---|---|
-| [docs/spec-compliance.md](docs/spec-compliance.md) | Implementation posture vs. original brief — built, deferred, remaining |
-| [docs/implementation-continuation-plan.md](docs/implementation-continuation-plan.md) | Chunk order, locked decisions, completed work log |
+| [docs/spec-compliance.md](docs/spec-compliance.md) | Implementation posture — what is built, deferred, and remaining |
 | [docs/spec-corrections.md](docs/spec-corrections.md) | 10 permanent architectural corrections with rationale |
+| [docs/commercial-workflow-explanation.md](docs/commercial-workflow-explanation.md) | End-to-end CPG commercial scenario with interview talking points |
 | [docs/pilot-activation-runbook.md](docs/pilot-activation-runbook.md) | Step-by-step activation gates for each target |
-| [docs/architecture-ontology.md](docs/architecture-ontology.md) | Public-safe ontology, topology, and end-to-end data flow |
-| [docs/infographic-5-unified-platform.md](docs/infographic-5-unified-platform.md) | Full content brief behind the architecture infographic above |
-| [docs/pilot-metrics.md](docs/pilot-metrics.md) | KPI definitions, eval commands, pilot metric queries |
-| [docs/client-discovery.md](docs/client-discovery.md) | Discovery questions required before any live integration activates |
 | [AGENTS.md](AGENTS.md) | Agent gate for AI coding sessions — conventions, locked decisions, safety rules |
 
 ---
@@ -323,21 +303,6 @@ GET /api/v1/integrations/ai-demo-activation-pack
 
 - **No credentials in this repository.** The Databricks bearer token is intentionally absent from `.env.example` and provisioned through an approved secret channel at activation.
 - **Public-safety scan** runs on every push and blocks commits containing credential markers, absolute machine paths, or internal document references.
-- **Mock JWT** is the default auth mode. External JWT with JWKS validation, issuer, audience, and claim mapping is scaffolded behind `AUTH_MODE=external_jwt`, gated on SSO discovery.
 - **Append-only audit trail.** There are no update or delete paths for audit events anywhere in the codebase.
 - **Guardrails before every LLM call.** Pattern check runs unconditionally. External classifier available at threshold 0.85 with configurable fail-closed mode.
-
----
-
-## Repository Conventions
-
-Built under a Spec-Driven Development (SDD) framework:
-
-```
-Spec → Agent Gate (AGENTS.md) → Compliance Tracking → Task Order → Verification
-```
-
-- [`AGENTS.md`](AGENTS.md) is the authoritative gate for every AI coding session — read before any code change
-- [`docs/spec-corrections.md`](docs/spec-corrections.md) records permanent deviations from the original brief with rationale
-- [`docs/spec-compliance.md`](docs/spec-compliance.md) tracks the current implementation posture section by section
-- Every new integration boundary gets a feature flag, a health endpoint, a discovery gate, and a dry-run smoke artifact before any credentialed activation
+- **Mock JWT default.** External JWT with JWKS validation, issuer, audience, and claim mapping is scaffolded behind `AUTH_MODE=external_jwt`, gated on SSO discovery.
