@@ -240,6 +240,38 @@ export type IntegrationReadinessResponse = {
   >;
 };
 
+export type PilotGapReport = {
+  generated_at: string;
+  target: "local" | "ai-demo" | "pilot";
+  ready_for_requested_target: boolean;
+  requested_target_blocker_count: number;
+  gap_count: number;
+  activation_targets: {
+    target: "local" | "ai-demo" | "pilot";
+    ready: boolean;
+    blocker_count: number;
+    blockers: string[];
+  }[];
+  blocking_gaps: {
+    target: "local" | "ai-demo" | "pilot";
+    blocker: string;
+    owner: "delivery+engineering" | "engineering" | "shared";
+    recommended_command_names: string[];
+  }[];
+  recommended_commands: {
+    name: string;
+    command: string;
+    notes: string;
+  }[];
+  roadmap_items: {
+    area: string;
+    owner: "delivery+engineering" | "engineering" | "shared";
+    status: string;
+    next_gate: string;
+  }[];
+  public_safety_notes: string[];
+};
+
 export type DemoRole = "rep" | "manager" | "admin";
 
 export type DemoIdentity = {

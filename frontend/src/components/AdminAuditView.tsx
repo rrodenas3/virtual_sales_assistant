@@ -2,7 +2,8 @@ import { ReadinessPanel } from "./ReadinessPanel";
 import type {
   AdminAuditEventDetailResponse,
   AdminAuditEventsResponse,
-  IntegrationReadinessResponse
+  IntegrationReadinessResponse,
+  PilotGapReport
 } from "../lib/types";
 
 type AuditFilters = {
@@ -13,6 +14,7 @@ type AuditFilters = {
 
 export function AdminAuditView({
   readiness,
+  pilotGapReport,
   adminAudit,
   auditDetail,
   auditFilters,
@@ -20,6 +22,7 @@ export function AdminAuditView({
   onOpenAuditDetail
 }: {
   readiness: IntegrationReadinessResponse | null;
+  pilotGapReport: PilotGapReport | null;
   adminAudit: AdminAuditEventsResponse;
   auditDetail: AdminAuditEventDetailResponse | null;
   auditFilters: AuditFilters;
@@ -28,7 +31,7 @@ export function AdminAuditView({
 }) {
   return (
     <section className="leadershipPane">
-      {readiness && <ReadinessPanel readiness={readiness} variant="admin" />}
+      {readiness && <ReadinessPanel readiness={readiness} pilotGapReport={pilotGapReport} variant="admin" />}
       <div className="sectionHead">
         <div>
           <p className="eyebrow">Audit</p>

@@ -17,6 +17,12 @@ def test_readiness_endpoint_requires_manager_or_admin() -> None:
     assert response.status_code == 403
 
 
+def test_pilot_gap_report_endpoint_requires_manager_or_admin() -> None:
+    with TestClient(app, headers={"Authorization": f"Bearer {REP_001}"}) as client:
+        response = client.get("/api/v1/integrations/pilot-gap-report?target=local")
+    assert response.status_code == 403
+
+
 def test_readiness_reports_default_local_mode() -> None:
     with TestClient(app, headers={"Authorization": f"Bearer {MANAGER}"}) as client:
         response = client.get("/api/v1/integrations/readiness")
@@ -73,6 +79,23 @@ def test_readiness_reports_default_local_mode() -> None:
     assert "AI_DEMO_EVAL_VALIDATED" in evidence["ai-demo"]["required_env_keys"]
     assert "LIVE_DATA_CONTRACT_VALIDATED" in evidence["pilot"]["required_env_keys"]
     assert "pilot-env/pilot_validation.env.snippet" in evidence["pilot"]["required_artifacts"]
+
+
+def test_pilot_gap_report_endpoint_maps_blockers_to_owner_and_commands() -> None:
+    with TestClient(app, headers={"Authorization": f"Bearer {MANAGER}"}) as client:
+        response = client.get("/api/v1/integrations/pilot-gap-report?target=pilot")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["target"] == "pilot"
+    assert body["ready_for_requested_target"] is False
+    assert body["requested_target_blocker_count"] > 0
+    assert body["gap_count"] > 0
+    assert any(gap["owner"] == "engineering" for gap in body["blocking_gaps"])
+    assert any(gap["owner"] == "delivery+engineering" for gap in body["blocking_gaps"])
+    assert any(command["name"] == "ai_summary_eval" for command in body["recommended_commands"])
+    assert any(command["name"] == "live_data_contracts" for command in body["recommended_commands"])
+    assert any(item["area"] == "unity_catalog_audit" for item in body["roadmap_items"])
+    assert body["public_safety_notes"]
 
 
 def test_readiness_reports_live_contract_validation_status(monkeypatch) -> None:

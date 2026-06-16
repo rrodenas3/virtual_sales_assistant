@@ -488,3 +488,37 @@ class IntegrationReadinessResponse(BaseModel):
         Literal["local", "ai-demo", "pilot"],
         ActivationEvidenceManifestOut,
     ] = Field(default_factory=dict)
+
+
+class PilotGapActivationTargetOut(BaseModel):
+    target: Literal["local", "ai-demo", "pilot"]
+    ready: bool
+    blocker_count: int
+    blockers: list[str] = Field(default_factory=list)
+
+
+class PilotBlockingGapOut(BaseModel):
+    target: Literal["local", "ai-demo", "pilot"]
+    blocker: str
+    owner: Literal["delivery+engineering", "engineering", "shared"]
+    recommended_command_names: list[str] = Field(default_factory=list)
+
+
+class PilotRoadmapItemOut(BaseModel):
+    area: str
+    owner: Literal["delivery+engineering", "engineering", "shared"]
+    status: str
+    next_gate: str
+
+
+class PilotGapReportResponse(BaseModel):
+    generated_at: str
+    target: Literal["local", "ai-demo", "pilot"]
+    ready_for_requested_target: bool
+    requested_target_blocker_count: int
+    gap_count: int
+    activation_targets: list[PilotGapActivationTargetOut]
+    blocking_gaps: list[PilotBlockingGapOut]
+    recommended_commands: list[RuntimeValidationCommandOut]
+    roadmap_items: list[PilotRoadmapItemOut]
+    public_safety_notes: list[str]

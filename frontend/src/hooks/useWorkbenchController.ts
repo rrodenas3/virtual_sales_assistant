@@ -15,6 +15,7 @@ import {
   getIntegrationReadiness,
   getManagerTasks,
   getMyManagerTasks,
+  getPilotGapReport,
   getPilotMetrics,
   getRGMRecommendations,
   getStore,
@@ -42,6 +43,7 @@ import type {
   ManagerTask,
   ManagerTaskListResponse,
   OOSAlert,
+  PilotGapReport,
   OrderDraftResponse,
   OSASummaryResponse,
   RGMRecommendationsResponse,
@@ -82,6 +84,7 @@ export function useWorkbenchController() {
   const [territorySummary, setTerritorySummary] = useState<TerritorySummaryResponse | null>(null);
   const [approvalQueue, setApprovalQueue] = useState<ApprovalQueueResponse | null>(null);
   const [readiness, setReadiness] = useState<IntegrationReadinessResponse | null>(null);
+  const [pilotGapReport, setPilotGapReport] = useState<PilotGapReport | null>(null);
   const [managerTasks, setManagerTasks] = useState<ManagerTaskListResponse | null>(null);
   const [myTasks, setMyTasks] = useState<ManagerTaskListResponse | null>(null);
   const [taskNotice, setTaskNotice] = useState<string | null>(null);
@@ -184,9 +187,15 @@ export function useWorkbenchController() {
 
   useEffect(() => {
     if (role !== "manager" && role !== "admin") return;
-    getIntegrationReadiness()
-      .then(setReadiness)
-      .catch(() => setReadiness(null));
+    Promise.all([getIntegrationReadiness(), getPilotGapReport("pilot")])
+      .then(([readinessRows, gapRows]) => {
+        setReadiness(readinessRows);
+        setPilotGapReport(gapRows);
+      })
+      .catch(() => {
+        setReadiness(null);
+        setPilotGapReport(null);
+      });
   }, [role]);
 
   useEffect(() => {
@@ -334,6 +343,7 @@ export function useWorkbenchController() {
     setTerritorySummary(null);
     setApprovalQueue(null);
     setReadiness(null);
+    setPilotGapReport(null);
     setManagerTasks(null);
     setMyTasks(null);
     setTaskNotice(null);
@@ -374,6 +384,7 @@ export function useWorkbenchController() {
     territorySummary,
     approvalQueue,
     readiness,
+    pilotGapReport,
     managerTasks,
     myTasks,
     adminAudit,

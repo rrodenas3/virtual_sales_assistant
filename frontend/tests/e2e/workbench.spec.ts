@@ -499,6 +499,69 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
+  await page.route("**/api/v1/integrations/pilot-gap-report**", async (route) => {
+    await route.fulfill({
+      json: {
+        generated_at: "2026-06-15T00:00:00Z",
+        target: "pilot",
+        ready_for_requested_target: false,
+        requested_target_blocker_count: 3,
+        gap_count: 3,
+        activation_targets: [
+          { target: "local", ready: true, blocker_count: 0, blockers: [] },
+          { target: "ai-demo", ready: false, blocker_count: 1, blockers: ["SUMMARY_PROVIDER must be anthropic for AI-demo readiness"] },
+          { target: "pilot", ready: false, blocker_count: 2, blockers: ["Live data contracts must be validated for pilot readiness", "Unity Catalog audit sink or mirror must be selected for pilot readiness"] }
+        ],
+        blocking_gaps: [
+          {
+            target: "ai-demo",
+            blocker: "SUMMARY_PROVIDER must be anthropic for AI-demo readiness",
+            owner: "engineering",
+            recommended_command_names: ["ai_summary_eval"]
+          },
+          {
+            target: "pilot",
+            blocker: "Live data contracts must be validated for pilot readiness",
+            owner: "delivery+engineering",
+            recommended_command_names: ["live_data_contracts"]
+          },
+          {
+            target: "pilot",
+            blocker: "Unity Catalog audit sink or mirror must be selected for pilot readiness",
+            owner: "delivery+engineering",
+            recommended_command_names: ["unity_audit_smoke"]
+          }
+        ],
+        recommended_commands: [
+          {
+            name: "ai_summary_eval",
+            command: "python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai",
+            notes: "Must pass with the configured approved provider."
+          },
+          {
+            name: "live_data_contracts",
+            command: "python scripts/validate_live_data_contracts.py --output-dir artifacts/contracts/live",
+            notes: "Run only in an approved credentialed environment."
+          },
+          {
+            name: "unity_audit_smoke",
+            command: "python scripts/unity_audit_smoke.py --output-dir artifacts/unity-audit-smoke",
+            notes: "Dry-run parameterized audit insert."
+          }
+        ],
+        roadmap_items: [
+          {
+            area: "live_data",
+            owner: "delivery+engineering",
+            status: "blocked_by_credentials",
+            next_gate: "live_data_contracts"
+          }
+        ],
+        public_safety_notes: ["No secrets, token values, local user paths, or client-confidential identifiers are included."]
+      }
+    });
+  });
+
   await page.route("**/api/v1/admin/audit-events?**", async (route) => {
     await route.fulfill({
       json: {
@@ -725,6 +788,10 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("runtime-commands")).toContainText("pilot_gap_report");
   await expect(page.getByTestId("runtime-commands")).toContainText("validation_suite");
   await expect(page.getByTestId("runtime-commands")).toContainText("6 commands");
+  await expect(page.getByTestId("pilot-gap-summary")).toContainText("pilot gap report");
+  await expect(page.getByTestId("pilot-gap-summary")).toContainText("3 gaps");
+  await expect(page.getByTestId("pilot-gap-summary")).toContainText("delivery+engineering");
+  await expect(page.getByTestId("pilot-gap-summary")).toContainText("live_data_contracts");
   await expect(page.getByTestId("activation-evidence")).toContainText("local evidence");
   await expect(page.getByTestId("activation-evidence")).toContainText("ai_demo_eval");
   await expect(page.getByTestId("activation-evidence")).toContainText("pilot_env_handoff");
@@ -756,6 +823,8 @@ test("admin can review readiness and audit detail", async ({ page }) => {
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("Live data contracts must be validated");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot_readiness");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot gap report");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("unity_audit_smoke");
   await expect(page.getByTestId("activation-evidence")).toContainText("live_data_contracts");
   await expect(page.getByTestId("activation-evidence")).toContainText("4 artifacts");
   await expect(page.getByLabel("pilot required artifacts")).toContainText("pilot-env/pilot_validation.env.snippet");

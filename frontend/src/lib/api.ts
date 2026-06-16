@@ -14,6 +14,7 @@ import type {
   OrderDraftResponse,
   OSASummaryResponse,
   OfflineFeedbackEvent,
+  PilotGapReport,
   PilotMetricsResponse,
   RGMRecommendationsResponse,
   SandboxSubmitResponse,
@@ -222,6 +223,10 @@ export function getPilotMetrics(): Promise<PilotMetricsResponse> {
 
 export function getIntegrationReadiness(): Promise<IntegrationReadinessResponse> {
   return request("/api/v1/integrations/readiness");
+}
+
+export function getPilotGapReport(target: "local" | "ai-demo" | "pilot" = "pilot"): Promise<PilotGapReport> {
+  return request(`/api/v1/integrations/pilot-gap-report?target=${encodeURIComponent(target)}`);
 }
 
 export function getTerritorySummary(): Promise<TerritorySummaryResponse> {

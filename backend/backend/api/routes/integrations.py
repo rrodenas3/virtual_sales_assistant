@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from backend.api.schemas import DiscoveryGateOut, IntegrationReadinessResponse
+from typing import Literal
+
+from backend.api.schemas import DiscoveryGateOut, IntegrationReadinessResponse, PilotGapReportResponse
 from backend.auth.mock_jwt import CurrentUser, get_current_user
 from backend.auth.providers import auth_status
 from backend.config import settings
@@ -11,6 +13,7 @@ from backend.governance.data_platform import data_platform_status
 from backend.governance.discovery import discovery_gates, readiness_blockers, selected_live_modes
 from backend.governance.guardrails import guardrail_status
 from backend.governance.offline_agent import offline_agent_status
+from backend.governance.pilot_gaps import build_gap_report
 from backend.governance.shelf_image import shelf_image_status
 from backend.memory.adapters import memory_status
 from backend.services.audit_sinks import audit_sink_status
@@ -83,3 +86,22 @@ async def integration_readiness(current_user: CurrentUser = Depends(get_current_
         runtime_validation_commands=runtime_validation_command_sets(),
         activation_evidence_manifests=build_evidence_manifest_sets(),
     )
+
+
+@router.get("/pilot-gap-report", response_model=PilotGapReportResponse)
+async def pilot_gap_report(
+    target: Literal["local", "ai-demo", "pilot"] = "local",
+    current_user: CurrentUser = Depends(get_current_user),
+) -> PilotGapReportResponse:
+    if current_user.role not in {"manager", "admin"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Manager or admin role required")
+    blockers = readiness_blockers()
+    summary_status = summary_provider_status()
+    provider_readiness = _provider_readiness()
+    activation_targets = build_activation_targets(
+        discovery_blockers=blockers,
+        provider_blockers=flatten_provider_blockers(provider_readiness),
+        provider_readiness=provider_readiness,
+        summary_status=summary_status,
+    )
+    return PilotGapReportResponse(**build_gap_report(target, [dict(item) for item in activation_targets]))

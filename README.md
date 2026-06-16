@@ -91,6 +91,7 @@ GET  /api/v1/health/memory
 GET  /api/v1/health/offline-agent
 GET  /api/v1/health/shelf-image
 GET  /api/v1/integrations/readiness
+GET  /api/v1/integrations/pilot-gap-report?target=local
 GET  /api/v1/visits/today?territory_code=WEST-01&date=YYYY-MM-DD
 GET  /api/v1/stores/{store_id}
 GET  /api/v1/stores/{store_id}/alerts
