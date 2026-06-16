@@ -8,7 +8,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 |---|---|---|---|
 | Product UX | Field assistant with before/during/after visit support | Workbench-first MVP, chat secondary | Implemented: route workbench, store detail, OOS alerts, RGM/action band, trace drawer |
 | Auth / identity | SSO/CRM-mapped rep identity, unresolved in discovery | Mock JWT with `sub`, `territory_code`, `role`; ignore client rep IDs; validate external JWT after discovery | Implemented: provider boundary, mock JWT, JWKS-backed external JWT validation, auth readiness, rep/store RBAC, unauthorized store access returns `404` |
-| Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active; Databricks/Snowflake parameterized query adapters scaffolded; Snowflake SQL API client contract, public-safe live contract manifest with column/failure examples, validation script, readiness env manifest, and data-platform readiness added for credentialed environments |
+| Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active with exported public-safe demo seed artifacts; Databricks/Snowflake parameterized query adapters scaffolded; Snowflake SQL API client contract, public-safe live contract manifest with column/failure examples, validation script, readiness env manifest, and data-platform readiness added for credentialed environments |
 | Priority scoring | Formula sketched in OSA MCP SQL | Deterministic service formula with explainable components | Implemented and tested |
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
 | Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes; summary routes can use graph routing behind `AGENT_GRAPH_ENABLED` with parity tests |
@@ -141,6 +141,7 @@ python scripts/run_eval.py
 python scripts/pilot_readiness_report.py --target local
 python scripts/readiness_bundle.py --target local --output-dir artifacts/readiness/bundle-local
 python scripts/local_handoff.py --target local --output-dir artifacts/local-handoff
+python scripts/seed_demo_data.py --output-dir artifacts/demo-data
 python scripts/validate_live_data_contracts.py --manifest-only
 python scripts/mcp_smoke.py
 bash ./scripts/public_safety_scan.sh
