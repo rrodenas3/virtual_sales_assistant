@@ -20,6 +20,8 @@ from scripts.readiness_bundle import build_bundle as build_readiness_bundle  # n
 from scripts.readiness_bundle import write_artifacts as write_readiness_bundle_artifacts  # noqa: E402
 from scripts.seed_demo_data import build_demo_seed, validate_manifest as validate_demo_seed_manifest  # noqa: E402
 from scripts.seed_demo_data import write_artifacts as write_demo_seed_artifacts  # noqa: E402
+from scripts.spec_decision_guard import build_report as build_spec_decision_guard_report  # noqa: E402
+from scripts.spec_decision_guard import write_artifacts as write_spec_decision_guard_artifacts  # noqa: E402
 from scripts.validate_api_contract import build_local_contract  # noqa: E402
 from scripts.validate_api_contract import write_artifacts as write_api_contract_artifacts  # noqa: E402
 
@@ -34,6 +36,7 @@ def build_handoff(
     demo_seed = build_demo_seed()
     demo_seed_failures = validate_demo_seed_manifest(demo_seed["manifest"])
     final_api_smoke = build_final_api_smoke_report()
+    spec_decision_guard = build_spec_decision_guard_report()
     local_dev_smoke = (
         build_local_dev_smoke_report()
         if run_local_dev_smoke
@@ -58,6 +61,7 @@ def build_handoff(
         _check("api_contract", api_contract["valid"], _api_contract_detail(api_contract)),
         _check("demo_seed", not demo_seed_failures, _demo_seed_detail(demo_seed["manifest"], demo_seed_failures)),
         _check("final_api_smoke", final_api_smoke["passed"], f"{len(final_api_smoke['checks'])} workflow checks"),
+        _check("spec_decision_guard", spec_decision_guard["passed"], _spec_decision_guard_detail(spec_decision_guard)),
         _check("local_dev_smoke", local_dev_smoke["passed"], _local_dev_smoke_detail(local_dev_smoke)),
         _check("readiness_bundle", readiness_bundle["passed"], f"target={target}"),
         _check("public_safety_scan", public_safety["passed"], public_safety.get("detail", "")),
@@ -71,6 +75,7 @@ def build_handoff(
             "api_contract": "api-contract/api_contract_report.json",
             "demo_seed": "demo-data/demo_seed_manifest.json",
             "final_api_smoke": "final-api-smoke/final_api_smoke.json",
+            "spec_decision_guard": "spec-decision-guard/spec_decision_guard.json",
             "local_dev_smoke": "local-dev-smoke/local_dev_smoke.json",
             "readiness_bundle": "readiness-bundle/readiness_bundle.json",
             "local_handoff": "local_handoff.json",
@@ -79,6 +84,7 @@ def build_handoff(
         "api_contract": api_contract,
         "demo_seed": demo_seed,
         "final_api_smoke": final_api_smoke,
+        "spec_decision_guard": spec_decision_guard,
         "local_dev_smoke": local_dev_smoke,
         "readiness_bundle": readiness_bundle,
         "public_safety_scan": public_safety,
@@ -90,6 +96,7 @@ def write_artifacts(handoff: dict[str, Any], output_dir: Path) -> None:
     write_api_contract_artifacts(handoff["api_contract"], output_dir / "api-contract")
     write_demo_seed_artifacts(handoff["demo_seed"], output_dir / "demo-data")
     write_final_api_smoke_artifacts(handoff["final_api_smoke"], output_dir / "final-api-smoke")
+    write_spec_decision_guard_artifacts(handoff["spec_decision_guard"], output_dir / "spec-decision-guard")
     if handoff["local_dev_smoke"].get("skipped"):
         local_dev_dir = output_dir / "local-dev-smoke"
         local_dev_dir.mkdir(parents=True, exist_ok=True)
@@ -186,6 +193,11 @@ def _local_dev_smoke_detail(report: dict[str, Any]) -> str:
     passed = sum(1 for check in report.get("checks", []) if check.get("passed"))
     total = len(report.get("checks", []))
     return f"{passed}/{total} live dev checks"
+
+
+def _spec_decision_guard_detail(report: dict[str, Any]) -> str:
+    failed = [check["name"] for check in report["checks"] if not check["passed"]]
+    return "all locked decisions enforced" if not failed else f"failed={','.join(failed)}"
 
 
 def _check(name: str, passed: bool, detail: str) -> dict[str, Any]:

@@ -22,11 +22,17 @@ class RuntimeValidationCommand(TypedDict):
 
 
 def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeValidationCommand]:
+    output_dir = f"artifacts/validation-suite/{target}"
     commands: list[RuntimeValidationCommand] = [
         {
             "name": "public_safety_scan",
             "command": "bash ./scripts/public_safety_scan.sh",
             "notes": "Required before sharing or publishing artifacts.",
+        },
+        {
+            "name": "spec_decision_guard",
+            "command": "python scripts/spec_decision_guard.py --output-dir artifacts/spec-decision-guard",
+            "notes": "Verifies corrections #9/#10 remain enforced and forbidden Phase 1 dependencies are absent.",
         },
         {
             "name": "local_readiness",
@@ -142,6 +148,16 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
                 },
             ]
         )
+    validation_command = f"python scripts/validation_suite.py --target {target} --output-dir {output_dir}"
+    if target == "local":
+        validation_command = f"{validation_command} --include-local-dev-smoke"
+    commands.append(
+        {
+            "name": "validation_suite",
+            "command": validation_command,
+            "notes": "Runs the consolidated operator handoff bundle and writes validation_suite.json/md artifacts.",
+        }
+    )
     return commands
 
 

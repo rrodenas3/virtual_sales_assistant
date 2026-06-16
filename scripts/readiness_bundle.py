@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
 from backend.governance.activation import runtime_validation_commands  # noqa: E402
+from scripts.activation_evidence import build_evidence_manifest  # noqa: E402
 from scripts.mcp_smoke import build_report as build_mcp_smoke_report  # noqa: E402
 from scripts.mcp_smoke import write_artifacts as write_mcp_smoke_artifacts  # noqa: E402
 from scripts.ai_demo_eval_evidence import evidence_env_manifest  # noqa: E402
@@ -39,6 +40,7 @@ def build_bundle(target: str) -> dict[str, Any]:
     mcp_smoke = build_mcp_smoke_report()
     commands = runtime_validation_commands(target)
     manifest = build_manifest_payload()
+    evidence_manifest = build_evidence_manifest(target)  # type: ignore[arg-type]
     return {
         "target": target,
         "passed": readiness["passed"] and mcp_smoke["passed"],
@@ -52,6 +54,7 @@ def build_bundle(target: str) -> dict[str, Any]:
         "live_data_contract_manifest": manifest,
         "live_data_readiness_env_manifest": readiness_env_manifest(),
         "ai_demo_readiness_env_manifest": evidence_env_manifest(),
+        "activation_evidence_manifest": evidence_manifest,
         "runtime_validation_commands": commands,
         "required_manual_checks": [
             "Run public-safety scan before publishing or sharing artifacts.",
@@ -144,6 +147,20 @@ def write_artifacts(bundle: dict[str, Any], output_dir: Path) -> None:
         escaped_command = str(command["command"]).replace("|", "\\|")
         escaped_notes = str(command["notes"]).replace("|", "\\|")
         lines.append(f"| {command['name']} | `{escaped_command}` | {escaped_notes} |")
+    lines.extend(
+        [
+            "",
+            "## Activation Evidence",
+            "",
+            "| Section | Artifacts | Env keys | Notes |",
+            "|---|---:|---:|---|",
+        ]
+    )
+    for section in bundle["activation_evidence_manifest"]["sections"]:
+        escaped_notes = str(section["notes"]).replace("|", "\\|")
+        lines.append(
+            f"| {section['name']} | {len(section['artifacts'])} | {len(section['env_keys'])} | {escaped_notes} |"
+        )
     lines.extend(
         [
             "",

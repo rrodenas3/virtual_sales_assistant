@@ -11,7 +11,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active with exported public-safe demo seed artifacts; Databricks/Snowflake parameterized query adapters scaffolded; Snowflake SQL API client contract, public-safe live contract manifest with column/failure examples, validation script, readiness env manifest, and data-platform readiness added for credentialed environments |
 | Priority scoring | Formula sketched in OSA MCP SQL | Deterministic service formula with explainable components | Implemented and tested |
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
-| Agent orchestration | LangGraph multi-agent mesh | Phase 1 deterministic workflow; graph scaffold behind feature flag | Implemented: deterministic graph-style state/nodes; summary routes can use graph routing behind `AGENT_GRAPH_ENABLED` with parity tests |
+| Agent orchestration | LangGraph multi-agent mesh | Phase 1 uses plain async orchestration; LangGraph is not required for pilot readiness per correction #9; Supervisor + Action Agent mesh is Phase 2 scope | Implemented: deterministic graph-style state/nodes with no `langgraph` dependency; `AGENT_GRAPH_ENABLED=false` remains the pilot default; summary routes have parity coverage |
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs; Anthropic SDK provider is config-gated behind deterministic template fallback | Implemented: `SUMMARY_PROVIDER=template|anthropic`, grounded identifier validation, provider metadata in audit |
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services, and CI-backed manifest smoke; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, discovery-gated Mem0 HTTP contract, summary audit metadata, `/health/memory` readiness, and dry-run scoped memory smoke |
@@ -24,11 +24,11 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Shelf image | Image-based shelf recognition MCP | Mock-first image-analysis boundary; external provider only after device/data-residency discovery | Implemented: `POST /stores/{id}/shelf-image-analysis`, `mcp.shelf_image.analyze_shelf_image`, mock grounded findings from OOS alerts, external HTTP adapter scaffold, and shelf-image readiness |
 | Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs, eval artifacts, and thresholded summary endpoint load-test artifacts |
 | Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, OTLP HTTP log export boundary, observability health/readiness, audit mirror failure telemetry |
-| Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented: workbench UI split into role views plus a controller hook for API/offline orchestration; custom feature-flagged `/agent/run` SSE assistant panel; CopilotKit package integration deferred |
+| Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; custom `/agent/run` SSE bridge formally replaces CopilotKit for Phase 1 per correction #10 | Implemented: workbench UI split into role views plus a controller hook for API/offline orchestration; custom feature-flagged `/agent/run` SSE assistant panel; no `@copilotkit/*` dependency required for pilot |
 | Manager view | Manager dashboard with territory overview and manager-initiated work | Add leadership summary, approval queue, readiness, and auditable task workflow before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, `/integrations/readiness`, `/manager/tasks`, `/manager/my-tasks`, `/manager/tasks/{id}/status`, task status filtering, duplicate-open assignment prevention, manager readiness panel, task assignment/cancel, and rep task completion/block controls |
 | Admin console | Governance and audit console | Add audit feed, filters, readiness, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, admin UI mode, and governance readiness panel |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
-| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before managed MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, API contract validation, final API smoke handoff, local handoff artifact bundle with demo seed artifacts, Playwright workbench smoke, local OSA eval harness with optional required-provider gate, MLflow-ready artifact export, dry-run MLflow handoff manifest, generated AI-demo eval evidence env snippet, public-safe pilot validation env handoff, explicit AI-demo eval evidence gate, pilot readiness report with shared activation target blockers, readiness bundle with handoff summary and contract manifest artifacts, frontend build verification, summary provider unit coverage |
+| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before managed MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, API contract validation, final API smoke handoff, local handoff artifact bundle with demo seed artifacts, Playwright workbench smoke, local OSA eval harness with optional required-provider gate, MLflow-ready artifact export, dry-run MLflow handoff manifest, generated AI-demo eval evidence env snippet, public-safe pilot validation env handoff, explicit AI-demo eval evidence gate, target-specific activation evidence manifests, pilot readiness report with shared activation target blockers, readiness bundle with handoff summary and contract manifest artifacts, frontend build verification, summary provider unit coverage, and spec decision guard for corrections #9/#10 |
 
 ## Implemented API Surface
 
@@ -93,10 +93,10 @@ GET  /api/v1/audit/session/{session_id}
 
 These are not accidental gaps; they are deliberate corrections from the revised plan.
 
-- No production LangGraph mesh yet. The graph-style scaffold exists behind a feature flag, and OSA summary routes can opt into graph routing with audited parity coverage. The client-pilot path explicitly defers adding LangGraph dependencies until multi-agent routing adds value beyond current services.
+- No production LangGraph dependency for Phase 1. Correction #9 makes plain async node functions the pilot orchestration layer. The client-pilot path must not add `langgraph`, `AsyncPostgresSaver`, or `StateGraph` until pilot evidence shows durable multi-turn graph state is needed.
 - No active Mem0 memory by default. The memory port exists, `none` is the default provider, and Mem0 is discovery-gated behind token-reference, retention, and scope settings visible through `/health/memory`; dry-run memory smoke validates scoped request shape before credentialed activation.
 - No live Snowflake/Databricks/MCP credentials yet. Current mock adapters enforce the corrected data contract; live adapters build parameterized query statements, Databricks and Snowflake HTTP clients have local payload contracts, `scripts/validate_live_data_contracts.py --manifest-only` emits public-safe column/failure manifests, credentialed validation writes readiness evidence, and `/health/data-platform` exposes selected live-data blockers.
-- No CopilotKit dependency in the core UI. The client-pilot path now uses the custom `/agent/run` SSE assistant panel first and defers CopilotKit package integration.
+- No CopilotKit dependency in the core UI. Correction #10 formally replaces CopilotKit/AG-UI with the custom `/agent/run` SSE assistant panel for Phase 1. `@copilotkit/*` packages are not a spec-compliance gap and should only be reconsidered after an explicit client request for generative UI components.
 - Anthropic summary generation is implemented as a config-gated provider boundary. `template` remains the default, but `/health/ai`, `/integrations/readiness`, AI-demo stage fields, next-action guidance, AI-demo eval evidence fields, and final AI-assistant pilot validation make template-only mode visibly not AI-demo-ready.
 - External guardrail classifier behavior is implemented against an HTTP contract with `GUARDRAIL_CLASSIFIER_BLOCK_THRESHOLD=0.85`; production endpoint selection remains discovery/configuration work and is now visible through `/health/guardrails`, with a dry-run classifier smoke available before credentialed validation.
 - No real ERP submit by default. `submit-sandbox` validates HITL policy and payload hash; external CRM/ERP providers are discovery-gated, disabled unless configured, and visible through `/health/action-providers`.
@@ -110,12 +110,11 @@ Highest priority:
 1. Run `scripts/validate_live_data_contracts.py` against confirmed live view contracts and credentials, then record validation status in readiness settings.
 2. Run `scripts/pilot_readiness_report.py --target ai-demo` with `SUMMARY_PROVIDER=anthropic` before calling the product an AI assistant.
 3. Replace local JSON MCP transport with FastMCP dependency once runtime requirements and data-source credentials are known.
-4. Replace the deterministic graph scaffold with production LangGraph only when multi-agent orchestration adds value beyond current services.
-5. Wire live CRM/ERP submit after discovery gates are answered.
+4. Wire live CRM/ERP submit after discovery gates are answered.
 
 Later:
 
-- CopilotKit remains a later optional UI dependency after the custom SSE assistant panel.
+- Phase 2 Supervisor + Action Agent mesh remains roadmap scope; it should extend the existing plain async/SSE architecture unless pilot evidence justifies a LangGraph dependency.
 - Mem0 workspace provisioning, retention approval, and credentialed smoke tests.
 - Managed MLflow tracking server configuration beyond local MLflow-ready artifact export.
 - Credentialed Unity Catalog audit smoke tests beyond the parameterized insert path.
@@ -142,6 +141,8 @@ python scripts/pilot_readiness_report.py --target local
 python scripts/readiness_bundle.py --target local --output-dir artifacts/readiness/bundle-local
 python scripts/local_handoff.py --target local --output-dir artifacts/local-handoff
 python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke
+python scripts/validation_suite.py --target local --output-dir artifacts/validation-suite
+python scripts/spec_decision_guard.py --output-dir artifacts/spec-decision-guard
 python scripts/seed_demo_data.py --output-dir artifacts/demo-data
 python scripts/validate_live_data_contracts.py --manifest-only
 python scripts/mcp_smoke.py

@@ -54,12 +54,15 @@ def test_readiness_reports_default_local_mode() -> None:
     assert targets["pilot"]["ready"] is False
     assert "Live data contracts must be validated for pilot readiness" in targets["pilot"]["blockers"]
     assert body["runtime_validation_commands"]["local"][0]["name"] == "public_safety_scan"
+    assert body["runtime_validation_commands"]["local"][1]["name"] == "spec_decision_guard"
     assert any(command["name"] == "local_dev_smoke" for command in body["runtime_validation_commands"]["local"])
+    assert body["runtime_validation_commands"]["local"][-1]["name"] == "validation_suite"
     assert any(command["name"] == "summary_load_test" for command in body["runtime_validation_commands"]["ai-demo"])
     assert any(command["name"] == "ai_summary_eval" for command in body["runtime_validation_commands"]["ai-demo"])
     assert any(command["name"] == "mlflow_handoff_dry_run" for command in body["runtime_validation_commands"]["ai-demo"])
     assert any(command["name"] == "ai_demo_eval_evidence" for command in body["runtime_validation_commands"]["ai-demo"])
     assert any(command["name"] == "pilot_readiness" for command in body["runtime_validation_commands"]["pilot"])
+    assert body["runtime_validation_commands"]["pilot"][-1]["name"] == "validation_suite"
 
 
 def test_readiness_reports_live_contract_validation_status(monkeypatch) -> None:

@@ -18,6 +18,7 @@ def test_local_handoff_combines_operator_proof_bundle() -> None:
     assert handoff["api_contract"]["valid"] is True
     assert handoff["demo_seed"]["manifest"]["alert_count"] == 125
     assert handoff["final_api_smoke"]["passed"] is True
+    assert handoff["spec_decision_guard"]["passed"] is True
     assert handoff["local_dev_smoke"]["skipped"] is True
     assert handoff["readiness_bundle"]["passed"] is True
     assert handoff["next_blocking_actions"]
@@ -26,6 +27,7 @@ def test_local_handoff_combines_operator_proof_bundle() -> None:
         "api_contract",
         "demo_seed",
         "final_api_smoke",
+        "spec_decision_guard",
         "local_dev_smoke",
         "readiness_bundle",
         "public_safety_scan",
@@ -64,6 +66,8 @@ def test_local_handoff_writes_nested_artifacts(tmp_path: Path) -> None:
     assert (tmp_path / "demo-data" / "oos_alert_seed.json").exists()
     assert (tmp_path / "final-api-smoke" / "final_api_smoke.json").exists()
     assert (tmp_path / "final-api-smoke" / "final_api_smoke.md").exists()
+    assert (tmp_path / "spec-decision-guard" / "spec_decision_guard.json").exists()
+    assert (tmp_path / "spec-decision-guard" / "spec_decision_guard.md").exists()
     assert (tmp_path / "local-dev-smoke" / "local_dev_smoke.json").exists()
     assert (tmp_path / "local-dev-smoke" / "local_dev_smoke.md").exists()
     assert (tmp_path / "readiness-bundle" / "readiness_bundle.json").exists()
