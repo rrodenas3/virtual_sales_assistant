@@ -103,8 +103,17 @@ payloads are cached in IndexedDB with visible stale timestamps when used.
 ```powershell
 cd frontend
 npm install
-npm run dev
+npm run dev -- --host 127.0.0.1 --port 5173
 ```
+
+Open `http://localhost:5173/`. The Vite dev build unregisters stale service
+workers by default so local PWA cache cannot blank the workbench. To test the
+service worker in dev, set `VITE_ENABLE_SW_IN_DEV=true`; otherwise use
+`npm run build && npm run preview`.
+
+If Chrome still shows a blank page after switching branches, run a hard refresh
+with `Ctrl + Shift + R`. If needed, clear site data for `localhost:5173` in
+DevTools under Application -> Storage.
 
 ## Local MCP Transports
 
