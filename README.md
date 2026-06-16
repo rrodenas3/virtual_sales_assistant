@@ -159,6 +159,12 @@ To generate one consolidated local validation bundle:
 python scripts/validation_suite.py --target local --include-local-dev-smoke --output-dir artifacts/validation-suite
 ```
 
+To run the repo-root pre-push verification gates and write `artifacts/local-verification/local_verification.*`:
+
+```powershell
+python scripts/verify_local.py --include-frontend-e2e
+```
+
 To verify locked architecture decisions stay aligned with the spec corrections:
 
 ```powershell

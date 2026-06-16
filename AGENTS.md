@@ -152,6 +152,15 @@ npx playwright install --with-deps chromium
 
 Run all of these before every commit. CI runs them in the same order.
 
+For a single repo-root runner that records public-safe artifacts:
+
+```powershell
+# From phantom/ (repo root)
+python scripts/verify_local.py --include-frontend-e2e
+```
+
+Use the expanded command list below when debugging a specific failing gate:
+
 ```powershell
 # From phantom/backend/
 python -m ruff check backend tests alembic ../mcp ../scripts
@@ -362,6 +371,7 @@ A task is complete only when all of the following pass locally and in CI.
 - [ ] `python ../scripts/pilot_readiness_report.py --target local` — local scaffold green
 - [ ] `python ../scripts/mcp_smoke.py` — all MCP tools registered
 - [ ] `bash ./scripts/public_safety_scan.sh` — zero findings
+- [ ] `python scripts/verify_local.py --include-frontend-e2e` — repo-root verification artifact generated before push when browser deps are installed
 - [ ] `npm run build` — frontend builds cleanly
 - [ ] `npm run test:e2e` — Playwright smoke passes
 - [ ] `docs/spec-compliance.md` updated if spec posture changed

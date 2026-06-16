@@ -136,6 +136,7 @@ cd ../frontend
 npm run build
 
 cd ..
+python scripts/verify_local.py
 python scripts/run_eval.py
 python scripts/pilot_readiness_report.py --target local
 python scripts/readiness_bundle.py --target local --output-dir artifacts/readiness/bundle-local
