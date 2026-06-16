@@ -219,7 +219,8 @@ button { font: inherit; }
   background: color-mix(in oklch, var(--paper), white 45%);
 }
 .runtimeCommandGroup strong,
-.runtimeCommandGroup span {
+.runtimeCommandGroup span,
+.runtimeCommandGroup code {
   display: block;
 }
 .runtimeCommandGroup strong {
@@ -231,6 +232,17 @@ button { font: inherit; }
   font-size: 0.78rem;
   line-height: 1.35;
   margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+.runtimeCommandGroup code {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--ink), white 92%);
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.72rem;
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 .managerTable, .auditFeed, .approvalQueue, .taskQueue {

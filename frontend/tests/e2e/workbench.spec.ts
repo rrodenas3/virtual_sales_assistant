@@ -290,6 +290,11 @@ test.beforeEach(async ({ page }) => {
               name: "public_safety_scan",
               command: "bash ./scripts/public_safety_scan.sh",
               notes: "Required before sharing or publishing artifacts."
+            },
+            {
+              name: "local_dev_smoke",
+              command: "python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke",
+              notes: "Verifies the running Vite workbench and backend health/route data loop."
             }
           ],
           "ai-demo": [
@@ -546,6 +551,9 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("readiness-panel")).toContainText("ai_summary_eval");
   await expect(page.getByTestId("readiness-panel")).toContainText("ai_demo_eval_evidence");
   await expect(page.getByTestId("readiness-panel")).toContainText("summary_load_test");
+  await expect(page.getByTestId("runtime-commands")).toContainText("local_dev_smoke");
+  await expect(page.getByLabel("local next validation command")).toContainText("bash ./scripts/public_safety_scan.sh");
+  await expect(page.getByLabel("ai-demo next validation command")).toContainText("python scripts/run_eval.py");
   await expect(page.getByText("0 assigned tasks")).toBeVisible();
 
   await page.getByRole("button", { name: "Assign shelf check" }).click();
@@ -570,6 +578,7 @@ test("admin can review readiness and audit detail", async ({ page }) => {
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("Live data contracts must be validated");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot_readiness");
+  await expect(page.getByLabel("pilot next validation command")).toContainText("python scripts/pilot_readiness_report.py");
   await expect(page.getByText("1 recent events")).toBeVisible();
 
   await page.getByRole("button", { name: /osa_summary_created/ }).click();

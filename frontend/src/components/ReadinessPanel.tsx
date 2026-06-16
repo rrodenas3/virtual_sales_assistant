@@ -20,12 +20,19 @@ function RuntimeCommands({ readiness }: { readiness: IntegrationReadinessRespons
   const targets = ["local", "ai-demo", "pilot"] as const;
   return (
     <div className="runtimeCommands" data-testid="runtime-commands">
-      {targets.map((target) => (
-        <div key={target} className="runtimeCommandGroup">
-          <strong>{target}</strong>
-          <span>{readiness.runtime_validation_commands[target].map((command) => command.name).join(", ")}</span>
-        </div>
-      ))}
+      {targets.map((target) => {
+        const commands = readiness.runtime_validation_commands[target];
+        const nextCommand = commands[0];
+        return (
+          <div key={target} className="runtimeCommandGroup">
+            <strong>{target}</strong>
+            <span>{commands.map((command) => command.name).join(", ")}</span>
+            {nextCommand && (
+              <code aria-label={`${target} next validation command`}>{nextCommand.command}</code>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
