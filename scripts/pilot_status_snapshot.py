@@ -17,9 +17,14 @@ from scripts.validate_api_contract import build_local_contract  # noqa: E402
 Target = Literal["local", "ai-demo", "pilot"]
 
 
-def build_snapshot(target: Target) -> dict[str, Any]:
-    bundle = build_bundle(target)
-    api_contract = build_local_contract()
+def build_snapshot(
+    target: Target,
+    *,
+    bundle: dict[str, Any] | None = None,
+    api_contract: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    bundle = bundle or build_bundle(target)
+    api_contract = api_contract or build_local_contract()
     readiness = bundle["pilot_readiness"]
     evidence = bundle["activation_evidence_manifest"]
     runtime_commands = bundle["runtime_validation_commands"]

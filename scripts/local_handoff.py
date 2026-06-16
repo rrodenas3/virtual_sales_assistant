@@ -49,7 +49,11 @@ def build_handoff(
         }
     )
     readiness_bundle = build_readiness_bundle(target)
-    pilot_status_snapshot = build_pilot_status_snapshot(target)  # type: ignore[arg-type]
+    pilot_status_snapshot = build_pilot_status_snapshot(
+        target,  # type: ignore[arg-type]
+        bundle=readiness_bundle,
+        api_contract=api_contract,
+    )
     public_safety = (
         run_public_safety_scan()
         if run_public_safety

@@ -51,6 +51,32 @@ def test_local_handoff_can_include_running_dev_smoke(monkeypatch) -> None:
     )
 
 
+def test_local_handoff_reuses_readiness_and_contract_for_status_snapshot(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_build_pilot_status_snapshot(target: str, *, bundle: dict, api_contract: dict) -> dict:
+        captured["target"] = target
+        captured["bundle"] = bundle
+        captured["api_contract"] = api_contract
+        return {
+            "passed": True,
+            "summary": {
+                "required_route_count": len(api_contract["required_routes"]),
+                "runtime_command_count": len(bundle["runtime_validation_commands"]),
+                "activation_evidence_sections": len(bundle["activation_evidence_manifest"]["sections"]),
+            },
+        }
+
+    monkeypatch.setattr("scripts.local_handoff.build_pilot_status_snapshot", fake_build_pilot_status_snapshot)
+
+    handoff = build_handoff("local", run_public_safety=False)
+
+    assert handoff["passed"] is True
+    assert captured["target"] == "local"
+    assert captured["bundle"] is handoff["readiness_bundle"]
+    assert captured["api_contract"] is handoff["api_contract"]
+
+
 def test_local_handoff_writes_nested_artifacts(tmp_path: Path) -> None:
     handoff = build_handoff("local", run_public_safety=False)
 
