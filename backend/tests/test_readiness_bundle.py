@@ -55,6 +55,7 @@ def test_readiness_bundle_includes_pilot_runtime_commands() -> None:
         "pilot_status_snapshot",
         "pilot_gap_report",
         "pilot_activation_runbook",
+        "ai_demo_activation_pack",
         "ai_demo_readiness",
         "summary_load_test",
         "live_data_contracts",
@@ -81,6 +82,7 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
     assert command_sets["local"][-1]["name"] == "validation_suite"
     assert "--include-local-dev-smoke" in command_sets["local"][-1]["command"]
     assert any(command["name"] == "summary_load_test" for command in command_sets["ai-demo"])
+    assert any(command["name"] == "ai_demo_activation_pack" for command in command_sets["ai-demo"])
     assert any(command["name"] == "ai_summary_eval" for command in command_sets["ai-demo"])
     assert any(command["name"] == "mlflow_handoff_dry_run" for command in command_sets["ai-demo"])
     assert any(command["name"] == "ai_demo_eval_evidence" for command in command_sets["ai-demo"])

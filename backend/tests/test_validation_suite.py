@@ -20,6 +20,7 @@ def test_validation_suite_combines_local_handoff_and_commands() -> None:
     check_names = {check["name"] for check in suite["checks"]}
     assert {
         "api_contract",
+        "ai_demo_activation_pack",
         "demo_seed",
         "discovery_packet",
         "final_api_smoke",
@@ -58,6 +59,7 @@ def test_validation_suite_writes_nested_artifacts(tmp_path: Path) -> None:
     assert "local_dev_smoke" in markdown
     assert (tmp_path / "activation_evidence_manifest.json").exists()
     assert (tmp_path / "local-handoff" / "local_handoff.json").exists()
+    assert (tmp_path / "local-handoff" / "ai-demo-activation-pack" / "ai_demo_activation_pack.json").exists()
     assert (tmp_path / "local-handoff" / "spec-decision-guard" / "spec_decision_guard.json").exists()
     assert (tmp_path / "local-handoff" / "readiness-bundle" / "readiness_bundle.json").exists()
     assert (tmp_path / "local-handoff" / "discovery-packet" / "discovery_packet.json").exists()

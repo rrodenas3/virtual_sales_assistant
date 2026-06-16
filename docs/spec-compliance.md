@@ -16,7 +16,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services, and CI-backed manifest smoke; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, discovery-gated Mem0 HTTP contract, summary audit metadata, `/health/memory` readiness, and dry-run scoped memory smoke |
 | Governance | Guardrails, RBAC, policy, audit | Lightweight governance from Phase 1 | Implemented: RBAC, guardrail provider boundary, guardrail health/readiness gates, read-only policy stub, append-only Postgres audit behind `AuditSink`, audit-sink readiness, parameterized Unity Catalog audit insert path, identifier validation, DDL drift tests, dry-run Unity audit smoke artifacts, and dry-run guardrail classifier smoke |
-| Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness`, `/integrations/pilot-gap-report`, `/integrations/activation-runbook`, `/integrations/discovery-packet`, live-mode gate checks, provider readiness aggregation, local/AI-demo/pilot activation target blockers in UI and handoff artifacts, target runtime command manifest in API/UI/artifacts, activation evidence manifests in API/UI/artifacts, generated pilot gap reports with owner hints and next commands, structured final VSA phase runbook, owner-grouped discovery packet, machine-readable owner model, AI-demo stage/next-action evidence, AI-demo eval evidence status, live data contract validation status fields, and public-safe pilot env handoff |
+| Client discovery gates | Discovery before SSO/data/CRM/ERP integrations | Report and block live modes until required answers exist | Implemented: `/integrations/readiness`, `/integrations/pilot-gap-report`, `/integrations/activation-runbook`, `/integrations/discovery-packet`, `/integrations/ai-demo-activation-pack`, live-mode gate checks, provider readiness aggregation, local/AI-demo/pilot activation target blockers in UI and handoff artifacts, target runtime command manifest in API/UI/artifacts, activation evidence manifests in API/UI/artifacts, generated pilot gap reports with owner hints and next commands, structured final VSA phase runbook, owner-grouped discovery packet, machine-readable owner model, public-safe AI-demo activation pack, AI-demo stage/next-action evidence, AI-demo eval evidence status, live data contract validation status fields, and public-safe pilot env handoff |
 | HITL writes | Human approval before every write | Drafts and approvals only; sandbox submit requires approval/hash match | Implemented and tested |
 | CRM | CRM read/write via MCP | Visit-log drafts only until CRM discovery completes | Implemented: local draft provider default plus discovery-gated external CRM HTTP adapter, action-provider readiness, and dry-run outbound payload smoke |
 | ERP/orders | ERP order submit with approval | Sandbox submit only, no real ERP side effects by default | Implemented: sandbox provider default plus discovery-gated external ERP HTTP adapter, action-provider readiness, and dry-run approval/hash payload smoke |
@@ -49,6 +49,7 @@ GET  /api/v1/integrations/readiness
 GET  /api/v1/integrations/pilot-gap-report?target=local
 GET  /api/v1/integrations/activation-runbook?target=pilot
 GET  /api/v1/integrations/discovery-packet?target=pilot
+GET  /api/v1/integrations/ai-demo-activation-pack
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
 GET  /api/v1/manager/approval-queue?territory_code=WEST-01
@@ -147,6 +148,7 @@ python scripts/pilot_status_snapshot.py --target local --output-dir artifacts/pi
 python scripts/pilot_gap_report.py --target local --output-dir artifacts/pilot-gap-report/local
 python scripts/pilot_activation_runbook.py --target local --output-dir artifacts/pilot-activation-runbook/local
 python scripts/discovery_packet.py --target local --output-dir artifacts/discovery-packet/local
+python scripts/ai_demo_activation_pack.py --output-dir artifacts/ai-demo-activation-pack
 python scripts/local_handoff.py --target local --output-dir artifacts/local-handoff
 python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke
 python scripts/validation_suite.py --target local --output-dir artifacts/validation-suite

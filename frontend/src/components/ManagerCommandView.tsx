@@ -1,5 +1,6 @@
 import { ReadinessPanel } from "./ReadinessPanel";
 import type {
+  AIDemoActivationPack,
   ActivationRunbook,
   ApprovalQueueResponse,
   DiscoveryPacket,
@@ -17,6 +18,7 @@ export function ManagerCommandView({
   pilotGapReport,
   activationRunbook,
   discoveryPacket,
+  aiDemoActivationPack,
   managerTasks,
   approvalQueue,
   onOpenStore,
@@ -29,6 +31,7 @@ export function ManagerCommandView({
   pilotGapReport: PilotGapReport | null;
   activationRunbook: ActivationRunbook | null;
   discoveryPacket: DiscoveryPacket | null;
+  aiDemoActivationPack: AIDemoActivationPack | null;
   managerTasks: ManagerTaskListResponse | null;
   approvalQueue: ApprovalQueueResponse | null;
   onOpenStore: (row: TerritoryStoreSummary) => void;
@@ -44,6 +47,7 @@ export function ManagerCommandView({
           pilotGapReport={pilotGapReport}
           activationRunbook={activationRunbook}
           discoveryPacket={discoveryPacket}
+          aiDemoActivationPack={aiDemoActivationPack}
           variant="manager"
         />
       )}

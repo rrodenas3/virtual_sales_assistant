@@ -1,4 +1,10 @@
-import type { ActivationRunbook, DiscoveryPacket, IntegrationReadinessResponse, PilotGapReport } from "../lib/types";
+import type {
+  AIDemoActivationPack,
+  ActivationRunbook,
+  DiscoveryPacket,
+  IntegrationReadinessResponse,
+  PilotGapReport
+} from "../lib/types";
 
 const TARGETS = ["local", "ai-demo", "pilot"] as const;
 
@@ -126,6 +132,38 @@ function AIDemoEvidence({ readiness }: { readiness: IntegrationReadinessResponse
   );
 }
 
+function AIDemoActivationSummary({ pack }: { pack: AIDemoActivationPack }) {
+  const visibleChecks = pack.config_checks.slice(0, 6);
+  return (
+    <div className="aiDemoPack" data-testid="ai-demo-activation-pack">
+      <div className="runtimeCommandGroup__top">
+        <strong>AI demo activation</strong>
+        <span>{pack.ready ? "ready" : `${pack.blockers.length} blockers`}</span>
+      </div>
+      <small>{pack.stage} / {pack.summary_provider} / {pack.summary_model_id}</small>
+      <div className="aiDemoPackGrid">
+        <div>
+          <div className="commandChips">
+            {visibleChecks.map((check) => (
+              <span key={check.name} className={check.ready ? "commandChip--ready" : ""}>
+                {check.name}
+              </span>
+            ))}
+          </div>
+          {pack.next_actions[0] && <small>{pack.next_actions[0]}</small>}
+        </div>
+        <div>
+          <ul className="evidenceList evidenceList--env" aria-label="ai demo required commands">
+            {pack.required_commands.slice(0, 4).map((command) => (
+              <li key={command.name}>{command.name}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PilotGapSummary({ report }: { report: PilotGapReport }) {
   const owners = Array.from(new Set(report.blocking_gaps.map((gap) => gap.owner)));
   const topGaps = report.blocking_gaps.slice(0, 4);
@@ -225,12 +263,14 @@ export function ReadinessPanel({
   pilotGapReport,
   activationRunbook,
   discoveryPacket,
+  aiDemoActivationPack,
   variant
 }: {
   readiness: IntegrationReadinessResponse;
   pilotGapReport: PilotGapReport | null;
   activationRunbook: ActivationRunbook | null;
   discoveryPacket: DiscoveryPacket | null;
+  aiDemoActivationPack: AIDemoActivationPack | null;
   variant: "manager" | "admin";
 }) {
   const readinessOwnerSummary = discoveryOwnerSummary(readiness);
@@ -271,6 +311,7 @@ export function ReadinessPanel({
           ))}
         </div>
       )}
+      {aiDemoActivationPack && <AIDemoActivationSummary pack={aiDemoActivationPack} />}
       {pilotGapReport && <PilotGapSummary report={pilotGapReport} />}
       {activationRunbook && <ActivationRunbookSummary runbook={activationRunbook} />}
       {discoveryPacket && <DiscoveryPacketSummary packet={discoveryPacket} />}

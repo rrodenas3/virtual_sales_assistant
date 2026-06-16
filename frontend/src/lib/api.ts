@@ -3,6 +3,7 @@ import type {
   AdminAuditEventsResponse,
   AdminAuditEventDetailResponse,
   AgentRunEvent,
+  AIDemoActivationPack,
   ActivationRunbook,
   ApprovalQueueResponse,
   ApprovalResponse,
@@ -286,6 +287,10 @@ export function getActivationRunbook(target: "local" | "ai-demo" | "pilot" = "pi
 
 export function getDiscoveryPacket(target: "local" | "ai-demo" | "pilot" = "pilot"): Promise<DiscoveryPacket> {
   return request(`/api/v1/integrations/discovery-packet?target=${encodeURIComponent(target)}`);
+}
+
+export function getAIDemoActivationPack(): Promise<AIDemoActivationPack> {
+  return request("/api/v1/integrations/ai-demo-activation-pack");
 }
 
 export function getTerritorySummary(): Promise<TerritorySummaryResponse> {

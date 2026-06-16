@@ -62,6 +62,7 @@ Required command:
 python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai
 python scripts/log_eval_to_mlflow.py --artifact-dir artifacts/eval-ai --experiment-name phantom-vsa-evals --dry-run --output-dir artifacts/eval-ai
 python scripts/ai_demo_eval_evidence.py --artifact-dir artifacts/eval-ai --output-dir artifacts/eval-ai
+python scripts/ai_demo_activation_pack.py --output-dir artifacts/ai-demo-activation-pack
 python scripts/pilot_readiness_report.py --target ai-demo --output-dir artifacts/readiness/ai-demo
 ```
 
@@ -74,6 +75,7 @@ Exit gate:
 - P95 summary latency remains below `5000 ms`.
 - `scripts/load_test.py` passes against the configured backend and writes load-test artifacts.
 - AI-demo eval artifacts exist: `ai_demo_eval_evidence.json`, `ai_demo_eval_env.json`, and `ai_demo_eval.env.snippet`.
+- AI-demo activation pack artifacts exist: `ai_demo_activation_pack.json` and `ai_demo_activation_pack.md`; they report token-reference presence only, never secret values.
 - When testing external identity, `LOAD_TEST_BEARER_TOKEN` is supplied from the approved runtime environment and is not written into artifacts.
 
 ## Phase 2: Live Data Contract Readiness
