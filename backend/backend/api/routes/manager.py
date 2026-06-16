@@ -207,6 +207,7 @@ async def create_manager_task(
 @router.get("/tasks", response_model=ManagerTaskListResponse)
 async def manager_tasks(
     territory_code: str,
+    task_status: str | None = Query(default=None, alias="status", pattern="^(OPEN|COMPLETED|BLOCKED|CANCELLED)$"),
     current_user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     osa: OSADataPort = Depends(get_osa_adapter),
@@ -214,12 +215,13 @@ async def manager_tasks(
     if current_user.role not in {"manager", "admin"}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Manager role required")
     assert_territory_access(current_user, territory_code)
+    statement = select(ManagerTask).where(ManagerTask.territory_code == territory_code)
+    if task_status is not None:
+        statement = statement.where(ManagerTask.status == task_status)
     rows = list(
         (
             await db.execute(
-                select(ManagerTask)
-                .where(ManagerTask.territory_code == territory_code)
-                .order_by(ManagerTask.created_at.desc())
+                statement.order_by(ManagerTask.created_at.desc())
             )
         ).scalars()
     )
@@ -233,18 +235,20 @@ async def manager_tasks(
 
 @router.get("/my-tasks", response_model=ManagerTaskListResponse)
 async def my_manager_tasks(
+    task_status: str | None = Query(default=None, alias="status", pattern="^(OPEN|COMPLETED|BLOCKED|CANCELLED)$"),
     current_user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     osa: OSADataPort = Depends(get_osa_adapter),
 ) -> ManagerTaskListResponse:
     if current_user.role != "rep":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Rep role required")
+    statement = select(ManagerTask).where(ManagerTask.assigned_rep_id == current_user.rep_id)
+    if task_status is not None:
+        statement = statement.where(ManagerTask.status == task_status)
     rows = list(
         (
             await db.execute(
-                select(ManagerTask)
-                .where(ManagerTask.assigned_rep_id == current_user.rep_id)
-                .order_by(ManagerTask.created_at.desc())
+                statement.order_by(ManagerTask.created_at.desc())
             )
         ).scalars()
     )

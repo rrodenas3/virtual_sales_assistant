@@ -137,6 +137,10 @@ def test_manager_can_create_task_and_rep_can_read_assignment() -> None:
         matching_tasks = [row for row in listed.json()["tasks"] if row["title"] == title]
         assert [row["task_id"] for row in matching_tasks].count(task["task_id"]) == 1
 
+        open_listed = manager.get("/api/v1/manager/tasks?territory_code=WEST-01&status=OPEN")
+        assert open_listed.status_code == 200
+        assert any(row["task_id"] == task["task_id"] for row in open_listed.json()["tasks"])
+
         audit = manager.get("/api/v1/audit/session/manager_task_test")
         assert audit.status_code == 200
         assert any(event["event_type"] == "manager_task_created" for event in audit.json()["events"])
@@ -146,6 +150,10 @@ def test_manager_can_create_task_and_rep_can_read_assignment() -> None:
         assert mine.status_code == 200
         assert any(row["task_id"] == task["task_id"] for row in mine.json()["tasks"])
 
+        open_mine = rep.get("/api/v1/manager/my-tasks?status=OPEN")
+        assert open_mine.status_code == 200
+        assert any(row["task_id"] == task["task_id"] for row in open_mine.json()["tasks"])
+
         completed = rep.post(
             f"/api/v1/manager/tasks/{task['task_id']}/status",
             json={"status": "COMPLETED", "session_id": "manager_task_complete", "notes": "Shelf verified."},
@@ -153,6 +161,14 @@ def test_manager_can_create_task_and_rep_can_read_assignment() -> None:
         assert completed.status_code == 200
         assert completed.json()["status"] == "COMPLETED"
         assert completed.json()["audit_event_id"]
+
+        open_after_completion = rep.get("/api/v1/manager/my-tasks?status=OPEN")
+        assert open_after_completion.status_code == 200
+        assert all(row["task_id"] != task["task_id"] for row in open_after_completion.json()["tasks"])
+
+        completed_mine = rep.get("/api/v1/manager/my-tasks?status=COMPLETED")
+        assert completed_mine.status_code == 200
+        assert any(row["task_id"] == task["task_id"] for row in completed_mine.json()["tasks"])
 
         forbidden = rep.post(
             f"/api/v1/manager/tasks/{task['task_id']}/status",

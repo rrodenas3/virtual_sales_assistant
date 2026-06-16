@@ -283,7 +283,7 @@ export type ManagerTask = {
   task_type: "shelf_check" | "follow_up" | "promo_check" | "order_review";
   priority: "low" | "medium" | "high";
   due_date: string | null;
-  status: string;
+  status: "OPEN" | "COMPLETED" | "BLOCKED" | "CANCELLED";
   payload_json: {
     notes?: string | null;
     linked_alert_ids?: string[];

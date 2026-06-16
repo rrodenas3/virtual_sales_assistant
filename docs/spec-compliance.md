@@ -25,7 +25,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Metrics/KPIs | Phase gates for precision, latency, hallucination, trace completeness, cost | Add pilot metrics endpoint and SQL docs | Implemented: `/metrics/pilot`, cost telemetry, docs, eval artifacts, and thresholded summary endpoint load-test artifacts |
 | Observability | LangSmith/OpenTelemetry tracing | Structured logs first; vendor tracing later | Implemented: request IDs, response timing, structured HTTP events, OTLP HTTP log export boundary, observability health/readiness, audit mirror failure telemetry |
 | Frontend stack | React + Tailwind + CopilotKit/AG-UI | React/Vite workbench; no CopilotKit dependency for core workflow | Implemented: workbench UI; custom feature-flagged `/agent/run` SSE assistant panel; CopilotKit package integration deferred |
-| Manager view | Manager dashboard with territory overview and manager-initiated work | Add leadership summary, approval queue, readiness, and auditable task workflow before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, `/integrations/readiness`, `/manager/tasks`, `/manager/my-tasks`, `/manager/tasks/{id}/status`, manager readiness panel, task assignment/cancel, and rep task completion/block controls |
+| Manager view | Manager dashboard with territory overview and manager-initiated work | Add leadership summary, approval queue, readiness, and auditable task workflow before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, `/integrations/readiness`, `/manager/tasks`, `/manager/my-tasks`, `/manager/tasks/{id}/status`, task status filtering, duplicate-open assignment prevention, manager readiness panel, task assignment/cancel, and rep task completion/block controls |
 | Admin console | Governance and audit console | Add audit feed, filters, readiness, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, admin UI mode, and governance readiness panel |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
 | Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before managed MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, API contract validation, final API smoke handoff, Playwright workbench smoke, local OSA eval harness with optional required-provider gate, MLflow-ready artifact export, dry-run MLflow handoff manifest, generated AI-demo eval evidence env snippet, public-safe pilot validation env handoff, explicit AI-demo eval evidence gate, pilot readiness report with shared activation target blockers, readiness bundle, frontend build verification, summary provider unit coverage |
@@ -50,8 +50,8 @@ GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
 GET  /api/v1/manager/approval-queue?territory_code=WEST-01
 POST /api/v1/manager/tasks
-GET  /api/v1/manager/tasks?territory_code=WEST-01
-GET  /api/v1/manager/my-tasks
+GET  /api/v1/manager/tasks?territory_code=WEST-01&status=OPEN
+GET  /api/v1/manager/my-tasks?status=OPEN
 POST /api/v1/manager/tasks/{task_id}/status
 GET  /api/v1/admin/audit-events?event_type=&rep_id=&resource_type=&limit=&cursor=
 GET  /api/v1/admin/audit-events/{event_id}

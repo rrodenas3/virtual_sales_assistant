@@ -254,7 +254,7 @@ export function App() {
 
   useEffect(() => {
     if (role !== "rep") return;
-    getMyManagerTasks()
+    getMyManagerTasks("OPEN")
       .then(setMyTasks)
       .catch(() => setMyTasks(null));
   }, [role]);
@@ -376,7 +376,7 @@ export function App() {
     const updated = await updateManagerTaskStatus(task.task_id, status, buildSessionId("manager_work_status"));
     setTaskNotice(`${updated.title} marked ${updated.status.toLowerCase()}`);
     if (role === "manager") setManagerTasks(await getManagerTasks());
-    if (role === "rep") setMyTasks(await getMyManagerTasks());
+    if (role === "rep") setMyTasks(await getMyManagerTasks("OPEN"));
   }
 
   async function openAuditDetail(eventId: string) {

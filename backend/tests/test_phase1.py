@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from fastapi.testclient import TestClient
 
 from backend.main import app
@@ -115,14 +117,15 @@ def test_osa_summary_is_grounded_and_rejects_unknown_alerts() -> None:
 
 
 def test_shelf_image_analysis_is_grounded_and_audited() -> None:
+    session_id = f"shelf-session-{uuid4()}"
     with authorized_client() as c:
         alert = c.get("/api/v1/stores/ST-001/alerts").json()["alerts"][0]
         response = c.post(
             "/api/v1/stores/ST-001/shelf-image-analysis",
             json={
                 "store_id": "ST-001",
-                "session_id": "shelf-session",
-                "image_ref": "upload://shelf-session/image-1",
+                "session_id": session_id,
+                "image_ref": f"upload://{session_id}/image-1",
                 "alert_ids": [alert["alert_id"]],
             },
         )
@@ -133,7 +136,7 @@ def test_shelf_image_analysis_is_grounded_and_audited() -> None:
         assert body["source_system"] == "mock"
         assert body["audit_event_id"]
 
-        audit = c.get("/api/v1/audit/session/shelf-session")
+        audit = c.get(f"/api/v1/audit/session/{session_id}")
         assert audit.status_code == 200
-        event = next(event for event in audit.json()["events"] if event["event_type"] == "shelf_image_analysis_created")
+        event = next(event for event in audit.json()["events"] if event["event_id"] == body["audit_event_id"])
         assert event["payload_json"]["grounded_alert_ids"] == [alert["alert_id"]]

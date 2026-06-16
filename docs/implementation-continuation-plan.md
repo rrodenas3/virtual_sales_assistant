@@ -104,6 +104,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - CRM/ERP write-back activation now has a dry-run action provider smoke artifact that verifies outbound request shape, approval ID, and payload-hash binding without live endpoints.
 - Guardrail classifier activation now has a dry-run smoke artifact covering below-threshold allow, threshold block, and fail-open pattern fallback behavior.
 - Memory activation now has a dry-run smoke artifact covering default no-memory mode plus scoped Mem0 read/write payloads.
+- Manager task APIs now support explicit status filtering, duplicate open assignment prevention, and the rep workbench requests only actionable open tasks while hiding terminal task history.
 
 ## Deferred Spec Areas
 

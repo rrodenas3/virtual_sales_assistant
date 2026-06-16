@@ -160,7 +160,7 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
-  await page.route("**/api/v1/manager/my-tasks", async (route) => {
+  await page.route("**/api/v1/manager/my-tasks**", async (route) => {
     await route.fulfill({ json: { assigned_rep_id: "REP-001", tasks: [] } });
   });
 
@@ -396,8 +396,9 @@ test("rep can review route, generate summary, and submit alert feedback", async 
 });
 
 test("rep assigned work hides completed and cancelled task history", async ({ page }) => {
-  await page.unroute("**/api/v1/manager/my-tasks");
-  await page.route("**/api/v1/manager/my-tasks", async (route) => {
+  await page.unroute("**/api/v1/manager/my-tasks**");
+  await page.route("**/api/v1/manager/my-tasks**", async (route) => {
+    expect(new URL(route.request().url()).searchParams.get("status")).toBe("OPEN");
     await route.fulfill({
       json: {
         assigned_rep_id: "REP-001",
