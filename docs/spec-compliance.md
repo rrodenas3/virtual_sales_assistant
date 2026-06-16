@@ -28,7 +28,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Manager view | Manager dashboard with territory overview and manager-initiated work | Add leadership summary, approval queue, readiness, and auditable task workflow before full dashboard | Implemented: `/manager/territory-summary`, `/manager/approval-queue`, `/integrations/readiness`, `/manager/tasks`, `/manager/my-tasks`, `/manager/tasks/{id}/status`, task status filtering, duplicate-open assignment prevention, manager readiness panel, task assignment/cancel, and rep task completion/block controls |
 | Admin console | Governance and audit console | Add audit feed, filters, readiness, and detail before full admin console | Implemented: filtered `/admin/audit-events`, detail endpoint, admin UI mode, and governance readiness panel |
 | Migrations | Alembic migrations implied in repo structure | Add deployable migration scaffold and stop production auto-DDL | Implemented: Alembic `0001_initial`; startup auto-create is local/test only |
-| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before managed MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, API contract validation for routes, query params, and critical response fields, final API smoke handoff with readiness payload semantics, local handoff artifact bundle with demo seed artifacts, Playwright workbench smoke, local OSA eval harness with optional required-provider gate, MLflow-ready artifact export, dry-run MLflow handoff manifest, generated AI-demo eval evidence env snippet, public-safe pilot validation env handoff, explicit AI-demo eval evidence gate, target-specific activation evidence manifests, pilot readiness report with shared activation target blockers, readiness bundle with handoff summary and contract manifest artifacts, frontend build verification, summary provider unit coverage, and spec decision guard for corrections #9/#10 |
+| Tests/eval | MLflow eval and agent tests | API/service tests first; local eval harness before managed MLflow | Implemented: backend tests, visits -> store -> alerts -> feedback -> audit smoke path, full pilot API contract validation for routes/query params/critical response fields, final API smoke handoff with readiness payload semantics, local handoff artifact bundle with demo seed artifacts, Playwright workbench smoke, local OSA eval harness with optional required-provider gate, MLflow-ready artifact export, dry-run MLflow handoff manifest, generated AI-demo eval evidence env snippet, public-safe pilot validation env handoff, public-safe pilot status snapshot, explicit AI-demo eval evidence gate, target-specific activation evidence manifests, pilot readiness report with shared activation target blockers, readiness bundle with handoff summary and contract manifest artifacts, frontend build verification, summary provider unit coverage, and spec decision guard for corrections #9/#10 |
 
 ## Implemented API Surface
 
@@ -136,9 +136,11 @@ cd ../frontend
 npm run build
 
 cd ..
+python scripts/verify_local.py
 python scripts/run_eval.py
 python scripts/pilot_readiness_report.py --target local
 python scripts/readiness_bundle.py --target local --output-dir artifacts/readiness/bundle-local
+python scripts/pilot_status_snapshot.py --target local --output-dir artifacts/pilot-status/local
 python scripts/local_handoff.py --target local --output-dir artifacts/local-handoff
 python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke
 python scripts/validation_suite.py --target local --output-dir artifacts/validation-suite

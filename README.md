@@ -10,7 +10,7 @@ This repo currently implements the secure OSA pilot slice:
 - deterministic visit priority scoring
 - deterministic OOS alert actions and confidence labels
 - grounded OSA summaries
-- feature-flagged agent run SSE bridge for future AG-UI/CopilotKit wiring
+- feature-flagged custom agent run SSE bridge replacing CopilotKit for Phase 1
 - append-only audit events
 - alert feedback capture
 - React workbench UI
@@ -23,7 +23,7 @@ This repo currently implements the secure OSA pilot slice:
 - structured request telemetry with request IDs and response timing
 - feature-flagged graph-style agent scaffold with parity tests
 - feature-flagged graph routing for grounded OSA summaries
-- memory provider scaffold with null default and fail-closed Mem0 placeholder
+- memory provider scaffold with null default and discovery-gated Mem0 HTTP contract
 - IndexedDB route, store, alert, and RGM cache for offline read fallback
 - client discovery readiness gate for live integrations
 - Alembic migration scaffold
@@ -31,13 +31,30 @@ This repo currently implements the secure OSA pilot slice:
 - parameterized Databricks/Snowflake query adapter scaffolds
 - mock-backed MCP tool functions with local JSON transport
 - manager territory summary
+- manager task assignment and status transitions
 - admin audit event feed
+- integration readiness targets and activation evidence manifests
+- shelf-image analysis boundary with mock default and external-provider readiness gates
+- consolidated local handoff and validation-suite artifacts
 - frontend demo role switcher for rep / manager / admin
 
 See [docs/spec-compliance.md](docs/spec-compliance.md) for the current correlation between
 the original MVP brief, the revised hybrid plan, and this implementation.
 See [docs/architecture-ontology.md](docs/architecture-ontology.md) for the public-safe system
 architecture, ontology, and step-by-step flow.
+
+## Documentation Map
+
+| Document | Use it for |
+|---|---|
+| [docs/spec-compliance.md](docs/spec-compliance.md) | Current spec posture, intentional deviations, remaining work |
+| [docs/implementation-continuation-plan.md](docs/implementation-continuation-plan.md) | Chunk order, locked decisions, completed continuation work |
+| [docs/spec-corrections.md](docs/spec-corrections.md) | Permanent corrections that override the original MVP brief |
+| [docs/pilot-activation-runbook.md](docs/pilot-activation-runbook.md) | Local, AI-demo, and final pilot activation gates |
+| [docs/architecture-ontology.md](docs/architecture-ontology.md) | Public-safe ontology, topology, architecture, and flow |
+| [docs/infographic-5-unified-platform.md](docs/infographic-5-unified-platform.md) | Unified platform visual brief grounded in the implementation |
+| [docs/pilot-metrics.md](docs/pilot-metrics.md) | KPI definitions, eval/load-test commands, and pilot metric queries |
+| [docs/client-discovery.md](docs/client-discovery.md) | Delivery-owned client discovery questions before live integrations |
 
 ## Local Backend
 
@@ -62,11 +79,23 @@ Phase 1:
 
 ```text
 GET  /api/v1/health
+GET  /api/v1/health/db
 GET  /api/v1/health/observability
+GET  /api/v1/health/ai
+GET  /api/v1/health/auth
+GET  /api/v1/health/data-platform
+GET  /api/v1/health/action-providers
+GET  /api/v1/health/audit-sink
+GET  /api/v1/health/guardrails
+GET  /api/v1/health/memory
+GET  /api/v1/health/offline-agent
+GET  /api/v1/health/shelf-image
 GET  /api/v1/integrations/readiness
 GET  /api/v1/visits/today?territory_code=WEST-01&date=YYYY-MM-DD
 GET  /api/v1/stores/{store_id}
 GET  /api/v1/stores/{store_id}/alerts
+GET  /api/v1/stores/{store_id}/rgm-recommendations
+POST /api/v1/stores/{store_id}/shelf-image-analysis
 POST /api/v1/alerts/{alert_id}/feedback
 POST /api/v1/agent/osa-summary
 POST /api/v1/agent/run
@@ -76,7 +105,6 @@ GET  /api/v1/audit/session/{session_id}
 Phase 2 foundation:
 
 ```text
-GET  /api/v1/stores/{store_id}/rgm-recommendations
 POST /api/v1/orders/drafts
 GET  /api/v1/orders/drafts/{draft_id}
 POST /api/v1/approvals/{draft_id}/approve
@@ -87,12 +115,17 @@ POST /api/v1/sync/feedback-events
 GET  /api/v1/metrics/pilot
 GET  /api/v1/manager/territory-summary?territory_code=WEST-01
 GET  /api/v1/manager/approval-queue?territory_code=WEST-01
+POST /api/v1/manager/tasks
+GET  /api/v1/manager/tasks?territory_code=WEST-01&status=OPEN
+GET  /api/v1/manager/my-tasks?status=OPEN
+POST /api/v1/manager/tasks/{task_id}/status
 GET  /api/v1/admin/audit-events?event_type=&rep_id=&resource_type=&limit=&cursor=
 GET  /api/v1/admin/audit-events/{event_id}
 ```
 
-Order drafts are still pilot artifacts. There is no ERP submission endpoint yet.
-The sandbox submit endpoint enforces approval and payload-hash matching, but does not call a real ERP.
+Order drafts are still pilot artifacts. The sandbox submit endpoint enforces approval
+and payload-hash matching, but does not call a real ERP. External CRM/ERP providers are
+discovery-gated and default to local/sandbox behavior.
 
 The frontend stores failed/offline feedback submissions in `localStorage` and syncs them through
 `/api/v1/sync/feedback-events` when the browser returns online. Route, store, alert, and RGM read
@@ -127,6 +160,18 @@ To generate one consolidated local validation bundle:
 python scripts/validation_suite.py --target local --include-local-dev-smoke --output-dir artifacts/validation-suite
 ```
 
+To run the repo-root pre-push verification gates and write `artifacts/local-verification/local_verification.*`:
+
+```powershell
+python scripts/verify_local.py --include-frontend-e2e
+```
+
+To generate a compact public-safe pilot status snapshot:
+
+```powershell
+python scripts/pilot_status_snapshot.py --target local --output-dir artifacts/pilot-status/local
+```
+
 To verify locked architecture decisions stay aligned with the spec corrections:
 
 ```powershell
@@ -142,7 +187,8 @@ python -m mcp.osa.server --list
 python -m mcp.osa.server --call get_visit_priority --args-json '{"rep_id":"REP-001","territory_code":"WEST-01","visit_date":"2026-06-14"}'
 ```
 
-`docker-compose.yml` includes one local MCP service per domain: OSA, store master, RGM, orders, and CRM.
+`docker-compose.yml` includes one local MCP service per domain: OSA, store master,
+RGM, orders, CRM, shelf image, and manager tasks.
 
 ## CI
 

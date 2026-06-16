@@ -11,46 +11,11 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
+from backend.api.contract import PILOT_ROUTE_SIGNATURES, REQUIRED_RESPONSE_FIELDS  # noqa: E402
 from backend.main import app  # noqa: E402
 
 
-REQUIRED_ROUTES = {
-    "GET /api/v1/health",
-    "GET /api/v1/integrations/readiness",
-    "GET /api/v1/manager/territory-summary?territory_code=WEST-01",
-    "GET /api/v1/manager/approval-queue?territory_code=WEST-01",
-    "GET /api/v1/manager/tasks?territory_code=WEST-01&status=OPEN",
-    "GET /api/v1/manager/my-tasks?status=OPEN",
-    "POST /api/v1/manager/tasks",
-    "POST /api/v1/manager/tasks/{task_id}/status",
-    "POST /api/v1/agent/osa-summary",
-    "POST /api/v1/agent/run",
-}
-
-REQUIRED_RESPONSE_FIELDS = {
-    "IntegrationReadinessResponse": {
-        "activation_evidence_manifests",
-        "activation_targets",
-        "ai_demo_eval_validated",
-        "ai_demo_next_actions",
-        "provider_readiness",
-        "runtime_validation_commands",
-        "summary_provider",
-    },
-    "ActivationEvidenceManifestOut": {
-        "required_artifacts",
-        "required_env_keys",
-        "sections",
-        "target",
-    },
-    "ActivationEvidenceSectionOut": {
-        "artifacts",
-        "env_keys",
-        "name",
-        "notes",
-        "required_for",
-    },
-}
+REQUIRED_ROUTES = set(PILOT_ROUTE_SIGNATURES)
 
 
 def build_local_contract() -> dict[str, Any]:

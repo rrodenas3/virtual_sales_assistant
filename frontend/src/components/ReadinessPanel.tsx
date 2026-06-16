@@ -1,5 +1,13 @@
 import type { IntegrationReadinessResponse } from "../lib/types";
 
+const TARGETS = ["local", "ai-demo", "pilot"] as const;
+
+function previewList(values: string[], visibleCount: number): string[] {
+  if (values.length <= visibleCount) return values;
+  const headCount = Math.max(visibleCount - 1, 1);
+  return [...values.slice(0, headCount), values[values.length - 1]];
+}
+
 function ActivationTargets({ readiness }: { readiness: IntegrationReadinessResponse }) {
   return (
     <div className="activationTargets" data-testid="activation-targets">
@@ -17,18 +25,28 @@ function ActivationTargets({ readiness }: { readiness: IntegrationReadinessRespo
 }
 
 function RuntimeCommands({ readiness }: { readiness: IntegrationReadinessResponse }) {
-  const targets = ["local", "ai-demo", "pilot"] as const;
   return (
     <div className="runtimeCommands" data-testid="runtime-commands">
-      {targets.map((target) => {
+      {TARGETS.map((target) => {
         const commands = readiness.runtime_validation_commands[target];
         const nextCommand = commands[0];
         return (
           <div key={target} className="runtimeCommandGroup">
-            <strong>{target}</strong>
-            <span>{commands.map((command) => command.name).join(", ")}</span>
+            <div className="runtimeCommandGroup__top">
+              <strong>{target}</strong>
+              <span>{commands.length} commands</span>
+            </div>
+            <div className="commandChips">
+              {commands.slice(0, 5).map((command) => (
+                <span key={command.name}>{command.name}</span>
+              ))}
+              {commands.length > 5 && <span>+{commands.length - 5}</span>}
+            </div>
             {nextCommand && (
-              <code aria-label={`${target} next validation command`}>{nextCommand.command}</code>
+              <>
+                <small>next {nextCommand.name}</small>
+                <code aria-label={`${target} next validation command`}>{nextCommand.command}</code>
+              </>
             )}
           </div>
         );
@@ -38,20 +56,40 @@ function RuntimeCommands({ readiness }: { readiness: IntegrationReadinessRespons
 }
 
 function ActivationEvidence({ readiness }: { readiness: IntegrationReadinessResponse }) {
-  const targets = ["local", "ai-demo", "pilot"] as const;
   return (
     <div className="activationEvidenceGrid" data-testid="activation-evidence">
-      {targets.map((target) => {
+      {TARGETS.map((target) => {
         const manifest = readiness.activation_evidence_manifests[target];
+        const artifacts = previewList(manifest.required_artifacts, 3);
+        const envKeys = previewList(manifest.required_env_keys, 4);
         return (
           <div key={target} className="activationEvidenceGroup">
-            <strong>{target} evidence</strong>
-            <span>
-              {manifest.sections.map((section) => section.name).join(", ")}
-            </span>
+            <div className="runtimeCommandGroup__top">
+              <strong>{target} evidence</strong>
+              <span>{manifest.sections.length} sections</span>
+            </div>
+            <div className="commandChips">
+              {manifest.sections.map((section) => (
+                <span key={section.name}>{section.name}</span>
+              ))}
+            </div>
             <small>
               {manifest.required_artifacts.length} artifacts / {manifest.required_env_keys.length} env keys
             </small>
+            {artifacts.length > 0 && (
+              <ul className="evidenceList" aria-label={`${target} required artifacts`}>
+                {artifacts.map((artifact) => (
+                  <li key={artifact}>{artifact}</li>
+                ))}
+              </ul>
+            )}
+            {envKeys.length > 0 && (
+              <ul className="evidenceList evidenceList--env" aria-label={`${target} required env keys`}>
+                {envKeys.map((envKey) => (
+                  <li key={envKey}>{envKey}</li>
+                ))}
+              </ul>
+            )}
           </div>
         );
       })}

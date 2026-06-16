@@ -297,6 +297,16 @@ test.beforeEach(async ({ page }) => {
               notes: "Verifies the running Vite workbench and backend health/route data loop."
             },
             {
+              name: "local_verification",
+              command: "python scripts/verify_local.py --include-frontend-e2e --output-dir artifacts/local-verification",
+              notes: "Repo-root pre-push gate covering lint, tests, eval, readiness, MCP smoke, frontend build, Playwright smoke, and public safety."
+            },
+            {
+              name: "pilot_status_snapshot",
+              command: "python scripts/pilot_status_snapshot.py --target local --output-dir artifacts/pilot-status/local",
+              notes: "Writes a public-safe readiness/API/evidence snapshot for operator handoff."
+            },
+            {
               name: "validation_suite",
               command: "python scripts/validation_suite.py --target local --output-dir artifacts/validation-suite/local --include-local-dev-smoke",
               notes: "Runs the consolidated operator handoff bundle."
@@ -695,10 +705,15 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("readiness-panel")).toContainText("ai_demo_eval_evidence");
   await expect(page.getByTestId("readiness-panel")).toContainText("summary_load_test");
   await expect(page.getByTestId("runtime-commands")).toContainText("local_dev_smoke");
+  await expect(page.getByTestId("runtime-commands")).toContainText("local_verification");
+  await expect(page.getByTestId("runtime-commands")).toContainText("pilot_status_snapshot");
   await expect(page.getByTestId("runtime-commands")).toContainText("validation_suite");
+  await expect(page.getByTestId("runtime-commands")).toContainText("5 commands");
   await expect(page.getByTestId("activation-evidence")).toContainText("local evidence");
   await expect(page.getByTestId("activation-evidence")).toContainText("ai_demo_eval");
   await expect(page.getByTestId("activation-evidence")).toContainText("pilot_env_handoff");
+  await expect(page.getByTestId("activation-evidence")).toContainText("local-handoff/local_handoff.json");
+  await expect(page.getByLabel("ai-demo required env keys")).toContainText("AI_DEMO_EVAL_VALIDATED");
   await expect(page.getByLabel("local next validation command")).toContainText("bash ./scripts/public_safety_scan.sh");
   await expect(page.getByLabel("ai-demo next validation command")).toContainText("python scripts/run_eval.py");
   await expect(page.getByText("0 assigned tasks")).toBeVisible();
@@ -727,6 +742,8 @@ test("admin can review readiness and audit detail", async ({ page }) => {
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot_readiness");
   await expect(page.getByTestId("activation-evidence")).toContainText("live_data_contracts");
   await expect(page.getByTestId("activation-evidence")).toContainText("4 artifacts");
+  await expect(page.getByLabel("pilot required artifacts")).toContainText("pilot-env/pilot_validation.env.snippet");
+  await expect(page.getByLabel("pilot required env keys")).toContainText("LIVE_DATA_CONTRACT_VALIDATED");
   await expect(page.getByLabel("pilot next validation command")).toContainText("python scripts/pilot_readiness_report.py");
   await expect(page.getByText("1 recent events")).toBeVisible();
 

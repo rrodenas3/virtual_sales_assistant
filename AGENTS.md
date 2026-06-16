@@ -17,6 +17,8 @@ that spec and recorded in the docs listed below.
 | `docs/implementation-continuation-plan.md` | Chunk order, critical rules, locked decisions, completed additions |
 | `docs/spec-corrections.md` | Permanent overrides to the original spec — these win over the spec text |
 | `docs/pilot-activation-runbook.md` | How readiness gates work and what blocks each activation target |
+| `docs/architecture-ontology.md` | Public-safe architecture, ontology, topology, and step-by-step flow |
+| `docs/infographic-5-unified-platform.md` | Public-safe unified platform visual brief grounded in implementation details |
 
 If a spec area you are about to implement is not the next chunk in
 `implementation-continuation-plan.md`, stop and confirm before proceeding.
@@ -120,7 +122,7 @@ phantom/
 │
 ├── infra/databricks/audit_table_ddl.sql ← Unity Catalog DDL (not yet live)
 ├── scripts/                             ← eval, readiness, smoke, handoff scripts
-└── docs/                                ← planning, compliance, corrections, runbooks
+└── docs/                                ← planning, compliance, corrections, runbooks, visual briefs
 ```
 
 ---
@@ -149,6 +151,15 @@ npx playwright install --with-deps chromium
 ## Verification Commands
 
 Run all of these before every commit. CI runs them in the same order.
+
+For a single repo-root runner that records public-safe artifacts:
+
+```powershell
+# From phantom/ (repo root)
+python scripts/verify_local.py --include-frontend-e2e
+```
+
+Use the expanded command list below when debugging a specific failing gate:
 
 ```powershell
 # From phantom/backend/
@@ -360,6 +371,7 @@ A task is complete only when all of the following pass locally and in CI.
 - [ ] `python ../scripts/pilot_readiness_report.py --target local` — local scaffold green
 - [ ] `python ../scripts/mcp_smoke.py` — all MCP tools registered
 - [ ] `bash ./scripts/public_safety_scan.sh` — zero findings
+- [ ] `python scripts/verify_local.py --include-frontend-e2e` — repo-root verification artifact generated before push when browser deps are installed
 - [ ] `npm run build` — frontend builds cleanly
 - [ ] `npm run test:e2e` — Playwright smoke passes
 - [ ] `docs/spec-compliance.md` updated if spec posture changed

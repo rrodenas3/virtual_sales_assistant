@@ -10,6 +10,12 @@ from scripts.validate_api_contract import REQUIRED_ROUTES, _contract_from_routes
 from scripts.validate_api_contract import build_local_contract  # noqa: E402
 
 
+def test_api_index_and_validator_share_pilot_route_contract() -> None:
+    from backend.api.contract import PILOT_ROUTE_SIGNATURES  # noqa: PLC0415
+
+    assert REQUIRED_ROUTES == set(PILOT_ROUTE_SIGNATURES)
+
+
 def test_local_api_contract_contains_pilot_routes() -> None:
     contract = build_local_contract()
 
@@ -21,6 +27,10 @@ def test_local_api_contract_contains_pilot_routes() -> None:
     assert "GET /api/v1/integrations/readiness" in contract["required_routes"]
     assert "GET /api/v1/manager/approval-queue?territory_code=WEST-01" in REQUIRED_ROUTES
     assert "GET /api/v1/manager/my-tasks?status=OPEN" in REQUIRED_ROUTES
+    assert "GET /api/v1/admin/audit-events?event_type=&rep_id=&resource_type=&limit=&cursor=" in REQUIRED_ROUTES
+    assert "GET /api/v1/stores/{store_id}/alerts?limit=50&cursor=&min_risk_score=0.7" in REQUIRED_ROUTES
+    assert "POST /api/v1/orders/drafts/{draft_id}/submit-sandbox" in REQUIRED_ROUTES
+    assert len(REQUIRED_ROUTES) >= 35
     assert "activation_evidence_manifests" in contract["required_response_fields"]["IntegrationReadinessResponse"]
 
 
@@ -37,6 +47,7 @@ def test_api_contract_writes_handoff_artifacts(tmp_path: Path) -> None:
     assert "Missing required response fields: `none`" in markdown
     assert "## Available Routes" in markdown
     assert "GET /api/v1/manager/tasks?status&territory_code" in markdown
+    assert "GET /api/v1/admin/audit-events?cursor&event_type&limit&rep_id&resource_type" in markdown
 
 
 def test_api_contract_failure_artifact_lists_missing_detail(tmp_path: Path) -> None:
@@ -49,6 +60,7 @@ def test_api_contract_failure_artifact_lists_missing_detail(tmp_path: Path) -> N
     assert "## Failure Detail" in markdown
     assert "### Missing Routes" in markdown
     assert "POST /api/v1/agent/run" in markdown
+    assert "GET /api/v1/stores/{store_id}/alerts?limit=50&cursor=&min_risk_score=0.7" in markdown
     assert "### Missing Response Fields" in markdown
     assert "IntegrationReadinessResponse.activation_evidence_manifests" in markdown
     assert "## Available Routes" in markdown

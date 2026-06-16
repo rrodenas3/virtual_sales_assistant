@@ -59,6 +59,19 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
             "command": "python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke",
             "notes": "Verifies the running Vite workbench and backend health/route data loop after both dev servers start.",
         },
+        {
+            "name": "local_verification",
+            "command": "python scripts/verify_local.py --include-frontend-e2e --output-dir artifacts/local-verification",
+            "notes": (
+                "Repo-root pre-push gate covering lint, tests, eval, readiness, MCP smoke, frontend build, "
+                "Playwright smoke, and public safety."
+            ),
+        },
+        {
+            "name": "pilot_status_snapshot",
+            "command": f"python scripts/pilot_status_snapshot.py --target {target} --output-dir artifacts/pilot-status/{target}",
+            "notes": "Writes a public-safe readiness/API/evidence snapshot for operator handoff.",
+        },
     ]
     if target in {"ai-demo", "pilot"}:
         commands.extend(
