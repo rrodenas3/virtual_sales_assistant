@@ -37,6 +37,17 @@ This plan continues the MVP from the current public repository state. It hardens
 - LangGraph remains behind a feature flag until parity tests pass.
 - Offline route, alert, store, and RGM cache should use IndexedDB; feedback idempotency remains tied to authenticated identity.
 
+## SDD Agent Gate
+
+`AGENTS.md` and `CLAUDE.md` now exist at the repo root. Every new agent session (Codex
+or Claude Code) reads these files before touching any source file. The gate encodes all
+conventions, locked decisions, deferred technology, permanent spec corrections, public
+safety rules, and the per-task done checklist. A thin redirect `AGENTS.md` also exists
+one level above the repo root for agents launched from that directory.
+
+Whenever a locked decision changes or a deferred technology is activated, update
+`AGENTS.md` in the same commit as the code change.
+
 ## Completed Continuation Additions
 
 - Local MCP JSON transport and Compose wiring are implemented for OSA, store master, RGM, CRM, and orders.
@@ -121,7 +132,8 @@ This plan continues the MVP from the current public repository state. It hardens
 
 - LLM library: official `anthropic` Python SDK.
 - Pilot model setting: `ANTHROPIC_MODEL=claude-haiku-4-5`, configurable by environment.
-- LangGraph: defer production dependency; keep current graph-style scaffold as a parity/migration harness.
-- CopilotKit: defer for pilot; use the existing custom `/agent/run` SSE bridge first.
+- LangGraph: not a required dependency for Phase 1 (spec correction #9). Keep `AGENT_GRAPH_ENABLED=false`. Activate only after pilot data shows durable multi-turn graph state is needed.
+- CopilotKit: permanently replaced by the custom `/agent/run` SSE bridge for Phase 1 (spec correction #10). Do not install `@copilotkit/*` packages unless the client explicitly requests generative UI components.
+- Multi-agent mesh (Supervisor + Action Agent): Phase 2 scope. The deterministic rule engine handles routing for Phase 1. Single LLM call for OSA grounding is the agent layer for the pilot.
 - Real AI gate: pilot validation must run the summary eval path once with `SUMMARY_PROVIDER=anthropic` and record `AI_DEMO_EVAL_VALIDATED=true`; template-only pilot mode is not sufficient for AI-assistant validation.
 - Client discovery owner: delivery owns platform answers and approved secret provisioning; engineering owns readiness gates, validation scripts, and adapter code.
