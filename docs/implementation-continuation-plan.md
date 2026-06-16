@@ -117,6 +117,7 @@ Whenever a locked decision changes or a deferred technology is activated, update
 - Memory activation now has a dry-run smoke artifact covering default no-memory mode plus scoped Mem0 read/write payloads.
 - Manager task APIs now support explicit status filtering, duplicate open assignment prevention, and the rep workbench requests only actionable open tasks while hiding terminal task history.
 - API contract validation now checks required query parameter names for local FastAPI routes, including manager task status filters, instead of only checking path presence.
+- Validation suite and readiness bundles now include target-specific activation evidence manifests, so local, AI-demo, and pilot handoffs list the required public-safe artifacts and env evidence keys in one place.
 
 ## Deferred Spec Areas
 

@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
 from backend.governance.activation import runtime_validation_commands  # noqa: E402
+from scripts.activation_evidence import build_evidence_manifest  # noqa: E402
 from scripts.local_handoff import build_handoff, write_artifacts as write_handoff_artifacts  # noqa: E402
 
 Target = Literal["local", "ai-demo", "pilot"]
@@ -30,6 +31,7 @@ def build_suite(
     )
     readiness = handoff["readiness_bundle"]["pilot_readiness"]
     commands = runtime_validation_commands(target)
+    evidence_manifest = build_evidence_manifest(target)
     suite_command = next(command for command in commands if command["name"] == "validation_suite")
     return {
         "generated_at": datetime.now(UTC).isoformat(),
@@ -41,10 +43,12 @@ def build_suite(
         "checks": handoff["checks"],
         "activation_targets": readiness["activation_targets"],
         "runtime_validation_commands": commands,
+        "activation_evidence_manifest": evidence_manifest,
         "next_blocking_actions": handoff["next_blocking_actions"],
         "artifacts": {
             "validation_suite": "validation_suite.json",
             "local_handoff": "local-handoff/local_handoff.json",
+            "activation_evidence_manifest": "activation_evidence_manifest.json",
             **{f"local_handoff_{name}": f"local-handoff/{path}" for name, path in handoff["artifacts"].items()},
         },
         "local_handoff": handoff,
@@ -54,6 +58,10 @@ def build_suite(
 def write_artifacts(suite: dict[str, Any], output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     write_handoff_artifacts(suite["local_handoff"], output_dir / "local-handoff")
+    (output_dir / "activation_evidence_manifest.json").write_text(
+        json.dumps(suite["activation_evidence_manifest"], indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
     (output_dir / "validation_suite.json").write_text(
         json.dumps(suite, indent=2, sort_keys=True),
         encoding="utf-8",
@@ -106,6 +114,20 @@ def _markdown(suite: dict[str, Any]) -> str:
     for command in suite["runtime_validation_commands"]:
         escaped = str(command["command"]).replace("|", "\\|")
         lines.append(f"| {command['name']} | `{escaped}` |")
+    lines.extend(
+        [
+            "",
+            "## Activation Evidence",
+            "",
+            "| Section | Required artifacts | Env keys | Notes |",
+            "|---|---:|---:|---|",
+        ]
+    )
+    for section in suite["activation_evidence_manifest"]["sections"]:
+        notes = str(section["notes"]).replace("|", "\\|")
+        lines.append(
+            f"| {section['name']} | {len(section['artifacts'])} | {len(section['env_keys'])} | {notes} |"
+        )
     lines.extend(["", "## Next Blocking Actions", ""])
     lines.extend(f"- {action}" for action in suite["next_blocking_actions"])
     lines.extend(["", "## Artifacts", ""])

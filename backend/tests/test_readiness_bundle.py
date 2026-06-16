@@ -20,6 +20,8 @@ def test_readiness_bundle_combines_local_safe_artifacts() -> None:
     assert "contracts" in bundle["live_data_contract_manifest"]
     assert "failure_examples" in bundle["live_data_contract_manifest"]
     assert "LIVE_DATA_CONTRACT_VALIDATED" in bundle["live_data_readiness_env_manifest"]
+    assert bundle["activation_evidence_manifest"]["target"] == "local"
+    assert bundle["activation_evidence_manifest"]["sections"][0]["name"] == "local_scaffold"
     command_names = {command["name"] for command in bundle["runtime_validation_commands"]}
     assert command_names == {
         "public_safety_scan",
@@ -86,6 +88,7 @@ def test_readiness_bundle_writes_handoff_artifacts(tmp_path) -> None:
     assert "## Handoff Summary" in bundle_md
     assert "## Activation Targets" in bundle_md
     assert "## Runtime Validation Commands" in bundle_md
+    assert "## Activation Evidence" in bundle_md
     assert "public_safety_scan" in bundle_md
     assert "## Live Data Readiness Env" in bundle_md
     assert "`LIVE_DATA_CONTRACT_VALIDATED`" in bundle_md
