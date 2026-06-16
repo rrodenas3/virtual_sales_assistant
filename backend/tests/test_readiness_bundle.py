@@ -13,9 +13,12 @@ def test_readiness_bundle_combines_local_safe_artifacts() -> None:
 
     assert bundle["target"] == "local"
     assert bundle["passed"] is True
+    assert bundle["handoff_summary"]["target"] == "local"
+    assert bundle["handoff_summary"]["next_blocking_actions"]
     assert bundle["pilot_readiness"]["passed"] is True
     assert bundle["mcp_smoke"]["server_count"] == 7
     assert "contracts" in bundle["live_data_contract_manifest"]
+    assert "failure_examples" in bundle["live_data_contract_manifest"]
     assert "LIVE_DATA_CONTRACT_VALIDATED" in bundle["live_data_readiness_env_manifest"]
     command_names = {command["name"] for command in bundle["runtime_validation_commands"]}
     assert command_names == {"public_safety_scan", "local_readiness", "api_contract", "final_api_smoke"}
@@ -64,6 +67,7 @@ def test_readiness_bundle_writes_handoff_artifacts(tmp_path) -> None:
     assert json.loads((tmp_path / "readiness_bundle.json").read_text(encoding="utf-8"))["passed"] is True
     bundle_md = (tmp_path / "readiness_bundle.md").read_text(encoding="utf-8")
     assert bundle_md.startswith("# Readiness Bundle")
+    assert "## Handoff Summary" in bundle_md
     assert "## Activation Targets" in bundle_md
     assert "## Runtime Validation Commands" in bundle_md
     assert "public_safety_scan" in bundle_md
@@ -75,3 +79,4 @@ def test_readiness_bundle_writes_handoff_artifacts(tmp_path) -> None:
     assert (tmp_path / "readiness" / "pilot_readiness_report.json").exists()
     assert (tmp_path / "mcp" / "mcp_smoke_report.json").exists()
     assert (tmp_path / "contracts" / "live_data_contract_manifest.json").exists()
+    assert (tmp_path / "contracts" / "live_data_contract_manifest.md").exists()

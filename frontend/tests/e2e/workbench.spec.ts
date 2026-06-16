@@ -499,6 +499,12 @@ test("app exposes PWA manifest and registers service worker", async ({ browser }
   const manifest = await manifestResponse.json();
   expect(manifest.display).toBe("standalone");
   expect(manifest.icons[0].src).toBe("/pwa-icon.svg");
+  const policyResponse = await page.request.get("/offline-cache-policy.json");
+  expect(policyResponse.ok()).toBeTruthy();
+  const policy = await policyResponse.json();
+  const apiPolicy = policy.policies.find((row: { scope: string }) => row.scope === "api");
+  expect(apiPolicy.strategy).toBe("network-only");
+  expect(apiPolicy.writes_cached).toBe(false);
 
   const registrationState = await page.evaluate(async () => {
     if (!("serviceWorker" in navigator)) return "unsupported";
@@ -506,6 +512,21 @@ test("app exposes PWA manifest and registers service worker", async ({ browser }
     return registration.active?.scriptURL.endsWith("/sw.js") ? "registered" : "missing";
   });
   expect(registrationState).toBe("registered");
+  const runtimePolicy = await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.ready;
+    return await new Promise<Record<string, unknown>>((resolve, reject) => {
+      const timeout = window.setTimeout(() => reject(new Error("Timed out waiting for cache policy")), 2000);
+      navigator.serviceWorker.addEventListener("message", function onMessage(event) {
+        if (event.data?.type !== "PHANTOM_CACHE_POLICY") return;
+        window.clearTimeout(timeout);
+        navigator.serviceWorker.removeEventListener("message", onMessage);
+        resolve(event.data.policy);
+      });
+      registration.active?.postMessage({ type: "PHANTOM_CACHE_POLICY" });
+    });
+  });
+  expect(runtimePolicy.api).toBe("network-only");
+  expect(runtimePolicy.writes_cached).toBe(false);
   await context.close();
 });
 

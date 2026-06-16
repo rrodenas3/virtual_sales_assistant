@@ -29,7 +29,7 @@ REQUIRED_ROUTES = {
 
 
 def build_local_contract() -> dict[str, Any]:
-    routes = sorted(_route_signature(route) for route in app.routes if hasattr(route, "methods"))
+    routes = sorted(_openapi_route_signatures(app.openapi()))
     return _contract_from_routes(routes, source="local_app")
 
 
@@ -80,22 +80,29 @@ def _contract_from_routes(routes: list[str], source: str) -> dict[str, Any]:
         "valid": not missing and not missing_query_params,
         "source": source,
         "route_count": len(routes),
+        "available_routes": routes,
         "required_routes": sorted(REQUIRED_ROUTES),
         "missing_required_routes": missing,
         "missing_required_query_params": missing_query_params,
     }
 
 
-def _route_signature(route: Any) -> str:
-    methods = sorted(method for method in route.methods if method not in {"HEAD", "OPTIONS"})
-    method = methods[0] if methods else "GET"
-    dependant = getattr(route, "dependant", None)
-    query_params = sorted(
-        getattr(param, "alias", None) or getattr(param, "name", "")
-        for param in getattr(dependant, "query_params", [])
-    )
-    query = f"?{'&'.join(query_params)}" if query_params else ""
-    return f"{method} {route.path}{query}"
+def _openapi_route_signatures(schema: dict[str, Any]) -> list[str]:
+    signatures: list[str] = []
+    for path, path_item in schema.get("paths", {}).items():
+        if not isinstance(path_item, dict):
+            continue
+        for method, operation in path_item.items():
+            if method.upper() not in {"GET", "POST", "PUT", "PATCH", "DELETE"}:
+                continue
+            query_params = sorted(
+                str(param.get("name"))
+                for param in operation.get("parameters", [])
+                if isinstance(param, dict) and param.get("in") == "query" and param.get("name")
+            )
+            query = f"?{'&'.join(query_params)}" if query_params else ""
+            signatures.append(f"{method.upper()} {path}{query}")
+    return signatures
 
 
 def _normalize_route(route: str) -> str:
