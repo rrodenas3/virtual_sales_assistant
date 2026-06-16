@@ -14,6 +14,7 @@ def test_validation_suite_combines_local_handoff_and_commands() -> None:
 
     assert suite["target"] == "local"
     assert suite["passed"] is True
+    assert suite["suite_command"].startswith("python scripts/validation_suite.py --target local")
     assert suite["public_safety_ran"] is False
     assert suite["local_handoff"]["passed"] is True
     check_names = {check["name"] for check in suite["checks"]}
@@ -26,6 +27,7 @@ def test_validation_suite_combines_local_handoff_and_commands() -> None:
         "public_safety_scan",
     } <= check_names
     assert any(command["name"] == "local_dev_smoke" for command in suite["runtime_validation_commands"])
+    assert suite["runtime_validation_commands"][-1]["name"] == "validation_suite"
     assert suite["activation_targets"][0]["target"] == "local"
 
 
@@ -37,6 +39,7 @@ def test_validation_suite_writes_nested_artifacts(tmp_path: Path) -> None:
     assert json.loads((tmp_path / "validation_suite.json").read_text(encoding="utf-8"))["passed"] is True
     markdown = (tmp_path / "validation_suite.md").read_text(encoding="utf-8")
     assert markdown.startswith("# Validation Suite")
+    assert "Suite command" in markdown
     assert "## Runtime Validation Commands" in markdown
     assert "local_dev_smoke" in markdown
     assert (tmp_path / "local-handoff" / "local_handoff.json").exists()

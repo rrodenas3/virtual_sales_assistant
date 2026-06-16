@@ -28,6 +28,7 @@ def test_readiness_bundle_combines_local_safe_artifacts() -> None:
         "demo_seed",
         "final_api_smoke",
         "local_dev_smoke",
+        "validation_suite",
     }
     assert bundle["required_manual_checks"]
 
@@ -45,6 +46,7 @@ def test_readiness_bundle_includes_pilot_runtime_commands() -> None:
         "summary_load_test",
         "live_data_contracts",
         "pilot_readiness",
+        "validation_suite",
     } <= command_names
 
 
@@ -57,6 +59,8 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
     assert any(command["name"] == "demo_seed" for command in command_sets["local"])
     assert any(command["name"] == "final_api_smoke" for command in command_sets["local"])
     assert any(command["name"] == "local_dev_smoke" for command in command_sets["local"])
+    assert command_sets["local"][-1]["name"] == "validation_suite"
+    assert "--include-local-dev-smoke" in command_sets["local"][-1]["command"]
     assert any(command["name"] == "summary_load_test" for command in command_sets["ai-demo"])
     assert any(command["name"] == "ai_summary_eval" for command in command_sets["ai-demo"])
     assert any(command["name"] == "mlflow_handoff_dry_run" for command in command_sets["ai-demo"])
@@ -67,6 +71,7 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
     assert any(command["name"] == "guardrail_classifier_smoke" for command in command_sets["pilot"])
     assert any(command["name"] == "memory_provider_smoke" for command in command_sets["pilot"])
     assert any(command["name"] == "pilot_env_handoff" for command in command_sets["pilot"])
+    assert command_sets["pilot"][-1]["name"] == "validation_suite"
 
 
 def test_readiness_bundle_writes_handoff_artifacts(tmp_path) -> None:

@@ -22,6 +22,7 @@ class RuntimeValidationCommand(TypedDict):
 
 
 def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeValidationCommand]:
+    output_dir = f"artifacts/validation-suite/{target}"
     commands: list[RuntimeValidationCommand] = [
         {
             "name": "public_safety_scan",
@@ -142,6 +143,16 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
                 },
             ]
         )
+    validation_command = f"python scripts/validation_suite.py --target {target} --output-dir {output_dir}"
+    if target == "local":
+        validation_command = f"{validation_command} --include-local-dev-smoke"
+    commands.append(
+        {
+            "name": "validation_suite",
+            "command": validation_command,
+            "notes": "Runs the consolidated operator handoff bundle and writes validation_suite.json/md artifacts.",
+        }
+    )
     return commands
 
 

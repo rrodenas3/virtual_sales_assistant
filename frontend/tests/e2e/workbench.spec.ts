@@ -295,6 +295,11 @@ test.beforeEach(async ({ page }) => {
               name: "local_dev_smoke",
               command: "python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke",
               notes: "Verifies the running Vite workbench and backend health/route data loop."
+            },
+            {
+              name: "validation_suite",
+              command: "python scripts/validation_suite.py --target local --output-dir artifacts/validation-suite/local --include-local-dev-smoke",
+              notes: "Runs the consolidated operator handoff bundle."
             }
           ],
           "ai-demo": [
@@ -317,6 +322,11 @@ test.beforeEach(async ({ page }) => {
               name: "summary_load_test",
               command: "python scripts/load_test.py --base-url http://localhost:8000 --requests 50 --concurrency 10 --threshold-p95-ms 5000 --output-dir artifacts/load/summary",
               notes: "Set LOAD_TEST_BEARER_TOKEN only in the approved runtime environment when validating external identity."
+            },
+            {
+              name: "validation_suite",
+              command: "python scripts/validation_suite.py --target ai-demo --output-dir artifacts/validation-suite/ai-demo",
+              notes: "Runs the consolidated AI-demo handoff bundle."
             }
           ],
           pilot: [
@@ -324,6 +334,11 @@ test.beforeEach(async ({ page }) => {
               name: "pilot_readiness",
               command: "python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/readiness/pilot",
               notes: "Final gate after approved decisions."
+            },
+            {
+              name: "validation_suite",
+              command: "python scripts/validation_suite.py --target pilot --output-dir artifacts/validation-suite/pilot",
+              notes: "Runs the consolidated pilot handoff bundle."
             }
           ]
         }
@@ -552,6 +567,7 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("readiness-panel")).toContainText("ai_demo_eval_evidence");
   await expect(page.getByTestId("readiness-panel")).toContainText("summary_load_test");
   await expect(page.getByTestId("runtime-commands")).toContainText("local_dev_smoke");
+  await expect(page.getByTestId("runtime-commands")).toContainText("validation_suite");
   await expect(page.getByLabel("local next validation command")).toContainText("bash ./scripts/public_safety_scan.sh");
   await expect(page.getByLabel("ai-demo next validation command")).toContainText("python scripts/run_eval.py");
   await expect(page.getByText("0 assigned tasks")).toBeVisible();

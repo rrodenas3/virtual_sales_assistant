@@ -30,10 +30,12 @@ def build_suite(
     )
     readiness = handoff["readiness_bundle"]["pilot_readiness"]
     commands = runtime_validation_commands(target)
+    suite_command = next(command for command in commands if command["name"] == "validation_suite")
     return {
         "generated_at": datetime.now(UTC).isoformat(),
         "target": target,
         "passed": handoff["passed"],
+        "suite_command": suite_command["command"],
         "include_local_dev_smoke": include_local_dev_smoke,
         "public_safety_ran": not handoff["public_safety_scan"].get("skipped", False),
         "checks": handoff["checks"],
@@ -66,6 +68,7 @@ def _markdown(suite: dict[str, Any]) -> str:
         f"- Generated at: `{suite['generated_at']}`",
         f"- Target: `{suite['target']}`",
         f"- Passed: `{suite['passed']}`",
+        f"- Suite command: `{suite['suite_command']}`",
         f"- Public safety ran: `{suite['public_safety_ran']}`",
         f"- Local dev smoke included: `{suite['include_local_dev_smoke']}`",
         "",
