@@ -12,6 +12,14 @@
 
 ---
 
+## The Complete Commercial Workflow
+
+*From reactive store visits to proactive, governed field execution.*
+
+![PHANTOM VSA — The Complete Commercial Workflow](docs/phantom-vsa-commercial-workflow.png)
+
+---
+
 ## What This Is
 
 PHANTOM VSA is a production-architecture CPG field sales intelligence platform built on a governed multi-agent design. It gives field representatives, territory managers, and platform administrators a unified workflow across four intelligence domains:
