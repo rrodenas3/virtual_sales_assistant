@@ -72,6 +72,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
             "command": f"python scripts/pilot_status_snapshot.py --target {target} --output-dir artifacts/pilot-status/{target}",
             "notes": "Writes a public-safe readiness/API/evidence snapshot for operator handoff.",
         },
+        {
+            "name": "pilot_gap_report",
+            "command": f"python scripts/pilot_gap_report.py --target {target} --output-dir artifacts/pilot-gap-report/{target}",
+            "notes": "Writes a public-safe blocker, owner, and next-command report for pilot activation.",
+        },
     ]
     if target in {"ai-demo", "pilot"}:
         commands.extend(
