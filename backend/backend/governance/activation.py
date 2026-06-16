@@ -39,6 +39,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
             "notes": "Detects stale backend processes missing current manager/readiness routes.",
         },
         {
+            "name": "demo_seed",
+            "command": "python scripts/seed_demo_data.py --output-dir artifacts/demo-data",
+            "notes": "Exports the deterministic public-safe mock territory, stores, reps, and OOS alerts.",
+        },
+        {
             "name": "final_api_smoke",
             "command": "python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke",
             "notes": "End-to-end local API smoke covering rep, manager, admin, HITL, audit, and metrics paths.",

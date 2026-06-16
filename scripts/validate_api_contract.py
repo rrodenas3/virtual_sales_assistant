@@ -63,6 +63,33 @@ def write_artifacts(contract: dict[str, Any], output_dir: Path) -> None:
         "",
     ]
     lines.extend(f"- `{route}`" for route in contract["required_routes"])
+    lines.extend(
+        [
+            "",
+            "## Available Routes",
+            "",
+        ]
+    )
+    lines.extend(f"- `{route}`" for route in contract.get("available_routes", []))
+    if not contract["valid"]:
+        lines.extend(
+            [
+                "",
+                "## Failure Detail",
+                "",
+                "These route signatures are generated from the public OpenAPI schema for local validation, "
+                "and from `/api/v1` for remote validation.",
+                "",
+            ]
+        )
+        if contract["missing_required_routes"]:
+            lines.append("### Missing Routes")
+            lines.extend(f"- `{route}`" for route in contract["missing_required_routes"])
+            lines.append("")
+        if contract["missing_required_query_params"]:
+            lines.append("### Missing Query Params")
+            lines.extend(f"- `{param}`" for param in contract["missing_required_query_params"])
+            lines.append("")
     (output_dir / "api_contract_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
