@@ -1,5 +1,6 @@
 import { ReadinessPanel } from "./ReadinessPanel";
 import type {
+  ActivationRunbook,
   ApprovalQueueResponse,
   IntegrationReadinessResponse,
   ManagerTask,
@@ -13,6 +14,7 @@ export function ManagerCommandView({
   territorySummary,
   readiness,
   pilotGapReport,
+  activationRunbook,
   managerTasks,
   approvalQueue,
   onOpenStore,
@@ -23,6 +25,7 @@ export function ManagerCommandView({
   territorySummary: TerritorySummaryResponse;
   readiness: IntegrationReadinessResponse | null;
   pilotGapReport: PilotGapReport | null;
+  activationRunbook: ActivationRunbook | null;
   managerTasks: ManagerTaskListResponse | null;
   approvalQueue: ApprovalQueueResponse | null;
   onOpenStore: (row: TerritoryStoreSummary) => void;
@@ -32,7 +35,14 @@ export function ManagerCommandView({
 }) {
   return (
     <section className="leadershipPane">
-      {readiness && <ReadinessPanel readiness={readiness} pilotGapReport={pilotGapReport} variant="manager" />}
+      {readiness && (
+        <ReadinessPanel
+          readiness={readiness}
+          pilotGapReport={pilotGapReport}
+          activationRunbook={activationRunbook}
+          variant="manager"
+        />
+      )}
       <div className="metricStrip">
         <div><span>Stores</span><strong>{territorySummary.store_count}</strong></div>
         <div><span>OOS alerts</span><strong>{territorySummary.total_oos_alerts}</strong></div>

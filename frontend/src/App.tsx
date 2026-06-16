@@ -29,6 +29,7 @@ export function App() {
           territorySummary={workbench.territorySummary}
           readiness={workbench.readiness}
           pilotGapReport={workbench.pilotGapReport}
+          activationRunbook={workbench.activationRunbook}
           managerTasks={workbench.managerTasks}
           approvalQueue={workbench.approvalQueue}
           onOpenStore={workbench.openManagerStore}
@@ -42,6 +43,7 @@ export function App() {
         <AdminAuditView
           readiness={workbench.readiness}
           pilotGapReport={workbench.pilotGapReport}
+          activationRunbook={workbench.activationRunbook}
           adminAudit={workbench.adminAudit}
           auditDetail={workbench.auditDetail}
           auditFilters={workbench.auditFilters}

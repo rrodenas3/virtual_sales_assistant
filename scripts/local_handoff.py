@@ -16,6 +16,8 @@ from scripts.final_api_smoke import build_report as build_final_api_smoke_report
 from scripts.final_api_smoke import write_artifacts as write_final_api_smoke_artifacts  # noqa: E402
 from scripts.local_dev_smoke import build_report as build_local_dev_smoke_report  # noqa: E402
 from scripts.local_dev_smoke import write_artifacts as write_local_dev_smoke_artifacts  # noqa: E402
+from scripts.pilot_activation_runbook import build_report as build_pilot_activation_runbook  # noqa: E402
+from scripts.pilot_activation_runbook import write_artifacts as write_pilot_activation_runbook_artifacts  # noqa: E402
 from scripts.pilot_gap_report import build_report_from_bundle as build_pilot_gap_report  # noqa: E402
 from scripts.pilot_gap_report import write_artifacts as write_pilot_gap_report_artifacts  # noqa: E402
 from scripts.pilot_status_snapshot import build_snapshot as build_pilot_status_snapshot  # noqa: E402
@@ -57,6 +59,7 @@ def build_handoff(
         api_contract=api_contract,
     )
     pilot_gap_report = build_pilot_gap_report(target, readiness_bundle)  # type: ignore[arg-type]
+    pilot_activation_runbook = build_pilot_activation_runbook(target)  # type: ignore[arg-type]
     public_safety = (
         run_public_safety_scan()
         if run_public_safety
@@ -76,6 +79,7 @@ def build_handoff(
         _check("readiness_bundle", readiness_bundle["passed"], f"target={target}"),
         _check("pilot_status_snapshot", pilot_status_snapshot["passed"], _pilot_status_snapshot_detail(pilot_status_snapshot)),
         _check("pilot_gap_report", True, _pilot_gap_report_detail(pilot_gap_report)),
+        _check("pilot_activation_runbook", True, _pilot_activation_runbook_detail(pilot_activation_runbook)),
         _check("public_safety_scan", public_safety["passed"], public_safety.get("detail", "")),
     ]
     return {
@@ -92,6 +96,7 @@ def build_handoff(
             "readiness_bundle": "readiness-bundle/readiness_bundle.json",
             "pilot_status_snapshot": "pilot-status/pilot_status_snapshot.json",
             "pilot_gap_report": "pilot-gap-report/pilot_gap_report.json",
+            "pilot_activation_runbook": "pilot-activation-runbook/pilot_activation_runbook.json",
             "local_handoff": "local_handoff.json",
         },
         "next_blocking_actions": readiness_bundle["handoff_summary"]["next_blocking_actions"],
@@ -103,6 +108,7 @@ def build_handoff(
         "readiness_bundle": readiness_bundle,
         "pilot_status_snapshot": pilot_status_snapshot,
         "pilot_gap_report": pilot_gap_report,
+        "pilot_activation_runbook": pilot_activation_runbook,
         "public_safety_scan": public_safety,
     }
 
@@ -129,6 +135,7 @@ def write_artifacts(handoff: dict[str, Any], output_dir: Path) -> None:
     write_readiness_bundle_artifacts(handoff["readiness_bundle"], output_dir / "readiness-bundle")
     write_pilot_status_snapshot_artifacts(handoff["pilot_status_snapshot"], output_dir / "pilot-status")
     write_pilot_gap_report_artifacts(handoff["pilot_gap_report"], output_dir / "pilot-gap-report")
+    write_pilot_activation_runbook_artifacts(handoff["pilot_activation_runbook"], output_dir / "pilot-activation-runbook")
     (output_dir / "local_handoff.json").write_text(
         json.dumps(handoff, indent=2, sort_keys=True),
         encoding="utf-8",
@@ -232,6 +239,14 @@ def _pilot_gap_report_detail(report: dict[str, Any]) -> str:
         f"ready_for_target={report['ready_for_requested_target']}; "
         f"gaps={report['gap_count']}; "
         f"commands={len(report['recommended_commands'])}"
+    )
+
+
+def _pilot_activation_runbook_detail(report: dict[str, Any]) -> str:
+    return (
+        f"phases={report['phase_count']}; "
+        f"ready={report['ready_phase_count']}; "
+        f"blocked={report['blocked_phase_count']}"
     )
 
 

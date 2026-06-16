@@ -34,6 +34,7 @@ def test_readiness_bundle_combines_local_safe_artifacts() -> None:
         "local_verification",
         "pilot_status_snapshot",
         "pilot_gap_report",
+        "pilot_activation_runbook",
         "validation_suite",
     }
     assert bundle["required_manual_checks"]
@@ -51,6 +52,7 @@ def test_readiness_bundle_includes_pilot_runtime_commands() -> None:
         "local_verification",
         "pilot_status_snapshot",
         "pilot_gap_report",
+        "pilot_activation_runbook",
         "ai_demo_readiness",
         "summary_load_test",
         "live_data_contracts",
@@ -72,6 +74,7 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
     assert any(command["name"] == "local_verification" for command in command_sets["local"])
     assert any(command["name"] == "pilot_status_snapshot" for command in command_sets["local"])
     assert any(command["name"] == "pilot_gap_report" for command in command_sets["local"])
+    assert any(command["name"] == "pilot_activation_runbook" for command in command_sets["local"])
     assert command_sets["local"][-1]["name"] == "validation_suite"
     assert "--include-local-dev-smoke" in command_sets["local"][-1]["command"]
     assert any(command["name"] == "summary_load_test" for command in command_sets["ai-demo"])
@@ -86,6 +89,7 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
     assert any(command["name"] == "pilot_env_handoff" for command in command_sets["pilot"])
     assert any(command["name"] == "pilot_status_snapshot" for command in command_sets["pilot"])
     assert any(command["name"] == "pilot_gap_report" for command in command_sets["pilot"])
+    assert any(command["name"] == "pilot_activation_runbook" for command in command_sets["pilot"])
     assert command_sets["pilot"][-1]["name"] == "validation_suite"
 
 

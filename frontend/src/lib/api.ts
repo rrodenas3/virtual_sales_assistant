@@ -3,6 +3,7 @@ import type {
   AdminAuditEventsResponse,
   AdminAuditEventDetailResponse,
   AgentRunEvent,
+  ActivationRunbook,
   ApprovalQueueResponse,
   ApprovalResponse,
   DemoIdentity,
@@ -227,6 +228,10 @@ export function getIntegrationReadiness(): Promise<IntegrationReadinessResponse>
 
 export function getPilotGapReport(target: "local" | "ai-demo" | "pilot" = "pilot"): Promise<PilotGapReport> {
   return request(`/api/v1/integrations/pilot-gap-report?target=${encodeURIComponent(target)}`);
+}
+
+export function getActivationRunbook(target: "local" | "ai-demo" | "pilot" = "pilot"): Promise<ActivationRunbook> {
+  return request(`/api/v1/integrations/activation-runbook?target=${encodeURIComponent(target)}`);
 }
 
 export function getTerritorySummary(): Promise<TerritorySummaryResponse> {

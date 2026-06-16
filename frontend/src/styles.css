@@ -323,6 +323,48 @@ button { font: inherit; }
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr);
   gap: 12px;
 }
+.activationRunbook {
+  grid-column: 1 / -1;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: color-mix(in oklch, var(--paper), white 24%);
+}
+.activationRunbook > small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+.activationRunbookGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.activationRunbookPhase {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: white;
+}
+.activationRunbookPhase small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+.activationRunbookPhase--ready {
+  border-color: color-mix(in oklch, var(--green), white 32%);
+  background: color-mix(in oklch, var(--green), white 88%);
+}
+.activationRunbookPhase--blocked {
+  border-color: color-mix(in oklch, var(--red), white 42%);
+  background: color-mix(in oklch, var(--red), white 92%);
+}
+.activationRunbookPhase--scaffolded {
+  border-color: color-mix(in oklch, var(--blue), white 42%);
+  background: color-mix(in oklch, var(--blue), white 90%);
+}
 .managerTable, .auditFeed, .approvalQueue, .taskQueue {
   display: grid;
   gap: 8px;
@@ -662,7 +704,7 @@ button { font: inherit; }
   .metricStrip { grid-template-columns: 1fr 1fr; }
   .readinessPanel { grid-template-columns: 1fr; }
   .readinessPanel__meta { justify-content: flex-start; }
-  .activationTargets, .runtimeCommands, .activationEvidenceGrid, .pilotGapGrid { grid-template-columns: 1fr; }
+  .activationTargets, .runtimeCommands, .activationEvidenceGrid, .pilotGapGrid, .activationRunbookGrid { grid-template-columns: 1fr; }
   .managerRow, .auditRow, .approvalRow, .taskRow, .filterBar { grid-template-columns: 1fr; }
   .actionBand { grid-template-columns: 1fr; }
   .alertRow { grid-template-columns: 1fr; }

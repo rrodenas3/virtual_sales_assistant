@@ -23,6 +23,7 @@ def test_local_handoff_combines_operator_proof_bundle() -> None:
     assert handoff["readiness_bundle"]["passed"] is True
     assert handoff["pilot_status_snapshot"]["passed"] is True
     assert handoff["pilot_gap_report"]["ready_for_requested_target"] is True
+    assert handoff["pilot_activation_runbook"]["phase_count"] == 8
     assert handoff["next_blocking_actions"]
     check_names = {check["name"] for check in handoff["checks"]}
     assert check_names == {
@@ -34,6 +35,7 @@ def test_local_handoff_combines_operator_proof_bundle() -> None:
         "readiness_bundle",
         "pilot_status_snapshot",
         "pilot_gap_report",
+        "pilot_activation_runbook",
         "public_safety_scan",
     }
 
@@ -106,3 +108,5 @@ def test_local_handoff_writes_nested_artifacts(tmp_path: Path) -> None:
     assert (tmp_path / "pilot-status" / "pilot_status_snapshot.md").exists()
     assert (tmp_path / "pilot-gap-report" / "pilot_gap_report.json").exists()
     assert (tmp_path / "pilot-gap-report" / "pilot_gap_report.md").exists()
+    assert (tmp_path / "pilot-activation-runbook" / "pilot_activation_runbook.json").exists()
+    assert (tmp_path / "pilot-activation-runbook" / "pilot_activation_runbook.md").exists()

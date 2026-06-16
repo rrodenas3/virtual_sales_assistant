@@ -272,6 +272,29 @@ export type PilotGapReport = {
   public_safety_notes: string[];
 };
 
+export type ActivationRunbook = {
+  generated_at: string;
+  current_target: "local" | "ai-demo" | "pilot";
+  final_outcome: string;
+  phase_count: number;
+  ready_phase_count: number;
+  blocked_phase_count: number;
+  phases: {
+    phase_id: string;
+    title: string;
+    target: "local" | "ai-demo" | "pilot";
+    owner: "engineering" | "delivery" | "delivery+engineering";
+    estimated_effort: string;
+    goal: string;
+    status: "ready" | "blocked" | "scaffolded" | "deferred";
+    required_command_names: string[];
+    required_configuration_keys: string[];
+    exit_gate_summary: string[];
+    blockers: string[];
+  }[];
+  public_safety_notes: string[];
+};
+
 export type DemoRole = "rep" | "manager" | "admin";
 
 export type DemoIdentity = {

@@ -23,6 +23,12 @@ def test_pilot_gap_report_endpoint_requires_manager_or_admin() -> None:
     assert response.status_code == 403
 
 
+def test_activation_runbook_endpoint_requires_manager_or_admin() -> None:
+    with TestClient(app, headers={"Authorization": f"Bearer {REP_001}"}) as client:
+        response = client.get("/api/v1/integrations/activation-runbook?target=pilot")
+    assert response.status_code == 403
+
+
 def test_readiness_reports_default_local_mode() -> None:
     with TestClient(app, headers={"Authorization": f"Bearer {MANAGER}"}) as client:
         response = client.get("/api/v1/integrations/readiness")
@@ -64,6 +70,7 @@ def test_readiness_reports_default_local_mode() -> None:
     assert any(command["name"] == "local_dev_smoke" for command in body["runtime_validation_commands"]["local"])
     assert any(command["name"] == "local_verification" for command in body["runtime_validation_commands"]["local"])
     assert any(command["name"] == "pilot_status_snapshot" for command in body["runtime_validation_commands"]["local"])
+    assert any(command["name"] == "pilot_activation_runbook" for command in body["runtime_validation_commands"]["local"])
     assert body["runtime_validation_commands"]["local"][-1]["name"] == "validation_suite"
     assert any(command["name"] == "summary_load_test" for command in body["runtime_validation_commands"]["ai-demo"])
     assert any(command["name"] == "ai_summary_eval" for command in body["runtime_validation_commands"]["ai-demo"])
@@ -72,6 +79,7 @@ def test_readiness_reports_default_local_mode() -> None:
     assert any(command["name"] == "pilot_readiness" for command in body["runtime_validation_commands"]["pilot"])
     assert any(command["name"] == "local_verification" for command in body["runtime_validation_commands"]["pilot"])
     assert any(command["name"] == "pilot_status_snapshot" for command in body["runtime_validation_commands"]["pilot"])
+    assert any(command["name"] == "pilot_activation_runbook" for command in body["runtime_validation_commands"]["pilot"])
     assert body["runtime_validation_commands"]["pilot"][-1]["name"] == "validation_suite"
     evidence = body["activation_evidence_manifests"]
     assert evidence["local"]["sections"][0]["name"] == "local_scaffold"
@@ -79,6 +87,23 @@ def test_readiness_reports_default_local_mode() -> None:
     assert "AI_DEMO_EVAL_VALIDATED" in evidence["ai-demo"]["required_env_keys"]
     assert "LIVE_DATA_CONTRACT_VALIDATED" in evidence["pilot"]["required_env_keys"]
     assert "pilot-env/pilot_validation.env.snippet" in evidence["pilot"]["required_artifacts"]
+
+
+def test_activation_runbook_endpoint_surfaces_final_vsa_phases() -> None:
+    with TestClient(app, headers={"Authorization": f"Bearer {MANAGER}"}) as client:
+        response = client.get("/api/v1/integrations/activation-runbook?target=pilot")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["current_target"] == "pilot"
+    assert body["phase_count"] == 8
+    assert body["ready_phase_count"] >= 1
+    phase_titles = [phase["title"] for phase in body["phases"]]
+    assert "Real AI Demo Readiness" in phase_titles
+    assert "Live Data Contract Readiness" in phase_titles
+    assert "Final VSA Pilot Gate" in phase_titles
+    final_phase = next(phase for phase in body["phases"] if phase["phase_id"] == "phase-6-final-pilot")
+    assert "pilot_readiness" in final_phase["required_command_names"]
+    assert final_phase["blockers"]
 
 
 def test_pilot_gap_report_endpoint_maps_blockers_to_owner_and_commands() -> None:

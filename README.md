@@ -92,6 +92,7 @@ GET  /api/v1/health/offline-agent
 GET  /api/v1/health/shelf-image
 GET  /api/v1/integrations/readiness
 GET  /api/v1/integrations/pilot-gap-report?target=local
+GET  /api/v1/integrations/activation-runbook?target=pilot
 GET  /api/v1/visits/today?territory_code=WEST-01&date=YYYY-MM-DD
 GET  /api/v1/stores/{store_id}
 GET  /api/v1/stores/{store_id}/alerts
@@ -177,6 +178,12 @@ To generate the public-safe blocker/owner/next-command pilot gap report:
 
 ```powershell
 python scripts/pilot_gap_report.py --target local --output-dir artifacts/pilot-gap-report/local
+```
+
+To generate the public-safe step-by-step activation runbook to the final VSA pilot:
+
+```powershell
+python scripts/pilot_activation_runbook.py --target local --output-dir artifacts/pilot-activation-runbook/local
 ```
 
 To verify locked architecture decisions stay aligned with the spec corrections:
