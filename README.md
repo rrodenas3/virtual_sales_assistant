@@ -35,7 +35,7 @@ This repo currently implements the secure OSA pilot slice:
 - admin audit event feed
 - integration readiness targets and activation evidence manifests
 - shelf-image analysis boundary with mock default and external-provider readiness gates
-- consolidated local handoff and validation-suite artifacts
+- consolidated local handoff, pilot gap report, and validation-suite artifacts
 - frontend demo role switcher for rep / manager / admin
 
 See [docs/spec-compliance.md](docs/spec-compliance.md) for the current correlation between
@@ -170,6 +170,12 @@ To generate a compact public-safe pilot status snapshot:
 
 ```powershell
 python scripts/pilot_status_snapshot.py --target local --output-dir artifacts/pilot-status/local
+```
+
+To generate the public-safe blocker/owner/next-command pilot gap report:
+
+```powershell
+python scripts/pilot_gap_report.py --target local --output-dir artifacts/pilot-gap-report/local
 ```
 
 To verify locked architecture decisions stay aligned with the spec corrections:

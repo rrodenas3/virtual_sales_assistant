@@ -307,6 +307,11 @@ test.beforeEach(async ({ page }) => {
               notes: "Writes a public-safe readiness/API/evidence snapshot for operator handoff."
             },
             {
+              name: "pilot_gap_report",
+              command: "python scripts/pilot_gap_report.py --target local --output-dir artifacts/pilot-gap-report/local",
+              notes: "Writes a public-safe blocker, owner, and next-command report for pilot activation."
+            },
+            {
               name: "validation_suite",
               command: "python scripts/validation_suite.py --target local --output-dir artifacts/validation-suite/local --include-local-dev-smoke",
               notes: "Runs the consolidated operator handoff bundle."
@@ -334,6 +339,11 @@ test.beforeEach(async ({ page }) => {
               notes: "Set LOAD_TEST_BEARER_TOKEN only in the approved runtime environment when validating external identity."
             },
             {
+              name: "pilot_gap_report",
+              command: "python scripts/pilot_gap_report.py --target ai-demo --output-dir artifacts/pilot-gap-report/ai-demo",
+              notes: "Writes a public-safe blocker, owner, and next-command report for pilot activation."
+            },
+            {
               name: "validation_suite",
               command: "python scripts/validation_suite.py --target ai-demo --output-dir artifacts/validation-suite/ai-demo",
               notes: "Runs the consolidated AI-demo handoff bundle."
@@ -344,6 +354,11 @@ test.beforeEach(async ({ page }) => {
               name: "pilot_readiness",
               command: "python scripts/pilot_readiness_report.py --target pilot --output-dir artifacts/readiness/pilot",
               notes: "Final gate after approved decisions."
+            },
+            {
+              name: "pilot_gap_report",
+              command: "python scripts/pilot_gap_report.py --target pilot --output-dir artifacts/pilot-gap-report/pilot",
+              notes: "Writes a public-safe blocker, owner, and next-command report for pilot activation."
             },
             {
               name: "validation_suite",
@@ -707,8 +722,9 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("runtime-commands")).toContainText("local_dev_smoke");
   await expect(page.getByTestId("runtime-commands")).toContainText("local_verification");
   await expect(page.getByTestId("runtime-commands")).toContainText("pilot_status_snapshot");
+  await expect(page.getByTestId("runtime-commands")).toContainText("pilot_gap_report");
   await expect(page.getByTestId("runtime-commands")).toContainText("validation_suite");
-  await expect(page.getByTestId("runtime-commands")).toContainText("5 commands");
+  await expect(page.getByTestId("runtime-commands")).toContainText("6 commands");
   await expect(page.getByTestId("activation-evidence")).toContainText("local evidence");
   await expect(page.getByTestId("activation-evidence")).toContainText("ai_demo_eval");
   await expect(page.getByTestId("activation-evidence")).toContainText("pilot_env_handoff");
