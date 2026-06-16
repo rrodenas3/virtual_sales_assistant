@@ -1,4 +1,4 @@
-import type { IntegrationReadinessResponse } from "../lib/types";
+import type { IntegrationReadinessResponse, PilotGapReport } from "../lib/types";
 
 const TARGETS = ["local", "ai-demo", "pilot"] as const;
 
@@ -126,11 +126,47 @@ function AIDemoEvidence({ readiness }: { readiness: IntegrationReadinessResponse
   );
 }
 
+function PilotGapSummary({ report }: { report: PilotGapReport }) {
+  const owners = Array.from(new Set(report.blocking_gaps.map((gap) => gap.owner)));
+  const topGaps = report.blocking_gaps.slice(0, 4);
+  const topCommands = report.recommended_commands.slice(0, 4);
+  return (
+    <div className="pilotGapSummary" data-testid="pilot-gap-summary">
+      <div className="runtimeCommandGroup__top">
+        <strong>{report.target} gap report</strong>
+        <span>{report.gap_count} gaps</span>
+      </div>
+      <div className="readinessEvidence">
+        <span className={report.ready_for_requested_target ? "evidencePill evidencePill--ready" : "evidencePill"}>
+          {report.ready_for_requested_target ? "target ready" : `${report.requested_target_blocker_count} target blockers`}
+        </span>
+        {owners.map((owner) => (
+          <span key={owner} className="evidencePill">{owner}</span>
+        ))}
+      </div>
+      <div className="pilotGapGrid">
+        <ul className="evidenceList" aria-label="pilot gap blockers">
+          {topGaps.map((gap) => (
+            <li key={`${gap.target}-${gap.blocker}`}>{gap.target}: {gap.blocker}</li>
+          ))}
+        </ul>
+        <ul className="evidenceList evidenceList--env" aria-label="pilot gap commands">
+          {topCommands.map((command) => (
+            <li key={command.name}>{command.name}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 export function ReadinessPanel({
   readiness,
+  pilotGapReport,
   variant
 }: {
   readiness: IntegrationReadinessResponse;
+  pilotGapReport: PilotGapReport | null;
   variant: "manager" | "admin";
 }) {
   const readinessOwnerSummary = discoveryOwnerSummary(readiness);
@@ -171,6 +207,7 @@ export function ReadinessPanel({
           ))}
         </div>
       )}
+      {pilotGapReport && <PilotGapSummary report={pilotGapReport} />}
       <ActivationTargets readiness={readiness} />
       <RuntimeCommands readiness={readiness} />
       <ActivationEvidence readiness={readiness} />

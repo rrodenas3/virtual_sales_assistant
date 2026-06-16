@@ -307,6 +307,22 @@ button { font: inherit; }
   color: color-mix(in oklch, var(--accent-dark), black 8%);
   font-weight: 700;
 }
+.pilotGapSummary {
+  grid-column: 1 / -1;
+  border: 1px solid color-mix(in oklch, var(--accent), white 35%);
+  border-radius: 8px;
+  padding: 12px;
+  background: color-mix(in oklch, var(--accent), white 91%);
+}
+.pilotGapSummary .readinessEvidence {
+  grid-column: auto;
+  margin-top: 8px;
+}
+.pilotGapGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr);
+  gap: 12px;
+}
 .managerTable, .auditFeed, .approvalQueue, .taskQueue {
   display: grid;
   gap: 8px;
@@ -646,7 +662,7 @@ button { font: inherit; }
   .metricStrip { grid-template-columns: 1fr 1fr; }
   .readinessPanel { grid-template-columns: 1fr; }
   .readinessPanel__meta { justify-content: flex-start; }
-  .activationTargets, .runtimeCommands, .activationEvidenceGrid { grid-template-columns: 1fr; }
+  .activationTargets, .runtimeCommands, .activationEvidenceGrid, .pilotGapGrid { grid-template-columns: 1fr; }
   .managerRow, .auditRow, .approvalRow, .taskRow, .filterBar { grid-template-columns: 1fr; }
   .actionBand { grid-template-columns: 1fr; }
   .alertRow { grid-template-columns: 1fr; }

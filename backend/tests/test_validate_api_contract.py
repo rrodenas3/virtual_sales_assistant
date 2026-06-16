@@ -25,6 +25,7 @@ def test_local_api_contract_contains_pilot_routes() -> None:
     assert contract["missing_required_response_fields"] == []
     assert "GET /api/v1/integrations/readiness" in contract["available_routes"]
     assert "GET /api/v1/integrations/readiness" in contract["required_routes"]
+    assert "GET /api/v1/integrations/pilot-gap-report?target=local" in contract["required_routes"]
     assert "GET /api/v1/manager/approval-queue?territory_code=WEST-01" in REQUIRED_ROUTES
     assert "GET /api/v1/manager/my-tasks?status=OPEN" in REQUIRED_ROUTES
     assert "GET /api/v1/admin/audit-events?event_type=&rep_id=&resource_type=&limit=&cursor=" in REQUIRED_ROUTES
@@ -32,6 +33,7 @@ def test_local_api_contract_contains_pilot_routes() -> None:
     assert "POST /api/v1/orders/drafts/{draft_id}/submit-sandbox" in REQUIRED_ROUTES
     assert len(REQUIRED_ROUTES) >= 35
     assert "activation_evidence_manifests" in contract["required_response_fields"]["IntegrationReadinessResponse"]
+    assert "blocking_gaps" in contract["required_response_fields"]["PilotGapReportResponse"]
 
 
 def test_api_contract_writes_handoff_artifacts(tmp_path: Path) -> None:
@@ -43,6 +45,7 @@ def test_api_contract_writes_handoff_artifacts(tmp_path: Path) -> None:
     markdown = (tmp_path / "api_contract_report.md").read_text(encoding="utf-8")
     assert markdown.startswith("# API Contract Report")
     assert "GET /api/v1/integrations/readiness" in markdown
+    assert "GET /api/v1/integrations/pilot-gap-report?target" in markdown
     assert "Missing required query params: `none`" in markdown
     assert "Missing required response fields: `none`" in markdown
     assert "## Available Routes" in markdown
@@ -73,6 +76,7 @@ def test_api_contract_detects_missing_required_response_fields() -> None:
                 "IntegrationReadinessResponse": {"properties": {"summary_provider": {"type": "string"}}},
                 "ActivationEvidenceManifestOut": {"properties": {"target": {"type": "string"}}},
                 "ActivationEvidenceSectionOut": {"properties": {"name": {"type": "string"}}},
+                "PilotGapReportResponse": {"properties": {"target": {"type": "string"}}},
             }
         }
     }
@@ -83,3 +87,4 @@ def test_api_contract_detects_missing_required_response_fields() -> None:
     assert "IntegrationReadinessResponse.activation_evidence_manifests" in contract["missing_required_response_fields"]
     assert "ActivationEvidenceManifestOut.sections" in contract["missing_required_response_fields"]
     assert "ActivationEvidenceSectionOut.artifacts" in contract["missing_required_response_fields"]
+    assert "PilotGapReportResponse.blocking_gaps" in contract["missing_required_response_fields"]

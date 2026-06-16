@@ -4,6 +4,7 @@ import type {
   IntegrationReadinessResponse,
   ManagerTask,
   ManagerTaskListResponse,
+  PilotGapReport,
   TerritoryStoreSummary,
   TerritorySummaryResponse
 } from "../lib/types";
@@ -11,6 +12,7 @@ import type {
 export function ManagerCommandView({
   territorySummary,
   readiness,
+  pilotGapReport,
   managerTasks,
   approvalQueue,
   onOpenStore,
@@ -20,6 +22,7 @@ export function ManagerCommandView({
 }: {
   territorySummary: TerritorySummaryResponse;
   readiness: IntegrationReadinessResponse | null;
+  pilotGapReport: PilotGapReport | null;
   managerTasks: ManagerTaskListResponse | null;
   approvalQueue: ApprovalQueueResponse | null;
   onOpenStore: (row: TerritoryStoreSummary) => void;
@@ -29,7 +32,7 @@ export function ManagerCommandView({
 }) {
   return (
     <section className="leadershipPane">
-      {readiness && <ReadinessPanel readiness={readiness} variant="manager" />}
+      {readiness && <ReadinessPanel readiness={readiness} pilotGapReport={pilotGapReport} variant="manager" />}
       <div className="metricStrip">
         <div><span>Stores</span><strong>{territorySummary.store_count}</strong></div>
         <div><span>OOS alerts</span><strong>{territorySummary.total_oos_alerts}</strong></div>

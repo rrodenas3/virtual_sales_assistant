@@ -28,6 +28,7 @@ export function App() {
         <ManagerCommandView
           territorySummary={workbench.territorySummary}
           readiness={workbench.readiness}
+          pilotGapReport={workbench.pilotGapReport}
           managerTasks={workbench.managerTasks}
           approvalQueue={workbench.approvalQueue}
           onOpenStore={workbench.openManagerStore}
@@ -40,6 +41,7 @@ export function App() {
       {workbench.role === "admin" && workbench.adminAudit && (
         <AdminAuditView
           readiness={workbench.readiness}
+          pilotGapReport={workbench.pilotGapReport}
           adminAudit={workbench.adminAudit}
           auditDetail={workbench.auditDetail}
           auditFilters={workbench.auditFilters}
