@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Bot, CheckCircle2, Clock, Database, MapPin, PackageCheck, Route, ShieldCheck, Tag } from "lucide-react";
+import { AlertTriangle, Bot, CheckCircle2, Clock, MapPin, PackageCheck, Route, Tag } from "lucide-react";
 import {
   AGENT_RUN_ENABLED,
   approveOrderDraft,
@@ -30,6 +30,7 @@ import { cacheGet, cacheKey, cacheSet } from "./lib/offlineCache";
 import { AssignedWorkPanel } from "./components/AssignedWorkPanel";
 import { ManagerCommandView } from "./components/ManagerCommandView";
 import { AdminAuditView } from "./components/AdminAuditView";
+import { AppHeader } from "./components/AppHeader";
 import type {
   AlertFeedback,
   AdminAuditEventDetailResponse,
@@ -345,29 +346,15 @@ export function App() {
 
   return (
     <main className="shell">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">PHANTOM / {identity.territory_code ?? "all territories"} / {identity.sub}</p>
-          <h1>{role === "rep" ? "Today's field workbench" : role === "manager" ? "Territory command view" : "Governance audit view"}</h1>
-        </div>
-        <div className="topbar__actions">
-          <div className="roleSwitch">
-            {(["rep", "manager", "admin"] as DemoRole[]).map((item) => (
-              <button key={item} className={role === item ? "roleSwitch__item roleSwitch__item--active" : "roleSwitch__item"} onClick={() => switchRole(item)}>
-                {item}
-              </button>
-            ))}
-          </div>
-          <button className="secondaryButton" onClick={() => setTraceOpen(true)}>
-            <Database size={16} /> Trace
-          </button>
-          <div className="statusPill"><ShieldCheck size={16} /> Mock JWT active</div>
-          <div className={online ? "statusPill" : "statusPill statusPill--offline"}>
-            {online ? "Online" : "Offline"} / queued {queuedCount}
-          </div>
-          <div className="statusPill">{pilotMetricLabel}</div>
-        </div>
-      </header>
+      <AppHeader
+        identity={identity}
+        role={role}
+        online={online}
+        queuedCount={queuedCount}
+        pilotMetricLabel={pilotMetricLabel}
+        onSwitchRole={switchRole}
+        onOpenTrace={() => setTraceOpen(true)}
+      />
 
       {error && <div className="errorBanner">{error}</div>}
       {cacheNotice && <div className="cacheBanner">{cacheNotice}</div>}
