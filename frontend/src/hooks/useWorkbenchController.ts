@@ -24,7 +24,9 @@ import {
   getSummary,
   getTerritorySummary,
   getTodayVisits,
+  runAgentOrderDraft,
   runAgentSummary,
+  runAgentVisitLogDraft,
   sendFeedback,
   setDemoRole,
   submitOrderDraftSandbox,
@@ -265,31 +267,69 @@ export function useWorkbenchController() {
     setAgentError(null);
     setAgentRunning(true);
     try {
-      await runAgentSummary(selectedStoreId, sessionId, alerts.map((alert) => alert.alert_id), (event) => {
-        setAgentEvents((current) => [...current, event]);
-        if (event.event === "message") {
-          setSummary({
-            summary: event.data.content,
-            grounded_alert_ids: event.data.grounded_alert_ids,
-            session_id: sessionId,
-            model_id: "",
-            audit_event_id: ""
-          });
-        }
-        if (event.event === "audit") {
-          setSummary((current) =>
-            current
-              ? {
-                  ...current,
-                  audit_event_id: event.data.audit_event_id,
-                  model_id: event.data.model_id ?? current.model_id
-                }
-              : current
-          );
-        }
-      });
+      await runAgentSummary(selectedStoreId, sessionId, alerts.map((alert) => alert.alert_id), handleAgentEvent);
     } catch (err) {
       setAgentError(err instanceof Error ? err.message : "Agent run failed");
+    } finally {
+      setAgentRunning(false);
+    }
+  }
+
+  function handleAgentEvent(event: AgentRunEvent) {
+    setAgentEvents((current) => [...current, event]);
+    if (event.event === "message") {
+      setSummary({
+        summary: event.data.content,
+        grounded_alert_ids: event.data.grounded_alert_ids,
+        session_id: sessionId,
+        model_id: "",
+        audit_event_id: ""
+      });
+    }
+    if (event.event === "action_result" && event.data.type === "order_draft" && event.data.draft) {
+      setDraft(event.data.draft);
+      setApproval(null);
+      setSubmission(null);
+    }
+    if (event.event === "action_result" && event.data.type === "visit_log_draft" && event.data.visit_log) {
+      setTaskNotice(`Visit log draft ${event.data.visit_log.status.toLowerCase()} / audit ${event.data.visit_log.audit_event_id.slice(0, 8)}`);
+    }
+    if (event.event === "audit") {
+      setSummary((current) =>
+        current
+          ? {
+              ...current,
+              audit_event_id: event.data.audit_event_id,
+              model_id: event.data.model_id ?? current.model_id
+            }
+          : current
+      );
+    }
+  }
+
+  async function runAgentOrderDraftForTopAlert() {
+    if (!alerts[0] || !AGENT_RUN_ENABLED) return;
+    setAgentEvents([]);
+    setAgentError(null);
+    setAgentRunning(true);
+    try {
+      await runAgentOrderDraft(alerts[0], sessionId, handleAgentEvent);
+    } catch (err) {
+      setAgentError(err instanceof Error ? err.message : "Agent order draft failed");
+    } finally {
+      setAgentRunning(false);
+    }
+  }
+
+  async function runAgentVisitLogDraftForStore() {
+    if (!selectedStoreId || !AGENT_RUN_ENABLED) return;
+    setAgentEvents([]);
+    setAgentError(null);
+    setAgentRunning(true);
+    try {
+      await runAgentVisitLogDraft(selectedStoreId, sessionId, alerts.map((alert) => alert.alert_id), handleAgentEvent);
+    } catch (err) {
+      setAgentError(err instanceof Error ? err.message : "Agent visit log draft failed");
     } finally {
       setAgentRunning(false);
     }
@@ -417,6 +457,8 @@ export function useWorkbenchController() {
     approveDraft,
     submitSandbox,
     runAssistant,
+    runAgentOrderDraftForTopAlert,
+    runAgentVisitLogDraftForStore,
     summarize,
     handleFeedback
   };

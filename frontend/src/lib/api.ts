@@ -89,6 +89,38 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function runAgentStream(payload: Record<string, unknown>, onEvent: (event: AgentRunEvent) => void): Promise<void> {
+  const response = await fetch(`${API_URL}/api/v1/agent/run`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${mockTokenForRole(getDemoRole())}`
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({ message: response.statusText }));
+    throw new Error(body.message ?? body.detail ?? "Agent run failed");
+  }
+  if (!response.body) throw new Error("Agent run stream is unavailable");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split("\n\n");
+    buffer = events.pop() ?? "";
+    for (const rawEvent of events) {
+      const parsed = parseSSE(rawEvent);
+      if (parsed) onEvent(parsed);
+    }
+  }
+  const parsed = parseSSE(buffer);
+  if (parsed) onEvent(parsed);
+}
+
 export function getTodayVisits(): Promise<VisitPriority[]> {
   const today = new Date().toISOString().slice(0, 10);
   return request(`/api/v1/visits/today?territory_code=${encodeURIComponent(getCurrentTerritory())}&date=${today}`);
@@ -128,41 +160,58 @@ export async function runAgentSummary(
   alertIds: string[],
   onEvent: (event: AgentRunEvent) => void
 ): Promise<void> {
-  const response = await fetch(`${API_URL}/api/v1/agent/run`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${mockTokenForRole(getDemoRole())}`
-    },
-    body: JSON.stringify({
+  return runAgentStream(
+    {
       intent: "osa_summary",
       territory_code: getCurrentTerritory(),
       store_id: storeId,
       session_id: sessionId,
       alert_ids: alertIds
-    })
-  });
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(body.message ?? body.detail ?? "Agent run failed");
-  }
-  if (!response.body) throw new Error("Agent run stream is unavailable");
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const events = buffer.split("\n\n");
-    buffer = events.pop() ?? "";
-    for (const rawEvent of events) {
-      const parsed = parseSSE(rawEvent);
-      if (parsed) onEvent(parsed);
-    }
-  }
-  const parsed = parseSSE(buffer);
-  if (parsed) onEvent(parsed);
+    },
+    onEvent
+  );
+}
+
+export async function runAgentOrderDraft(alert: OOSAlert, sessionId: string, onEvent: (event: AgentRunEvent) => void): Promise<void> {
+  return runAgentStream(
+    {
+      intent: "order_draft",
+      territory_code: getCurrentTerritory(),
+      store_id: alert.store_id,
+      session_id: sessionId,
+      alert_ids: [alert.alert_id],
+      items: [
+        {
+          sku_id: alert.sku_id,
+          sku_name: alert.sku_name,
+          quantity: 12,
+          reason: alert.recommended_action
+        }
+      ],
+      notes: `Agent drafted from alert ${alert.alert_id}; human approval required.`
+    },
+    onEvent
+  );
+}
+
+export async function runAgentVisitLogDraft(
+  storeId: string,
+  sessionId: string,
+  alertIds: string[],
+  onEvent: (event: AgentRunEvent) => void
+): Promise<void> {
+  return runAgentStream(
+    {
+      intent: "visit_log_draft",
+      territory_code: getCurrentTerritory(),
+      store_id: storeId,
+      session_id: sessionId,
+      alert_ids: alertIds,
+      outcome: "needs_follow_up",
+      notes: "Agent drafted visit log from grounded OOS alerts for rep review."
+    },
+    onEvent
+  );
 }
 
 function parseSSE(rawEvent: string): AgentRunEvent | null {

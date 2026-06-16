@@ -425,6 +425,15 @@ button { font: inherit; }
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+.agentActionStack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.agentActionStack .primaryButton,
+.agentActionStack .secondaryButton {
+  min-height: 40px;
+}
 .taskStrip {
   border: 1px solid var(--line);
   background: color-mix(in oklch, var(--blue), white 91%);

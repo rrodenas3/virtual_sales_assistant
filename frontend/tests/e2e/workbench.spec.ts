@@ -775,10 +775,39 @@ test.beforeEach(async ({ page }) => {
   });
 
   await page.route("**/api/v1/agent/run", async (route) => {
+    const body = route.request().postDataJSON() as { intent?: string };
+    if (body.intent === "order_draft") {
+      await route.fulfill({
+        contentType: "text/event-stream",
+        body: [
+          `event: run_started\ndata: {"run_id":"run-order","session_id":"REP-001:2026-06-15:workbench","intent":"order_draft"}`,
+          `event: supervisor_decision\ndata: {"run_id":"run-order","intent":"order_draft","agent":"action_agent","requires_human_approval":true}`,
+          `event: action_result\ndata: {"run_id":"run-order","type":"order_draft","draft":{"draft_id":"draft-agent-1","store_id":"ST-001","rep_id":"REP-001","session_id":"REP-001:2026-06-15:workbench","payload_json":{"items":[{"sku_id":"SKU-4001","sku_name":"Core SKU 4001","quantity":12,"reason":"Confirm on-shelf availability"}],"notes":"Agent drafted from alert ${alertId}; human approval required."},"payload_hash":"hash-agent-order-1","status":"DRAFT","created_at":"2026-06-15T00:00:00Z","audit_event_id":"audit-order-agent-1"}}`,
+          `event: hitl_required\ndata: {"run_id":"run-order","required":true,"reason":"order_submit_requires_human_approval","resume_token":"REP-001:2026-06-15:workbench:hitl:order:draft-agent-1"}`,
+          `event: audit\ndata: {"run_id":"run-order","audit_event_id":"audit-order-agent-1","model_id":null}`,
+          `event: run_completed\ndata: {"run_id":"run-order","session_id":"REP-001:2026-06-15:workbench"}`
+        ].join("\n\n") + "\n\n"
+      });
+      return;
+    }
+    if (body.intent === "visit_log_draft") {
+      await route.fulfill({
+        contentType: "text/event-stream",
+        body: [
+          `event: run_started\ndata: {"run_id":"run-visit","session_id":"REP-001:2026-06-15:workbench","intent":"visit_log_draft"}`,
+          `event: supervisor_decision\ndata: {"run_id":"run-visit","intent":"visit_log_draft","agent":"action_agent","requires_human_approval":false}`,
+          `event: action_result\ndata: {"run_id":"run-visit","type":"visit_log_draft","visit_log":{"id":"visit-agent-1","store_id":"ST-001","rep_id":"REP-001","session_id":"REP-001:2026-06-15:workbench","payload_json":{"notes":"Agent drafted visit log from grounded OOS alerts for rep review.","outcome":"needs_follow_up"},"status":"DRAFT","created_at":"2026-06-15T00:00:00Z","audit_event_id":"audit-visit-agent-1"}}`,
+          `event: audit\ndata: {"run_id":"run-visit","audit_event_id":"audit-visit-agent-1","model_id":null}`,
+          `event: run_completed\ndata: {"run_id":"run-visit","session_id":"REP-001:2026-06-15:workbench"}`
+        ].join("\n\n") + "\n\n"
+      });
+      return;
+    }
     await route.fulfill({
       contentType: "text/event-stream",
       body: [
         `event: run_started\ndata: {"run_id":"run-1","session_id":"REP-001:2026-06-15:workbench","intent":"osa_summary"}`,
+        `event: supervisor_decision\ndata: {"run_id":"run-1","intent":"osa_summary","agent":"osa_agent","requires_human_approval":false}`,
         `event: message\ndata: {"run_id":"run-1","role":"assistant","content":"Core SKU 4001 has high grounded OOS risk from the agent stream.","grounded_alert_ids":["${alertId}"]}`,
         `event: audit\ndata: {"run_id":"run-1","audit_event_id":"audit-agent-1","model_id":"grounded-template-v1"}`,
         `event: run_completed\ndata: {"run_id":"run-1","session_id":"REP-001:2026-06-15:workbench"}`
@@ -825,6 +854,15 @@ test("rep can review route, generate summary, and submit alert feedback", async 
   await expect(page.getByTestId("agent-panel")).toContainText("message");
   await expect(page.getByTestId("agent-panel")).toContainText("audit");
   await expect(page.getByTestId("summary-box")).toContainText("agent stream");
+
+  await page.getByTestId("agent-draft-order").click();
+  await expect(page.getByTestId("agent-panel")).toContainText("hitl required");
+  await expect(page.getByTestId("agent-panel")).toContainText("order submit requires human approval");
+  await expect(page.getByText("Draft DRAFT")).toBeVisible();
+
+  await page.getByTestId("agent-visit-log").click();
+  await expect(page.getByTestId("agent-panel")).toContainText("visit log draft created");
+  await expect(page.getByText(/Visit log draft draft/)).toBeVisible();
 
   await page.getByTestId(`feedback-${alertId}-confirmed`).click();
   await expect(page.getByTestId(`feedback-${alertId}-confirmed`)).toHaveClass(/feedbackButton--active/);

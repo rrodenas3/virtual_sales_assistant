@@ -88,7 +88,13 @@ export type AgentRunEvent =
     }
   | {
       event: "action_result";
-      data: { run_id: string; type: "order_draft" | "visit_log_draft" | "manager_task"; [key: string]: unknown };
+      data: {
+        run_id: string;
+        type: "order_draft" | "visit_log_draft" | "manager_task";
+        draft?: OrderDraftResponse;
+        visit_log?: VisitLogDraftResponse;
+        task?: ManagerTask;
+      };
     }
   | {
       event: "hitl_required";
@@ -158,6 +164,20 @@ export type OrderDraftResponse = {
   status: string;
   created_at: string;
   audit_event_id: string | null;
+};
+
+export type VisitLogDraftResponse = {
+  id: string;
+  store_id: string;
+  rep_id: string;
+  session_id: string;
+  payload_json: {
+    notes?: string | null;
+    outcome?: string;
+  };
+  status: string;
+  created_at: string;
+  audit_event_id: string;
 };
 
 export type ApprovalResponse = {
