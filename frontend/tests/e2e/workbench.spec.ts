@@ -302,6 +302,11 @@ test.beforeEach(async ({ page }) => {
               notes: "Repo-root pre-push gate covering lint, tests, eval, readiness, MCP smoke, frontend build, Playwright smoke, and public safety."
             },
             {
+              name: "pilot_status_snapshot",
+              command: "python scripts/pilot_status_snapshot.py --target local --output-dir artifacts/pilot-status/local",
+              notes: "Writes a public-safe readiness/API/evidence snapshot for operator handoff."
+            },
+            {
               name: "validation_suite",
               command: "python scripts/validation_suite.py --target local --output-dir artifacts/validation-suite/local --include-local-dev-smoke",
               notes: "Runs the consolidated operator handoff bundle."
@@ -701,8 +706,9 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("readiness-panel")).toContainText("summary_load_test");
   await expect(page.getByTestId("runtime-commands")).toContainText("local_dev_smoke");
   await expect(page.getByTestId("runtime-commands")).toContainText("local_verification");
+  await expect(page.getByTestId("runtime-commands")).toContainText("pilot_status_snapshot");
   await expect(page.getByTestId("runtime-commands")).toContainText("validation_suite");
-  await expect(page.getByTestId("runtime-commands")).toContainText("4 commands");
+  await expect(page.getByTestId("runtime-commands")).toContainText("5 commands");
   await expect(page.getByTestId("activation-evidence")).toContainText("local evidence");
   await expect(page.getByTestId("activation-evidence")).toContainText("ai_demo_eval");
   await expect(page.getByTestId("activation-evidence")).toContainText("pilot_env_handoff");

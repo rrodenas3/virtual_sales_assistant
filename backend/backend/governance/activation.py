@@ -67,6 +67,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
                 "Playwright smoke, and public safety."
             ),
         },
+        {
+            "name": "pilot_status_snapshot",
+            "command": f"python scripts/pilot_status_snapshot.py --target {target} --output-dir artifacts/pilot-status/{target}",
+            "notes": "Writes a public-safe readiness/API/evidence snapshot for operator handoff.",
+        },
     ]
     if target in {"ai-demo", "pilot"}:
         commands.extend(

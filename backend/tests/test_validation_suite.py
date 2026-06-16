@@ -29,6 +29,7 @@ def test_validation_suite_combines_local_handoff_and_commands() -> None:
     } <= check_names
     assert any(command["name"] == "local_dev_smoke" for command in suite["runtime_validation_commands"])
     assert any(command["name"] == "local_verification" for command in suite["runtime_validation_commands"])
+    assert any(command["name"] == "pilot_status_snapshot" for command in suite["runtime_validation_commands"])
     assert any(command["name"] == "spec_decision_guard" for command in suite["runtime_validation_commands"])
     assert suite["runtime_validation_commands"][-1]["name"] == "validation_suite"
     assert suite["activation_targets"][0]["target"] == "local"

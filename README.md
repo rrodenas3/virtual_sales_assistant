@@ -166,6 +166,12 @@ To run the repo-root pre-push verification gates and write `artifacts/local-veri
 python scripts/verify_local.py --include-frontend-e2e
 ```
 
+To generate a compact public-safe pilot status snapshot:
+
+```powershell
+python scripts/pilot_status_snapshot.py --target local --output-dir artifacts/pilot-status/local
+```
+
 To verify locked architecture decisions stay aligned with the spec corrections:
 
 ```powershell
