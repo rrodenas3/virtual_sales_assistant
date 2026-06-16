@@ -96,6 +96,16 @@ jobs:
       - name: E2E smoke
         run: npm run test:e2e
 
+      - name: Upload frontend test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-test-artifacts
+          path: |
+            frontend/test-results
+            frontend/playwright-report
+          if-no-files-found: ignore
+
   public-safety:
     name: Public Safety Scan
     runs-on: ubuntu-latest
