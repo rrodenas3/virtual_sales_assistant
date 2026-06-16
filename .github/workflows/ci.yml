@@ -59,6 +59,9 @@ jobs:
       - name: Spec decision guard
         run: python ../scripts/spec_decision_guard.py --output-dir ../artifacts/spec-decision-guard/ci
 
+      - name: README contract guard
+        run: python ../scripts/readme_contract_guard.py --output-dir ../artifacts/readme-contract-guard/ci
+
       - name: Upload backend handoff artifacts
         uses: actions/upload-artifact@v4
         if: always()
@@ -69,6 +72,7 @@ jobs:
             artifacts/local-handoff/ci
             artifacts/validation-suite/ci
             artifacts/spec-decision-guard/ci
+            artifacts/readme-contract-guard/ci
             artifacts/demo-data/ci
           if-no-files-found: ignore
 

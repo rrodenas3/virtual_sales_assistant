@@ -149,6 +149,7 @@ python scripts/local_handoff.py --target local --output-dir artifacts/local-hand
 python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke
 python scripts/validation_suite.py --target local --output-dir artifacts/validation-suite
 python scripts/spec_decision_guard.py --output-dir artifacts/spec-decision-guard
+python scripts/readme_contract_guard.py --output-dir artifacts/readme-contract-guard/local
 python scripts/seed_demo_data.py --output-dir artifacts/demo-data
 python scripts/validate_live_data_contracts.py --manifest-only
 python scripts/mcp_smoke.py

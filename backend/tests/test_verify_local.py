@@ -16,6 +16,7 @@ def test_verify_local_command_plan_defaults_to_public_safe_checks() -> None:
 
     assert names[0] == "backend_ruff"
     assert "backend_pytest" in names
+    assert "readme_contract_guard" in names
     assert "frontend_build" in names
     assert "frontend_e2e" not in names
     assert names[-1] == "public_safety_scan"

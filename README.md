@@ -201,6 +201,8 @@ python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke
 GET  /api/v1/health                              System and provider health
 GET  /api/v1/health/{ai,auth,data-platform,...}  Per-provider readiness
 GET  /api/v1/integrations/readiness              Activation targets + blocker list
+GET  /api/v1/integrations/pilot-gap-report       Owner-mapped pilot blockers + next commands
+GET  /api/v1/integrations/activation-runbook     Final VSA phase plan + exit gates
 GET  /api/v1/visits/today                        Ranked visit route (territory-scoped)
 GET  /api/v1/stores/{store_id}                   Store 360° view
 GET  /api/v1/stores/{store_id}/alerts            OOS alerts with rule engine output
@@ -265,6 +267,7 @@ Every push runs three GitHub Actions jobs:
 python scripts/run_eval.py                                    # eval harness
 python scripts/pilot_readiness_report.py --target local       # readiness
 python scripts/pilot_readiness_report.py --target ai-demo     # AI demo gate
+python scripts/pilot_activation_runbook.py --target pilot      # final VSA phase plan
 ```
 
 ---
@@ -282,6 +285,8 @@ FULL PILOT       Live data adapters, real SSO, real ERP/CRM, Unity Catalog audit
 
 ```bash
 GET /api/v1/integrations/readiness     # current target status and blockers
+GET /api/v1/integrations/pilot-gap-report?target=pilot
+GET /api/v1/integrations/activation-runbook?target=pilot
 ```
 
 ---

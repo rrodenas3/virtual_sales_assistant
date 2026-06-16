@@ -68,6 +68,12 @@ def build_command_plan(
             ["python", "../scripts/spec_decision_guard.py", "--output-dir", "../artifacts/spec-decision-guard/local"],
         ),
         VerificationCommand(
+            "readme_contract_guard",
+            ROOT / "backend",
+            [PYTHON, "../scripts/readme_contract_guard.py", "--output-dir", "../artifacts/readme-contract-guard/local"],
+            ["python", "../scripts/readme_contract_guard.py", "--output-dir", "../artifacts/readme-contract-guard/local"],
+        ),
+        VerificationCommand(
             "validation_suite",
             ROOT / "backend",
             [
