@@ -141,6 +141,7 @@ python scripts/run_eval.py
 python scripts/pilot_readiness_report.py --target local
 python scripts/readiness_bundle.py --target local --output-dir artifacts/readiness/bundle-local
 python scripts/local_handoff.py --target local --output-dir artifacts/local-handoff
+python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke
 python scripts/seed_demo_data.py --output-dir artifacts/demo-data
 python scripts/validate_live_data_contracts.py --manifest-only
 python scripts/mcp_smoke.py

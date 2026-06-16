@@ -21,7 +21,14 @@ def test_readiness_bundle_combines_local_safe_artifacts() -> None:
     assert "failure_examples" in bundle["live_data_contract_manifest"]
     assert "LIVE_DATA_CONTRACT_VALIDATED" in bundle["live_data_readiness_env_manifest"]
     command_names = {command["name"] for command in bundle["runtime_validation_commands"]}
-    assert command_names == {"public_safety_scan", "local_readiness", "api_contract", "demo_seed", "final_api_smoke"}
+    assert command_names == {
+        "public_safety_scan",
+        "local_readiness",
+        "api_contract",
+        "demo_seed",
+        "final_api_smoke",
+        "local_dev_smoke",
+    }
     assert bundle["required_manual_checks"]
 
 
@@ -49,6 +56,7 @@ def test_runtime_validation_command_sets_cover_all_targets() -> None:
     assert any(command["name"] == "api_contract" for command in command_sets["local"])
     assert any(command["name"] == "demo_seed" for command in command_sets["local"])
     assert any(command["name"] == "final_api_smoke" for command in command_sets["local"])
+    assert any(command["name"] == "local_dev_smoke" for command in command_sets["local"])
     assert any(command["name"] == "summary_load_test" for command in command_sets["ai-demo"])
     assert any(command["name"] == "ai_summary_eval" for command in command_sets["ai-demo"])
     assert any(command["name"] == "mlflow_handoff_dry_run" for command in command_sets["ai-demo"])

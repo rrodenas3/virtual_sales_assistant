@@ -16,8 +16,9 @@ Required command:
 python scripts/pilot_readiness_report.py --target local --output-dir artifacts/readiness/local
 python scripts/validate_api_contract.py --base-url http://localhost:8000 --output-dir artifacts/api-contract
 python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke
+python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke
 python scripts/readiness_bundle.py --target local --output-dir artifacts/readiness/bundle-local
-python scripts/local_handoff.py --target local --output-dir artifacts/local-handoff
+python scripts/local_handoff.py --target local --include-local-dev-smoke --output-dir artifacts/local-handoff
 ```
 
 Exit gate:
@@ -26,6 +27,7 @@ Exit gate:
 - `/api/v1/integrations/readiness` reports no discovery or provider blockers for selected local/default providers.
 - Backend tests, frontend build, Playwright smoke, eval harness, live-contract manifest check, and public-safety scan are green.
 - API contract validation passes against the running backend, proving the browser is not pointed at a stale API process.
+- Local dev smoke passes against `http://localhost:5173/` and `http://localhost:8000`, proving the running workbench and backend route data are aligned.
 - Observability readiness passes; `OBSERVABILITY_PROVIDER=otlp_http` must include an approved OTLP endpoint.
 - Readiness scaffold smoke passes for HITL sandbox submit, manager task status updates, and shelf-image analysis.
 - Final API smoke passes for rep, manager, admin, HITL, audit, CRM draft, RGM, feedback, and metrics paths.

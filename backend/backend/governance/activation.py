@@ -48,6 +48,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
             "command": "python scripts/final_api_smoke.py --output-dir artifacts/final-api-smoke",
             "notes": "End-to-end local API smoke covering rep, manager, admin, HITL, audit, and metrics paths.",
         },
+        {
+            "name": "local_dev_smoke",
+            "command": "python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke",
+            "notes": "Verifies the running Vite workbench and backend health/route data loop after both dev servers start.",
+        },
     ]
     if target in {"ai-demo", "pilot"}:
         commands.extend(
