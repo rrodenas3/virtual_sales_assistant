@@ -23,7 +23,7 @@ This repo currently implements the secure OSA pilot slice:
 - structured request telemetry with request IDs and response timing
 - feature-flagged graph-style agent scaffold with parity tests
 - feature-flagged graph routing for grounded OSA summaries
-- memory provider scaffold with null default and fail-closed Mem0 placeholder
+- memory provider scaffold with null default and discovery-gated Mem0 HTTP contract
 - IndexedDB route, store, alert, and RGM cache for offline read fallback
 - client discovery readiness gate for live integrations
 - Alembic migration scaffold

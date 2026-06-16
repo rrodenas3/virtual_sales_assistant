@@ -62,10 +62,10 @@ Whenever a locked decision changes or a deferred technology is activated, update
 - Databricks and Snowflake adapters build parameterized `QueryStatement` objects with injectable SQL clients and schema mappers.
 - OSA summary routes can use the graph scaffold behind `AGENT_GRAPH_ENABLED`; audit payloads record `orchestration_mode`.
 - Live adapter row mapping is shared by helper functions; Snowflake no longer calls Databricks adapter methods by duck typing.
-- OSA summary generation has a provider boundary: `SUMMARY_PROVIDER=template|anthropic`. The official Anthropic SDK is the selected LLM client; production LangGraph and CopilotKit remain deferred for the client-pilot path.
+- OSA summary generation has a provider boundary: `SUMMARY_PROVIDER=template|anthropic`. The official Anthropic SDK is the selected LLM client; production LangGraph remains gated and CopilotKit is replaced by the custom SSE bridge for the Phase 1 client-pilot path.
 - Live data contract validation is scaffolded through `scripts/validate_live_data_contracts.py`, backend column manifests, row-level normalization checks, and readiness fields for validation status.
 - Governance controls now include a parameterized Unity Catalog audit insert path behind `AuditSink` and an HTTP external-classifier guardrail provider with the configured `0.85` block threshold.
-- The rep workbench includes a feature-flagged custom SSE assistant panel backed by `POST /agent/run`; CopilotKit remains deferred.
+- The rep workbench includes a feature-flagged custom SSE assistant panel backed by `POST /agent/run`; CopilotKit is formally replaced for Phase 1 per correction #10.
 - Offline/PWA hardening now includes installability metadata, an app-shell service worker, static asset caching, and E2E registration coverage. API read fallback remains handled by IndexedDB in the app; writes are never service-worker cached.
 - CRM and ERP action boundaries now use provider-selected ports: local CRM drafts and sandbox ERP remain defaults, while external HTTP providers are discovery-gated.
 - Memory now has discovery-gated Mem0 HTTP read/write contracts, scoped metadata, and summary audit fields. `MEMORY_PROVIDER=none` remains the default.
