@@ -14,6 +14,8 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from scripts.final_api_smoke import build_report as build_final_api_smoke_report  # noqa: E402
 from scripts.final_api_smoke import write_artifacts as write_final_api_smoke_artifacts  # noqa: E402
+from scripts.local_dev_smoke import build_report as build_local_dev_smoke_report  # noqa: E402
+from scripts.local_dev_smoke import write_artifacts as write_local_dev_smoke_artifacts  # noqa: E402
 from scripts.readiness_bundle import build_bundle as build_readiness_bundle  # noqa: E402
 from scripts.readiness_bundle import write_artifacts as write_readiness_bundle_artifacts  # noqa: E402
 from scripts.seed_demo_data import build_demo_seed, validate_manifest as validate_demo_seed_manifest  # noqa: E402
@@ -22,11 +24,25 @@ from scripts.validate_api_contract import build_local_contract  # noqa: E402
 from scripts.validate_api_contract import write_artifacts as write_api_contract_artifacts  # noqa: E402
 
 
-def build_handoff(target: str, *, run_public_safety: bool = True) -> dict[str, Any]:
+def build_handoff(
+    target: str,
+    *,
+    run_public_safety: bool = True,
+    run_local_dev_smoke: bool = False,
+) -> dict[str, Any]:
     api_contract = build_local_contract()
     demo_seed = build_demo_seed()
     demo_seed_failures = validate_demo_seed_manifest(demo_seed["manifest"])
     final_api_smoke = build_final_api_smoke_report()
+    local_dev_smoke = (
+        build_local_dev_smoke_report()
+        if run_local_dev_smoke
+        else {
+            "passed": True,
+            "skipped": True,
+            "detail": "Skipped by operator flag; run scripts/local_dev_smoke.py after starting backend and frontend.",
+        }
+    )
     readiness_bundle = build_readiness_bundle(target)
     public_safety = (
         run_public_safety_scan()
@@ -42,6 +58,7 @@ def build_handoff(target: str, *, run_public_safety: bool = True) -> dict[str, A
         _check("api_contract", api_contract["valid"], _api_contract_detail(api_contract)),
         _check("demo_seed", not demo_seed_failures, _demo_seed_detail(demo_seed["manifest"], demo_seed_failures)),
         _check("final_api_smoke", final_api_smoke["passed"], f"{len(final_api_smoke['checks'])} workflow checks"),
+        _check("local_dev_smoke", local_dev_smoke["passed"], _local_dev_smoke_detail(local_dev_smoke)),
         _check("readiness_bundle", readiness_bundle["passed"], f"target={target}"),
         _check("public_safety_scan", public_safety["passed"], public_safety.get("detail", "")),
     ]
@@ -54,6 +71,7 @@ def build_handoff(target: str, *, run_public_safety: bool = True) -> dict[str, A
             "api_contract": "api-contract/api_contract_report.json",
             "demo_seed": "demo-data/demo_seed_manifest.json",
             "final_api_smoke": "final-api-smoke/final_api_smoke.json",
+            "local_dev_smoke": "local-dev-smoke/local_dev_smoke.json",
             "readiness_bundle": "readiness-bundle/readiness_bundle.json",
             "local_handoff": "local_handoff.json",
         },
@@ -61,6 +79,7 @@ def build_handoff(target: str, *, run_public_safety: bool = True) -> dict[str, A
         "api_contract": api_contract,
         "demo_seed": demo_seed,
         "final_api_smoke": final_api_smoke,
+        "local_dev_smoke": local_dev_smoke,
         "readiness_bundle": readiness_bundle,
         "public_safety_scan": public_safety,
     }
@@ -71,6 +90,19 @@ def write_artifacts(handoff: dict[str, Any], output_dir: Path) -> None:
     write_api_contract_artifacts(handoff["api_contract"], output_dir / "api-contract")
     write_demo_seed_artifacts(handoff["demo_seed"], output_dir / "demo-data")
     write_final_api_smoke_artifacts(handoff["final_api_smoke"], output_dir / "final-api-smoke")
+    if handoff["local_dev_smoke"].get("skipped"):
+        local_dev_dir = output_dir / "local-dev-smoke"
+        local_dev_dir.mkdir(parents=True, exist_ok=True)
+        (local_dev_dir / "local_dev_smoke.json").write_text(
+            json.dumps(handoff["local_dev_smoke"], indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+        (local_dev_dir / "local_dev_smoke.md").write_text(
+            "# Local Dev Smoke\n\n- Skipped: `true`\n",
+            encoding="utf-8",
+        )
+    else:
+        write_local_dev_smoke_artifacts(handoff["local_dev_smoke"], output_dir / "local-dev-smoke")
     write_readiness_bundle_artifacts(handoff["readiness_bundle"], output_dir / "readiness-bundle")
     (output_dir / "local_handoff.json").write_text(
         json.dumps(handoff, indent=2, sort_keys=True),
@@ -148,6 +180,14 @@ def _demo_seed_detail(manifest: dict[str, Any], failures: list[str]) -> str:
     return f"{manifest['store_count']} stores; {manifest['alert_count']} alerts; reps={len(manifest['reps'])}"
 
 
+def _local_dev_smoke_detail(report: dict[str, Any]) -> str:
+    if report.get("skipped"):
+        return str(report["detail"])
+    passed = sum(1 for check in report.get("checks", []) if check.get("passed"))
+    total = len(report.get("checks", []))
+    return f"{passed}/{total} live dev checks"
+
+
 def _check(name: str, passed: bool, detail: str) -> dict[str, Any]:
     return {"name": name, "passed": passed, "detail": detail}
 
@@ -157,9 +197,18 @@ def main() -> None:
     parser.add_argument("--target", choices=["local", "ai-demo", "pilot"], default="local")
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/local-handoff"))
     parser.add_argument("--skip-public-safety", action="store_true")
+    parser.add_argument(
+        "--include-local-dev-smoke",
+        action="store_true",
+        help="Also check the running Vite frontend and backend dev servers.",
+    )
     args = parser.parse_args()
 
-    handoff = build_handoff(args.target, run_public_safety=not args.skip_public_safety)
+    handoff = build_handoff(
+        args.target,
+        run_public_safety=not args.skip_public_safety,
+        run_local_dev_smoke=args.include_local_dev_smoke,
+    )
     write_artifacts(handoff, args.output_dir)
     print(json.dumps(handoff, indent=2, sort_keys=True))
     if not handoff["passed"]:

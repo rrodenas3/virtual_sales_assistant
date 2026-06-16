@@ -18,10 +18,33 @@ def test_local_handoff_combines_operator_proof_bundle() -> None:
     assert handoff["api_contract"]["valid"] is True
     assert handoff["demo_seed"]["manifest"]["alert_count"] == 125
     assert handoff["final_api_smoke"]["passed"] is True
+    assert handoff["local_dev_smoke"]["skipped"] is True
     assert handoff["readiness_bundle"]["passed"] is True
     assert handoff["next_blocking_actions"]
     check_names = {check["name"] for check in handoff["checks"]}
-    assert check_names == {"api_contract", "demo_seed", "final_api_smoke", "readiness_bundle", "public_safety_scan"}
+    assert check_names == {
+        "api_contract",
+        "demo_seed",
+        "final_api_smoke",
+        "local_dev_smoke",
+        "readiness_bundle",
+        "public_safety_scan",
+    }
+
+
+def test_local_handoff_can_include_running_dev_smoke(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "scripts.local_handoff.build_local_dev_smoke_report",
+        lambda: {"passed": True, "checks": [{"passed": True}, {"passed": True}]},
+    )
+
+    handoff = build_handoff("local", run_public_safety=False, run_local_dev_smoke=True)
+
+    assert handoff["passed"] is True
+    assert handoff["local_dev_smoke"]["passed"] is True
+    assert next(check for check in handoff["checks"] if check["name"] == "local_dev_smoke")["detail"] == (
+        "2/2 live dev checks"
+    )
 
 
 def test_local_handoff_writes_nested_artifacts(tmp_path: Path) -> None:
@@ -41,5 +64,7 @@ def test_local_handoff_writes_nested_artifacts(tmp_path: Path) -> None:
     assert (tmp_path / "demo-data" / "oos_alert_seed.json").exists()
     assert (tmp_path / "final-api-smoke" / "final_api_smoke.json").exists()
     assert (tmp_path / "final-api-smoke" / "final_api_smoke.md").exists()
+    assert (tmp_path / "local-dev-smoke" / "local_dev_smoke.json").exists()
+    assert (tmp_path / "local-dev-smoke" / "local_dev_smoke.md").exists()
     assert (tmp_path / "readiness-bundle" / "readiness_bundle.json").exists()
     assert (tmp_path / "readiness-bundle" / "readiness_bundle.md").exists()

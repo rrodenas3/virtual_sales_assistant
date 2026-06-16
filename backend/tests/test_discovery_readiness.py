@@ -54,6 +54,7 @@ def test_readiness_reports_default_local_mode() -> None:
     assert targets["pilot"]["ready"] is False
     assert "Live data contracts must be validated for pilot readiness" in targets["pilot"]["blockers"]
     assert body["runtime_validation_commands"]["local"][0]["name"] == "public_safety_scan"
+    assert any(command["name"] == "local_dev_smoke" for command in body["runtime_validation_commands"]["local"])
     assert any(command["name"] == "summary_load_test" for command in body["runtime_validation_commands"]["ai-demo"])
     assert any(command["name"] == "ai_summary_eval" for command in body["runtime_validation_commands"]["ai-demo"])
     assert any(command["name"] == "mlflow_handoff_dry_run" for command in body["runtime_validation_commands"]["ai-demo"])

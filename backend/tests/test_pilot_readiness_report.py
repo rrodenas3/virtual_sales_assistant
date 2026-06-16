@@ -33,6 +33,7 @@ def test_local_readiness_report_includes_scaffold_smoke() -> None:
         "api_contract",
         "demo_seed",
         "final_api_smoke",
+        "local_dev_smoke",
     }
     assert report["ai_demo_eval_validated"] is False
     targets = {target["target"]: target for target in report["activation_targets"]}
