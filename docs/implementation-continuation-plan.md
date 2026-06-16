@@ -120,6 +120,8 @@ Whenever a locked decision changes or a deferred technology is activated, update
 - Validation suite and readiness bundles now include target-specific activation evidence manifests, so local, AI-demo, and pilot handoffs list the required public-safe artifacts and env evidence keys in one place.
 - Backend CI and agent verification instructions now lint the full `scripts/` directory instead of a brittle hand-maintained script list.
 - `/integrations/readiness` and the manager/admin readiness panels now expose those activation evidence manifests, keeping UI, API, and CLI handoff requirements aligned.
+- API contract validation now checks critical OpenAPI response fields for readiness and activation evidence schemas, not only route presence and query parameters.
+- Final API smoke now validates readiness payload semantics, including local/AI-demo/pilot activation targets, runtime command sets, and pilot env handoff evidence.
 
 ## Deferred Spec Areas
 

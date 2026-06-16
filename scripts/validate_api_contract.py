@@ -27,21 +27,54 @@ REQUIRED_ROUTES = {
     "POST /api/v1/agent/run",
 }
 
+REQUIRED_RESPONSE_FIELDS = {
+    "IntegrationReadinessResponse": {
+        "activation_evidence_manifests",
+        "activation_targets",
+        "ai_demo_eval_validated",
+        "ai_demo_next_actions",
+        "provider_readiness",
+        "runtime_validation_commands",
+        "summary_provider",
+    },
+    "ActivationEvidenceManifestOut": {
+        "required_artifacts",
+        "required_env_keys",
+        "sections",
+        "target",
+    },
+    "ActivationEvidenceSectionOut": {
+        "artifacts",
+        "env_keys",
+        "name",
+        "notes",
+        "required_for",
+    },
+}
+
 
 def build_local_contract() -> dict[str, Any]:
-    routes = sorted(_openapi_route_signatures(app.openapi()))
-    return _contract_from_routes(routes, source="local_app")
+    schema = app.openapi()
+    routes = sorted(_openapi_route_signatures(schema))
+    return _contract_from_routes(routes, source="local_app", schema=schema)
 
 
 def build_remote_contract(base_url: str) -> dict[str, Any]:
-    request = Request(f"{base_url.rstrip('/')}/api/v1", headers={"accept": "application/json"})
+    root_url = base_url.rstrip("/")
+    request = Request(f"{root_url}/api/v1", headers={"accept": "application/json"})
     try:
         with urlopen(request, timeout=8) as response:  # noqa: S310 - local/operator-provided health URL.
             payload = json.loads(response.read().decode("utf-8"))
     except URLError as exc:
         raise SystemExit(f"Could not read API index from {base_url}: {exc}") from exc
+    openapi_request = Request(f"{root_url}/openapi.json", headers={"accept": "application/json"})
+    try:
+        with urlopen(openapi_request, timeout=8) as response:  # noqa: S310 - local/operator-provided schema URL.
+            schema = json.loads(response.read().decode("utf-8"))
+    except URLError as exc:
+        raise SystemExit(f"Could not read OpenAPI schema from {base_url}: {exc}") from exc
     routes = sorted(str(route) for route in payload.get("routes", []))
-    return _contract_from_routes(routes, source=base_url)
+    return _contract_from_routes(routes, source=base_url, schema=schema)
 
 
 def write_artifacts(contract: dict[str, Any], output_dir: Path) -> None:
@@ -58,6 +91,7 @@ def write_artifacts(contract: dict[str, Any], output_dir: Path) -> None:
         f"- Route count: `{contract['route_count']}`",
         f"- Missing required routes: `{', '.join(contract['missing_required_routes']) or 'none'}`",
         f"- Missing required query params: `{', '.join(contract['missing_required_query_params']) or 'none'}`",
+        f"- Missing required response fields: `{', '.join(contract['missing_required_response_fields']) or 'none'}`",
         "",
         "## Required Routes",
         "",
@@ -90,10 +124,14 @@ def write_artifacts(contract: dict[str, Any], output_dir: Path) -> None:
             lines.append("### Missing Query Params")
             lines.extend(f"- `{param}`" for param in contract["missing_required_query_params"])
             lines.append("")
+        if contract["missing_required_response_fields"]:
+            lines.append("### Missing Response Fields")
+            lines.extend(f"- `{field}`" for field in contract["missing_required_response_fields"])
+            lines.append("")
     (output_dir / "api_contract_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def _contract_from_routes(routes: list[str], source: str) -> dict[str, Any]:
+def _contract_from_routes(routes: list[str], source: str, schema: dict[str, Any] | None = None) -> dict[str, Any]:
     normalized_routes = {_normalize_route(route) for route in routes}
     missing = sorted(route for route in REQUIRED_ROUTES if _normalize_route(route) not in normalized_routes)
     available_query_params = _query_params_by_route(routes)
@@ -103,14 +141,19 @@ def _contract_from_routes(routes: list[str], source: str) -> dict[str, Any]:
         for param in _query_param_names(route)
         if param not in available_query_params.get(_normalize_route(route), set())
     )
+    missing_response_fields = _missing_required_response_fields(schema or {})
     return {
-        "valid": not missing and not missing_query_params,
+        "valid": not missing and not missing_query_params and not missing_response_fields,
         "source": source,
         "route_count": len(routes),
         "available_routes": routes,
         "required_routes": sorted(REQUIRED_ROUTES),
         "missing_required_routes": missing,
         "missing_required_query_params": missing_query_params,
+        "required_response_fields": {
+            component: sorted(fields) for component, fields in REQUIRED_RESPONSE_FIELDS.items()
+        },
+        "missing_required_response_fields": missing_response_fields,
     }
 
 
@@ -156,6 +199,26 @@ def _query_params_by_route(routes: list[str]) -> dict[str, set[str]]:
     for route in routes:
         params.setdefault(_normalize_route(route), set()).update(_query_param_names(route))
     return params
+
+
+def _missing_required_response_fields(schema: dict[str, Any]) -> list[str]:
+    components = schema.get("components", {}).get("schemas", {})
+    if not isinstance(components, dict):
+        return [
+            f"{component}.{field}"
+            for component, fields in REQUIRED_RESPONSE_FIELDS.items()
+            for field in sorted(fields)
+        ]
+    missing: list[str] = []
+    for component, fields in REQUIRED_RESPONSE_FIELDS.items():
+        component_schema = components.get(component, {})
+        properties = component_schema.get("properties", {}) if isinstance(component_schema, dict) else {}
+        if not isinstance(properties, dict):
+            properties = {}
+        for field in sorted(fields):
+            if field not in properties:
+                missing.append(f"{component}.{field}")
+    return missing
 
 
 def main() -> None:

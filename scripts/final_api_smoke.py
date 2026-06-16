@@ -131,7 +131,8 @@ def build_report() -> dict[str, Any]:
             },
         )
         context["task_id"] = task.json()["task_id"]
-        _request(checks, "manager_readiness", manager.get, "/api/v1/integrations/readiness")
+        readiness = _request(checks, "manager_readiness", manager.get, "/api/v1/integrations/readiness")
+        _check_readiness_payload(checks, readiness.json())
 
     with _client(REP_TOKEN) as rep:
         submit = _request(checks, "rep_order_submit_sandbox", rep.post, f"/api/v1/orders/drafts/{draft_id}/submit-sandbox")
@@ -161,6 +162,8 @@ def build_report() -> dict[str, Any]:
             "submit_audit_event_id": submit.json().get("audit_event_id"),
             "metric_feedback_count": metrics.json().get("feedback_count"),
             "approval_queue_count": queue.json().get("pending_count"),
+            "readiness_targets": [target.get("target") for target in readiness.json().get("activation_targets", [])],
+            "readiness_evidence_targets": sorted(readiness.json().get("activation_evidence_manifests", {})),
             "store_name": store.json().get("store_name"),
             "rgm_audit_event_id": rgm.json().get("audit_event_id"),
             "audit_event_count": len(audit.json().get("events", [])),
@@ -223,6 +226,44 @@ def _detail(response: Any) -> str:
         parts = [f"{key}={body[key]}" for key in keys if key in body]
         return "; ".join(parts) or f"keys={','.join(sorted(body)[:5])}"
     return str(body)
+
+
+def _check_readiness_payload(checks: list[dict[str, Any]], body: dict[str, Any]) -> None:
+    targets = {target.get("target") for target in body.get("activation_targets", []) if isinstance(target, dict)}
+    command_sets = body.get("runtime_validation_commands", {})
+    evidence_sets = body.get("activation_evidence_manifests", {})
+    required_targets = {"local", "ai-demo", "pilot"}
+    missing_targets = sorted(required_targets - targets)
+    missing_commands = sorted(target for target in required_targets if target not in command_sets)
+    missing_evidence = sorted(target for target in required_targets if target not in evidence_sets)
+    missing_pilot_env = "pilot-env/pilot_validation.env.snippet" not in evidence_sets.get("pilot", {}).get(
+        "required_artifacts",
+        [],
+    )
+    passed = not missing_targets and not missing_commands and not missing_evidence and not missing_pilot_env
+    detail_parts = [
+        f"targets={','.join(sorted(targets)) or 'none'}",
+        f"commands={','.join(sorted(command_sets)) or 'none'}",
+        f"evidence={','.join(sorted(evidence_sets)) or 'none'}",
+    ]
+    if missing_targets:
+        detail_parts.append(f"missing_targets={','.join(missing_targets)}")
+    if missing_commands:
+        detail_parts.append(f"missing_commands={','.join(missing_commands)}")
+    if missing_evidence:
+        detail_parts.append(f"missing_evidence={','.join(missing_evidence)}")
+    if missing_pilot_env:
+        detail_parts.append("missing_pilot_env_handoff=true")
+    checks.append(
+        {
+            "name": "manager_readiness_payload_contract",
+            "passed": passed,
+            "status_code": 200 if passed else 500,
+            "detail": "; ".join(detail_parts),
+        }
+    )
+    if not passed:
+        raise RuntimeError(f"manager_readiness_payload_contract failed: {'; '.join(detail_parts)}")
 
 
 def main() -> None:

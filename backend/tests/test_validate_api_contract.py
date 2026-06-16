@@ -16,10 +16,12 @@ def test_local_api_contract_contains_pilot_routes() -> None:
     assert contract["valid"] is True
     assert contract["missing_required_routes"] == []
     assert contract["missing_required_query_params"] == []
+    assert contract["missing_required_response_fields"] == []
     assert "GET /api/v1/integrations/readiness" in contract["available_routes"]
     assert "GET /api/v1/integrations/readiness" in contract["required_routes"]
     assert "GET /api/v1/manager/approval-queue?territory_code=WEST-01" in REQUIRED_ROUTES
     assert "GET /api/v1/manager/my-tasks?status=OPEN" in REQUIRED_ROUTES
+    assert "activation_evidence_manifests" in contract["required_response_fields"]["IntegrationReadinessResponse"]
 
 
 def test_api_contract_writes_handoff_artifacts(tmp_path: Path) -> None:
@@ -32,6 +34,7 @@ def test_api_contract_writes_handoff_artifacts(tmp_path: Path) -> None:
     assert markdown.startswith("# API Contract Report")
     assert "GET /api/v1/integrations/readiness" in markdown
     assert "Missing required query params: `none`" in markdown
+    assert "Missing required response fields: `none`" in markdown
     assert "## Available Routes" in markdown
     assert "GET /api/v1/manager/tasks?status&territory_code" in markdown
 
@@ -46,4 +49,25 @@ def test_api_contract_failure_artifact_lists_missing_detail(tmp_path: Path) -> N
     assert "## Failure Detail" in markdown
     assert "### Missing Routes" in markdown
     assert "POST /api/v1/agent/run" in markdown
+    assert "### Missing Response Fields" in markdown
+    assert "IntegrationReadinessResponse.activation_evidence_manifests" in markdown
     assert "## Available Routes" in markdown
+
+
+def test_api_contract_detects_missing_required_response_fields() -> None:
+    schema = {
+        "components": {
+            "schemas": {
+                "IntegrationReadinessResponse": {"properties": {"summary_provider": {"type": "string"}}},
+                "ActivationEvidenceManifestOut": {"properties": {"target": {"type": "string"}}},
+                "ActivationEvidenceSectionOut": {"properties": {"name": {"type": "string"}}},
+            }
+        }
+    }
+
+    contract = _contract_from_routes(sorted(REQUIRED_ROUTES), source="test_source", schema=schema)
+
+    assert contract["valid"] is False
+    assert "IntegrationReadinessResponse.activation_evidence_manifests" in contract["missing_required_response_fields"]
+    assert "ActivationEvidenceManifestOut.sections" in contract["missing_required_response_fields"]
+    assert "ActivationEvidenceSectionOut.artifacts" in contract["missing_required_response_fields"]
