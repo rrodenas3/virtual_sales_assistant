@@ -115,6 +115,12 @@ If Chrome still shows a blank page after switching branches, run a hard refresh
 with `Ctrl + Shift + R`. If needed, clear site data for `localhost:5173` in
 DevTools under Application -> Storage.
 
+To verify the full local loop once both services are running:
+
+```powershell
+python scripts/local_dev_smoke.py --output-dir artifacts/local-dev-smoke
+```
+
 ## Local MCP Transports
 
 The `mcp/` servers expose a lightweight local JSON transport around the same backend adapter/service layer used by REST.
