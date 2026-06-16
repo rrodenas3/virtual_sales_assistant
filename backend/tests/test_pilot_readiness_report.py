@@ -31,6 +31,7 @@ def test_local_readiness_report_includes_scaffold_smoke() -> None:
         "public_safety_scan",
         "local_readiness",
         "api_contract",
+        "demo_seed",
         "final_api_smoke",
     }
     assert report["ai_demo_eval_validated"] is False
