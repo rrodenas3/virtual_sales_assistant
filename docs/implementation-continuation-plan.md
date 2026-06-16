@@ -124,6 +124,7 @@ Whenever a locked decision changes or a deferred technology is activated, update
 - Final API smoke now validates readiness payload semantics, including local/AI-demo/pilot activation targets, runtime command sets, and pilot env handoff evidence.
 - Repo-root local verification now has `scripts/verify_local.py`, which runs the public-safe lint/test/build/smoke gates and writes `artifacts/local-verification/local_verification.*`.
 - Runtime validation command manifests now include the repo-root local verification gate, so `/integrations/readiness`, readiness bundles, and pilot reports direct operators to the same pre-push proof path.
+- API contract validation now requires the full implemented pilot route surface, including health subroutes, admin filters, alerts pagination/filtering, HITL, CRM, sync, agent, and audit routes.
 
 ## Deferred Spec Areas
 

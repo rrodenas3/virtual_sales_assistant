@@ -35,6 +35,7 @@ def test_backend_root_points_to_api() -> None:
         api_index = c.get("/api/v1")
         assert api_index.status_code == 200
         assert "GET /api/v1/health" in api_index.json()["routes"]
+        assert "GET /api/v1/health/db" in api_index.json()["routes"]
         assert "POST /api/v1/sync/feedback-events" in api_index.json()["routes"]
         assert "POST /api/v1/orders/drafts/{draft_id}/submit-sandbox" in api_index.json()["routes"]
         assert "POST /api/v1/agent/run" in api_index.json()["routes"]
@@ -45,6 +46,8 @@ def test_backend_root_points_to_api() -> None:
         assert "GET /api/v1/health/auth" in api_index.json()["routes"]
         assert "GET /api/v1/health/shelf-image" in api_index.json()["routes"]
         assert "GET /api/v1/health/audit-sink" in api_index.json()["routes"]
+        assert "GET /api/v1/admin/audit-events?event_type=&rep_id=&resource_type=&limit=&cursor=" in api_index.json()["routes"]
+        assert "GET /api/v1/stores/{store_id}/alerts?limit=50&cursor=&min_risk_score=0.7" in api_index.json()["routes"]
 
 
 def test_unauthorized_store_access_returns_404() -> None:

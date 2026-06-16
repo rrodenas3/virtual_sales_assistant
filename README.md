@@ -79,6 +79,7 @@ Phase 1:
 
 ```text
 GET  /api/v1/health
+GET  /api/v1/health/db
 GET  /api/v1/health/observability
 GET  /api/v1/health/ai
 GET  /api/v1/health/auth
