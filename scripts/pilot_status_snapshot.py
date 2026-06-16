@@ -106,7 +106,8 @@ def _markdown(snapshot: dict[str, Any]) -> str:
     for target in snapshot["activation_targets"]:
         status = "ready" if target["ready"] else "blocked"
         blockers = ", ".join(target["blockers"]) or "none"
-        lines.append(f"| {target['target']} | {status} | {blockers.replace('|', '\\|')} |")
+        escaped_blockers = blockers.replace("|", "\\|")
+        lines.append(f"| {target['target']} | {status} | {escaped_blockers} |")
     lines.extend(
         [
             "",
@@ -117,7 +118,8 @@ def _markdown(snapshot: dict[str, Any]) -> str:
         ]
     )
     for command in snapshot["runtime_commands"]:
-        lines.append(f"| {command['name']} | `{str(command['command']).replace('|', '\\|')}` |")
+        escaped_command = str(command["command"]).replace("|", "\\|")
+        lines.append(f"| {command['name']} | `{escaped_command}` |")
     lines.extend(
         [
             "",
