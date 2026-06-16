@@ -39,6 +39,19 @@ the original MVP brief, the revised hybrid plan, and this implementation.
 See [docs/architecture-ontology.md](docs/architecture-ontology.md) for the public-safe system
 architecture, ontology, and step-by-step flow.
 
+## Documentation Map
+
+| Document | Use it for |
+|---|---|
+| [docs/spec-compliance.md](docs/spec-compliance.md) | Current spec posture, intentional deviations, remaining work |
+| [docs/implementation-continuation-plan.md](docs/implementation-continuation-plan.md) | Chunk order, locked decisions, completed continuation work |
+| [docs/spec-corrections.md](docs/spec-corrections.md) | Permanent corrections that override the original MVP brief |
+| [docs/pilot-activation-runbook.md](docs/pilot-activation-runbook.md) | Local, AI-demo, and final pilot activation gates |
+| [docs/architecture-ontology.md](docs/architecture-ontology.md) | Public-safe ontology, topology, architecture, and flow |
+| [docs/infographic-5-unified-platform.md](docs/infographic-5-unified-platform.md) | Unified platform visual brief grounded in the implementation |
+| [docs/pilot-metrics.md](docs/pilot-metrics.md) | KPI definitions, eval/load-test commands, and pilot metric queries |
+| [docs/client-discovery.md](docs/client-discovery.md) | Delivery-owned client discovery questions before live integrations |
+
 ## Local Backend
 
 ```powershell

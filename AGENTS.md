@@ -17,6 +17,8 @@ that spec and recorded in the docs listed below.
 | `docs/implementation-continuation-plan.md` | Chunk order, critical rules, locked decisions, completed additions |
 | `docs/spec-corrections.md` | Permanent overrides to the original spec — these win over the spec text |
 | `docs/pilot-activation-runbook.md` | How readiness gates work and what blocks each activation target |
+| `docs/architecture-ontology.md` | Public-safe architecture, ontology, topology, and step-by-step flow |
+| `docs/infographic-5-unified-platform.md` | Public-safe unified platform visual brief grounded in implementation details |
 
 If a spec area you are about to implement is not the next chunk in
 `implementation-continuation-plan.md`, stop and confirm before proceeding.
@@ -120,7 +122,7 @@ phantom/
 │
 ├── infra/databricks/audit_table_ddl.sql ← Unity Catalog DDL (not yet live)
 ├── scripts/                             ← eval, readiness, smoke, handoff scripts
-└── docs/                                ← planning, compliance, corrections, runbooks
+└── docs/                                ← planning, compliance, corrections, runbooks, visual briefs
 ```
 
 ---
