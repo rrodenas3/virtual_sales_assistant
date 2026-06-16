@@ -204,6 +204,7 @@ GET  /api/v1/integrations/readiness              Activation targets + blocker li
 GET  /api/v1/integrations/pilot-gap-report       Owner-mapped pilot blockers + next commands
 GET  /api/v1/integrations/activation-runbook     Final VSA phase plan + exit gates
 GET  /api/v1/integrations/discovery-packet       Owner-grouped client discovery checklist
+GET  /api/v1/integrations/ai-demo-activation-pack  Public-safe real-AI demo activation proof
 GET  /api/v1/visits/today                        Ranked visit route (territory-scoped)
 GET  /api/v1/stores/{store_id}                   Store 360° view
 GET  /api/v1/stores/{store_id}/alerts            OOS alerts with rule engine output
@@ -289,6 +290,7 @@ GET /api/v1/integrations/readiness     # current target status and blockers
 GET /api/v1/integrations/pilot-gap-report?target=pilot
 GET /api/v1/integrations/activation-runbook?target=pilot
 GET /api/v1/integrations/discovery-packet?target=pilot
+GET /api/v1/integrations/ai-demo-activation-pack
 ```
 
 ---

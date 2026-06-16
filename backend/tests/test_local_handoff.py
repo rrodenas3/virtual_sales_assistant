@@ -16,6 +16,7 @@ def test_local_handoff_combines_operator_proof_bundle() -> None:
     assert handoff["passed"] is True
     assert handoff["public_safety_scan"]["skipped"] is True
     assert handoff["api_contract"]["valid"] is True
+    assert handoff["ai_demo_activation_pack"]["target"] == "ai-demo"
     assert handoff["demo_seed"]["manifest"]["alert_count"] == 125
     assert handoff["discovery_packet"]["target"] == "local"
     assert handoff["final_api_smoke"]["passed"] is True
@@ -29,6 +30,7 @@ def test_local_handoff_combines_operator_proof_bundle() -> None:
     check_names = {check["name"] for check in handoff["checks"]}
     assert check_names == {
         "api_contract",
+        "ai_demo_activation_pack",
         "demo_seed",
         "discovery_packet",
         "final_api_smoke",
@@ -95,6 +97,8 @@ def test_local_handoff_writes_nested_artifacts(tmp_path: Path) -> None:
     assert "## Next Blocking Actions" in handoff_md
     assert (tmp_path / "api-contract" / "api_contract_report.json").exists()
     assert (tmp_path / "api-contract" / "api_contract_report.md").exists()
+    assert (tmp_path / "ai-demo-activation-pack" / "ai_demo_activation_pack.json").exists()
+    assert (tmp_path / "ai-demo-activation-pack" / "ai_demo_activation_pack.md").exists()
     assert (tmp_path / "demo-data" / "demo_seed_manifest.json").exists()
     assert (tmp_path / "demo-data" / "store_master_seed.json").exists()
     assert (tmp_path / "demo-data" / "oos_alert_seed.json").exists()

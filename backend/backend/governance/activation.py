@@ -92,6 +92,11 @@ def runtime_validation_commands(target: ActivationTargetName) -> list[RuntimeVal
         commands.extend(
             [
                 {
+                    "name": "ai_demo_activation_pack",
+                    "command": "python scripts/ai_demo_activation_pack.py --output-dir artifacts/ai-demo-activation-pack",
+                    "notes": "Writes the public-safe AI-demo configuration, command, evidence, and blocker summary.",
+                },
+                {
                     "name": "ai_summary_eval",
                     "command": "python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai",
                     "notes": "Must pass with the configured approved provider before claiming AI-assistant behavior.",

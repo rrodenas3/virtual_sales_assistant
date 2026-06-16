@@ -1,5 +1,6 @@
 import { ReadinessPanel } from "./ReadinessPanel";
 import type {
+  AIDemoActivationPack,
   ActivationRunbook,
   AdminAuditEventDetailResponse,
   AdminAuditEventsResponse,
@@ -19,6 +20,7 @@ export function AdminAuditView({
   pilotGapReport,
   activationRunbook,
   discoveryPacket,
+  aiDemoActivationPack,
   adminAudit,
   auditDetail,
   auditFilters,
@@ -29,6 +31,7 @@ export function AdminAuditView({
   pilotGapReport: PilotGapReport | null;
   activationRunbook: ActivationRunbook | null;
   discoveryPacket: DiscoveryPacket | null;
+  aiDemoActivationPack: AIDemoActivationPack | null;
   adminAudit: AdminAuditEventsResponse;
   auditDetail: AdminAuditEventDetailResponse | null;
   auditFilters: AuditFilters;
@@ -43,6 +46,7 @@ export function AdminAuditView({
           pilotGapReport={pilotGapReport}
           activationRunbook={activationRunbook}
           discoveryPacket={discoveryPacket}
+          aiDemoActivationPack={aiDemoActivationPack}
           variant="admin"
         />
       )}

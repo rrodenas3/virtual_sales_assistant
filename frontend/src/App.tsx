@@ -31,6 +31,7 @@ export function App() {
           pilotGapReport={workbench.pilotGapReport}
           activationRunbook={workbench.activationRunbook}
           discoveryPacket={workbench.discoveryPacket}
+          aiDemoActivationPack={workbench.aiDemoActivationPack}
           managerTasks={workbench.managerTasks}
           approvalQueue={workbench.approvalQueue}
           onOpenStore={workbench.openManagerStore}
@@ -46,6 +47,7 @@ export function App() {
           pilotGapReport={workbench.pilotGapReport}
           activationRunbook={workbench.activationRunbook}
           discoveryPacket={workbench.discoveryPacket}
+          aiDemoActivationPack={workbench.aiDemoActivationPack}
           adminAudit={workbench.adminAudit}
           auditDetail={workbench.auditDetail}
           auditFilters={workbench.auditFilters}

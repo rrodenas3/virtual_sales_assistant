@@ -362,6 +362,37 @@ export type DiscoveryPacket = {
   public_safety_notes: string[];
 };
 
+export type AIDemoActivationPack = {
+  generated_at: string;
+  target: "ai-demo";
+  ready: boolean;
+  stage: string;
+  summary_provider: string;
+  summary_model_id: string;
+  provider_ready: boolean;
+  eval_validated: boolean;
+  last_validation_at: string | null;
+  validation_summary: string | null;
+  blockers: string[];
+  next_actions: string[];
+  config_checks: {
+    name: string;
+    ready: boolean;
+    public_value?: string | null;
+    required_value?: string | null;
+    value_present?: boolean | null;
+    notes: string;
+  }[];
+  required_commands: {
+    name: string;
+    command: string;
+    notes: string;
+  }[];
+  required_artifacts: string[];
+  required_env_keys: string[];
+  public_safety_notes: string[];
+};
+
 export type DemoRole = "rep" | "manager" | "admin";
 
 export type DemoIdentity = {

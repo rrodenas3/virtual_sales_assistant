@@ -577,6 +577,69 @@ test.beforeEach(async ({ page }) => {
     });
   });
 
+  await page.route("**/api/v1/integrations/ai-demo-activation-pack", async (route) => {
+    await route.fulfill({
+      json: {
+        generated_at: "2026-06-15T00:00:00Z",
+        target: "ai-demo",
+        ready: false,
+        stage: "template_scaffold",
+        summary_provider: "template",
+        summary_model_id: "grounded-template-v1",
+        provider_ready: false,
+        eval_validated: false,
+        last_validation_at: null,
+        validation_summary: null,
+        blockers: [
+          "SUMMARY_PROVIDER must be anthropic for AI-demo readiness",
+          "AI-demo eval must pass with provider=anthropic before AI-demo readiness"
+        ],
+        next_actions: ["Set SUMMARY_PROVIDER=anthropic in the approved AI-demo runtime"],
+        config_checks: [
+          {
+            name: "summary_provider",
+            ready: false,
+            public_value: "template",
+            required_value: "anthropic",
+            value_present: null,
+            notes: "Template mode proves scaffold safety only."
+          },
+          {
+            name: "anthropic_token_ref",
+            ready: false,
+            public_value: null,
+            required_value: null,
+            value_present: false,
+            notes: "Presence only; value is never exposed."
+          },
+          {
+            name: "agent_run_enabled",
+            ready: true,
+            public_value: "true",
+            required_value: "true",
+            value_present: null,
+            notes: "AI-demo validates the SSE assistant path."
+          }
+        ],
+        required_commands: [
+          {
+            name: "ai_summary_eval",
+            command: "python scripts/run_eval.py --require-provider anthropic --output-dir artifacts/eval-ai",
+            notes: "Must pass with provider=anthropic."
+          },
+          {
+            name: "ai_demo_eval_evidence",
+            command: "python scripts/ai_demo_eval_evidence.py --artifact-dir artifacts/eval-ai --output-dir artifacts/eval-ai",
+            notes: "Writes AI_DEMO_EVAL_* evidence."
+          }
+        ],
+        required_artifacts: ["eval-ai/osa_eval_results.json", "eval-ai/ai_demo_eval_env.json"],
+        required_env_keys: ["AI_DEMO_EVAL_VALIDATED", "AI_DEMO_EVAL_LAST_VALIDATION_AT"],
+        public_safety_notes: ["Token references are reported only as value_present booleans."]
+      }
+    });
+  });
+
   await page.route("**/api/v1/integrations/activation-runbook**", async (route) => {
     await route.fulfill({
       json: {
@@ -1016,6 +1079,9 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("readiness-panel")).toContainText("ai_summary_eval");
   await expect(page.getByTestId("readiness-panel")).toContainText("ai_demo_eval_evidence");
   await expect(page.getByTestId("readiness-panel")).toContainText("summary_load_test");
+  await expect(page.getByTestId("ai-demo-activation-pack")).toContainText("AI demo activation");
+  await expect(page.getByTestId("ai-demo-activation-pack")).toContainText("summary_provider");
+  await expect(page.getByTestId("ai-demo-activation-pack")).toContainText("anthropic_token_ref");
   await expect(page.getByTestId("runtime-commands")).toContainText("local_dev_smoke");
   await expect(page.getByTestId("runtime-commands")).toContainText("local_verification");
   await expect(page.getByTestId("runtime-commands")).toContainText("pilot_status_snapshot");
@@ -1061,6 +1127,8 @@ test("admin can review readiness and audit detail", async ({ page }) => {
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("mock contracts");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("AI provider blocked");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("AI eval pending");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("AI demo activation");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("ai_summary_eval");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("stage template_scaffold");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("local");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot");

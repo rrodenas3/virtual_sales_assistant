@@ -28,6 +28,7 @@ def test_local_api_contract_contains_pilot_routes() -> None:
     assert "GET /api/v1/integrations/pilot-gap-report?target=local" in contract["required_routes"]
     assert "GET /api/v1/integrations/activation-runbook?target=pilot" in contract["required_routes"]
     assert "GET /api/v1/integrations/discovery-packet?target=pilot" in contract["required_routes"]
+    assert "GET /api/v1/integrations/ai-demo-activation-pack" in contract["required_routes"]
     assert "GET /api/v1/manager/approval-queue?territory_code=WEST-01" in REQUIRED_ROUTES
     assert "GET /api/v1/manager/my-tasks?status=OPEN" in REQUIRED_ROUTES
     assert "GET /api/v1/admin/audit-events?event_type=&rep_id=&resource_type=&limit=&cursor=" in REQUIRED_ROUTES
@@ -38,6 +39,7 @@ def test_local_api_contract_contains_pilot_routes() -> None:
     assert "blocking_gaps" in contract["required_response_fields"]["PilotGapReportResponse"]
     assert "phases" in contract["required_response_fields"]["ActivationRunbookResponse"]
     assert "owner_groups" in contract["required_response_fields"]["DiscoveryPacketResponse"]
+    assert "config_checks" in contract["required_response_fields"]["AIDemoActivationPackResponse"]
 
 
 def test_api_contract_writes_handoff_artifacts(tmp_path: Path) -> None:
@@ -52,6 +54,7 @@ def test_api_contract_writes_handoff_artifacts(tmp_path: Path) -> None:
     assert "GET /api/v1/integrations/pilot-gap-report?target" in markdown
     assert "GET /api/v1/integrations/activation-runbook?target" in markdown
     assert "GET /api/v1/integrations/discovery-packet?target" in markdown
+    assert "GET /api/v1/integrations/ai-demo-activation-pack" in markdown
     assert "Missing required query params: `none`" in markdown
     assert "Missing required response fields: `none`" in markdown
     assert "## Available Routes" in markdown
@@ -85,6 +88,8 @@ def test_api_contract_detects_missing_required_response_fields() -> None:
                 "PilotGapReportResponse": {"properties": {"target": {"type": "string"}}},
                 "ActivationRunbookResponse": {"properties": {"current_target": {"type": "string"}}},
                 "DiscoveryPacketResponse": {"properties": {"target": {"type": "string"}}},
+                "AIDemoActivationPackResponse": {"properties": {"target": {"type": "string"}}},
+                "AIDemoConfigCheckOut": {"properties": {"name": {"type": "string"}}},
             }
         }
     }
@@ -98,3 +103,5 @@ def test_api_contract_detects_missing_required_response_fields() -> None:
     assert "PilotGapReportResponse.blocking_gaps" in contract["missing_required_response_fields"]
     assert "ActivationRunbookResponse.phases" in contract["missing_required_response_fields"]
     assert "DiscoveryPacketResponse.owner_groups" in contract["missing_required_response_fields"]
+    assert "AIDemoActivationPackResponse.config_checks" in contract["missing_required_response_fields"]
+    assert "AIDemoConfigCheckOut.ready" in contract["missing_required_response_fields"]

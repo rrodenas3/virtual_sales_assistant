@@ -585,3 +585,32 @@ class DiscoveryPacketResponse(BaseModel):
     owner_groups: list[DiscoveryOwnerGroupOut]
     next_actions: list[str]
     public_safety_notes: list[str]
+
+
+class AIDemoConfigCheckOut(BaseModel):
+    name: str
+    ready: bool
+    public_value: str | None = None
+    required_value: str | None = None
+    value_present: bool | None = None
+    notes: str
+
+
+class AIDemoActivationPackResponse(BaseModel):
+    generated_at: str
+    target: Literal["ai-demo"]
+    ready: bool
+    stage: str
+    summary_provider: str
+    summary_model_id: str
+    provider_ready: bool
+    eval_validated: bool
+    last_validation_at: str | None
+    validation_summary: str | None
+    blockers: list[str]
+    next_actions: list[str]
+    config_checks: list[AIDemoConfigCheckOut]
+    required_commands: list[RuntimeValidationCommandOut]
+    required_artifacts: list[str]
+    required_env_keys: list[str]
+    public_safety_notes: list[str]

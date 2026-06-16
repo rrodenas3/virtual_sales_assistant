@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
+from backend.governance.ai_demo_activation import build_ai_demo_activation_pack  # noqa: E402
+from scripts.ai_demo_activation_pack import write_ai_demo_activation_pack_artifacts  # noqa: E402
 from scripts.final_api_smoke import build_report as build_final_api_smoke_report  # noqa: E402
 from scripts.final_api_smoke import write_artifacts as write_final_api_smoke_artifacts  # noqa: E402
 from scripts.discovery_packet import build_report as build_discovery_packet  # noqa: E402
@@ -44,6 +46,7 @@ def build_handoff(
     demo_seed = build_demo_seed()
     demo_seed_failures = validate_demo_seed_manifest(demo_seed["manifest"])
     final_api_smoke = build_final_api_smoke_report()
+    ai_demo_activation_pack = build_ai_demo_activation_pack()
     discovery_packet = build_discovery_packet(target)  # type: ignore[arg-type]
     spec_decision_guard = build_spec_decision_guard_report()
     local_dev_smoke = (
@@ -75,6 +78,7 @@ def build_handoff(
     )
     checks = [
         _check("api_contract", api_contract["valid"], _api_contract_detail(api_contract)),
+        _check("ai_demo_activation_pack", True, _ai_demo_activation_pack_detail(ai_demo_activation_pack)),
         _check("demo_seed", not demo_seed_failures, _demo_seed_detail(demo_seed["manifest"], demo_seed_failures)),
         _check("discovery_packet", True, _discovery_packet_detail(discovery_packet)),
         _check("final_api_smoke", final_api_smoke["passed"], f"{len(final_api_smoke['checks'])} workflow checks"),
@@ -93,6 +97,7 @@ def build_handoff(
         "checks": checks,
         "artifacts": {
             "api_contract": "api-contract/api_contract_report.json",
+            "ai_demo_activation_pack": "ai-demo-activation-pack/ai_demo_activation_pack.json",
             "demo_seed": "demo-data/demo_seed_manifest.json",
             "discovery_packet": "discovery-packet/discovery_packet.json",
             "final_api_smoke": "final-api-smoke/final_api_smoke.json",
@@ -106,6 +111,7 @@ def build_handoff(
         },
         "next_blocking_actions": readiness_bundle["handoff_summary"]["next_blocking_actions"],
         "api_contract": api_contract,
+        "ai_demo_activation_pack": ai_demo_activation_pack,
         "demo_seed": demo_seed,
         "discovery_packet": discovery_packet,
         "final_api_smoke": final_api_smoke,
@@ -122,6 +128,7 @@ def build_handoff(
 def write_artifacts(handoff: dict[str, Any], output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     write_api_contract_artifacts(handoff["api_contract"], output_dir / "api-contract")
+    write_ai_demo_activation_pack_artifacts(handoff["ai_demo_activation_pack"], output_dir / "ai-demo-activation-pack")
     write_demo_seed_artifacts(handoff["demo_seed"], output_dir / "demo-data")
     write_discovery_packet_artifacts(handoff["discovery_packet"], output_dir / "discovery-packet")
     write_final_api_smoke_artifacts(handoff["final_api_smoke"], output_dir / "final-api-smoke")
@@ -210,6 +217,15 @@ def _api_contract_detail(contract: dict[str, Any]) -> str:
     return (
         f"missing_routes={len(contract['missing_required_routes'])}; "
         f"missing_query_params={len(contract['missing_required_query_params'])}"
+    )
+
+
+def _ai_demo_activation_pack_detail(pack: dict[str, Any]) -> str:
+    return (
+        f"stage={pack['stage']}; "
+        f"provider_ready={pack['provider_ready']}; "
+        f"eval_validated={pack['eval_validated']}; "
+        f"blockers={len(pack['blockers'])}"
     )
 
 

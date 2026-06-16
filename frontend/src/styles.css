@@ -265,6 +265,11 @@ button { font: inherit; }
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
+.commandChips .commandChip--ready {
+  border-color: color-mix(in oklch, var(--success), white 55%);
+  background: color-mix(in oklch, var(--success), white 91%);
+  color: color-mix(in oklch, var(--success), black 25%);
+}
 .runtimeCommandGroup code {
   margin-top: 8px;
   padding: 8px;
@@ -313,6 +318,26 @@ button { font: inherit; }
   border-radius: 8px;
   padding: 12px;
   background: color-mix(in oklch, var(--accent), white 91%);
+}
+.aiDemoPack {
+  grid-column: 1 / -1;
+  border: 1px solid color-mix(in oklch, var(--amber), white 42%);
+  border-radius: 8px;
+  padding: 12px;
+  background: color-mix(in oklch, var(--amber), white 91%);
+}
+.aiDemoPack > small,
+.aiDemoPackGrid small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+.aiDemoPackGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 12px;
+  margin-top: 10px;
 }
 .pilotGapSummary .readinessEvidence {
   grid-column: auto;
