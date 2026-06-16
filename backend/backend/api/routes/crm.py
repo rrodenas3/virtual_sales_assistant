@@ -5,13 +5,17 @@ from backend.adapters.crm import CRMPort
 from backend.adapters.osa import OSADataPort
 from backend.api.schemas import VisitLogDraftRequest, VisitLogDraftResponse
 from backend.auth.mock_jwt import CurrentUser, get_current_user
-from backend.db.models import VisitLog
 from backend.db.session import get_db
 from backend.deps import get_crm_adapter, get_osa_adapter
-from backend.governance.rbac import assert_store_access
-from backend.services.audit import log_audit_event
+from backend.services.agent_actions import AgentActionNotFound, create_visit_log_draft_action
 
 router = APIRouter(prefix="/crm", tags=["crm"])
+
+
+def _http_error_for_action(exc: ValueError) -> HTTPException:
+    if isinstance(exc, AgentActionNotFound):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
 
 
 @router.post("/visit-log-drafts", response_model=VisitLogDraftResponse)
@@ -23,51 +27,7 @@ async def create_visit_log_draft(
     crm: CRMPort = Depends(get_crm_adapter),
 ) -> VisitLogDraftResponse:
     try:
-        store = await osa.get_store_detail(current_user.rep_id, request.store_id)
-    except KeyError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found") from exc
-    assert_store_access(current_user, store.rep_id, store.territory_code)
-    payload = {
-        "store_id": request.store_id,
-        "rep_id": current_user.rep_id,
-        "session_id": request.session_id,
-        "notes": request.notes,
-        "outcome": request.outcome,
-    }
-    submit_result = await crm.submit_visit_log(payload)
-    draft = VisitLog(
-        store_id=request.store_id,
-        rep_id=current_user.rep_id,
-        session_id=request.session_id,
-        payload_json=payload,
-        status=submit_result.status,
-    )
-    db.add(draft)
-    await db.flush()
-    event = await log_audit_event(
-        db,
-        session_id=request.session_id,
-        rep_id=current_user.rep_id,
-        event_type="crm_visit_log_draft_created",
-        resource_type="visit_log",
-        resource_id=draft.id,
-        payload_json={
-            "status": draft.status,
-            "outcome": request.outcome,
-            "external_id": submit_result.external_id,
-        },
-        data_freshness_ts=store.data_freshness_ts,
-    )
-    await db.commit()
-    await db.refresh(draft)
-    return VisitLogDraftResponse(
-        id=draft.id,
-        store_id=draft.store_id,
-        rep_id=draft.rep_id,
-        session_id=draft.session_id,
-        payload_json=draft.payload_json,
-        status=draft.status,
-        created_at=draft.created_at,
-        audit_event_id=event.event_id,
-    )
+        return await create_visit_log_draft_action(db, osa, crm, current_user, request)
+    except ValueError as exc:
+        raise _http_error_for_action(exc) from exc
 

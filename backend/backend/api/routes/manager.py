@@ -21,29 +21,30 @@ from backend.db.session import get_db
 from backend.deps import get_osa_adapter
 from backend.governance.rbac import assert_territory_access
 from backend.services.audit import log_audit_event
-from backend.services.manager_tasks import manager_task_payload, manager_task_status_payload
+from backend.services.agent_actions import (
+    AgentActionConflict,
+    AgentActionForbidden,
+    AgentActionNotFound,
+    create_manager_task_action,
+    manager_task_response,
+)
+from backend.services.manager_tasks import manager_task_status_payload
 
 router = APIRouter(prefix="/manager", tags=["manager"])
 
 
 def _task_response(row: ManagerTask, store_name: str | None = None, audit_event_id: str | None = None) -> ManagerTaskResponse:
-    return ManagerTaskResponse(
-        task_id=row.task_id,
-        territory_code=row.territory_code,
-        store_id=row.store_id,
-        store_name=store_name,
-        assigned_rep_id=row.assigned_rep_id,
-        created_by=row.created_by,
-        session_id=row.session_id,
-        title=row.title,
-        task_type=row.task_type,
-        priority=row.priority,
-        due_date=row.due_date,
-        status=row.status,
-        payload_json=row.payload_json,
-        created_at=row.created_at,
-        audit_event_id=audit_event_id,
-    )
+    return manager_task_response(row, store_name, audit_event_id)
+
+
+def _http_error_for_action(exc: ValueError) -> HTTPException:
+    if isinstance(exc, AgentActionForbidden):
+        return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+    if isinstance(exc, AgentActionNotFound):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if isinstance(exc, AgentActionConflict):
+        return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
 
 
 @router.get("/territory-summary", response_model=TerritorySummaryResponse)
@@ -140,68 +141,10 @@ async def create_manager_task(
     db: AsyncSession = Depends(get_db),
     osa: OSADataPort = Depends(get_osa_adapter),
 ) -> ManagerTaskResponse:
-    if current_user.role not in {"manager", "admin"}:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Manager role required")
-    assert_territory_access(current_user, request.territory_code)
     try:
-        store = await osa.get_store_detail_any(request.store_id)
-    except KeyError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found") from exc
-    if store.territory_code != request.territory_code:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found")
-    if store.rep_id != request.assigned_rep_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="assigned_rep_id does not match store owner")
-
-    existing_open_task = (
-        await db.execute(
-            select(ManagerTask)
-            .where(ManagerTask.territory_code == request.territory_code)
-            .where(ManagerTask.store_id == request.store_id)
-            .where(ManagerTask.assigned_rep_id == request.assigned_rep_id)
-            .where(ManagerTask.task_type == request.task_type)
-            .where(ManagerTask.title == request.title)
-            .where(ManagerTask.status == "OPEN")
-            .order_by(ManagerTask.created_at.desc())
-        )
-    ).scalars().first()
-    if existing_open_task is not None:
-        return _task_response(existing_open_task, store.store_name)
-
-    row = ManagerTask(
-        territory_code=request.territory_code,
-        store_id=request.store_id,
-        assigned_rep_id=request.assigned_rep_id,
-        created_by=current_user.rep_id,
-        session_id=request.session_id,
-        title=request.title,
-        task_type=request.task_type,
-        priority=request.priority,
-        due_date=request.due_date,
-        payload_json=manager_task_payload(notes=request.notes, linked_alert_ids=request.linked_alert_ids),
-        status="OPEN",
-    )
-    db.add(row)
-    await db.flush()
-    event = await log_audit_event(
-        db,
-        session_id=request.session_id,
-        rep_id=current_user.rep_id,
-        event_type="manager_task_created",
-        resource_type="manager_task",
-        resource_id=row.task_id,
-        payload_json={
-            "task_id": row.task_id,
-            "territory_code": row.territory_code,
-            "store_id": row.store_id,
-            "assigned_rep_id": row.assigned_rep_id,
-            "task_type": row.task_type,
-            "priority": row.priority,
-            "linked_alert_ids": request.linked_alert_ids,
-        },
-        data_freshness_ts=store.data_freshness_ts,
-    )
-    await db.commit()
-    return _task_response(row, store.store_name, event.event_id)
+        return await create_manager_task_action(db, osa, current_user, request)
+    except ValueError as exc:
+        raise _http_error_for_action(exc) from exc
 
 
 @router.get("/tasks", response_model=ManagerTaskListResponse)

@@ -67,15 +67,36 @@ export type OSASummaryResponse = {
 export type AgentRunEvent =
   | {
       event: "run_started";
-      data: { run_id: string; session_id: string; intent: "osa_summary" };
+      data: {
+        run_id: string;
+        session_id: string;
+        intent: "osa_summary" | "order_draft" | "visit_log_draft" | "manager_task";
+      };
+    }
+  | {
+      event: "supervisor_decision";
+      data: {
+        run_id: string;
+        intent: "osa_summary" | "order_draft" | "visit_log_draft" | "manager_task";
+        agent: "osa_agent" | "action_agent";
+        requires_human_approval: boolean;
+      };
     }
   | {
       event: "message";
       data: { run_id: string; role: "assistant"; content: string; grounded_alert_ids: string[] };
     }
   | {
+      event: "action_result";
+      data: { run_id: string; type: "order_draft" | "visit_log_draft" | "manager_task"; [key: string]: unknown };
+    }
+  | {
+      event: "hitl_required";
+      data: { run_id: string; required: boolean; reason: string; resume_token: string };
+    }
+  | {
       event: "audit";
-      data: { run_id: string; audit_event_id: string; model_id: string };
+      data: { run_id: string; audit_event_id: string; model_id: string | null };
     }
   | {
       event: "run_completed";

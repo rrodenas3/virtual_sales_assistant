@@ -211,7 +211,7 @@ GET  /api/v1/stores/{store_id}/rgm-recommendations  Promo, gap, and upsell recom
 POST /api/v1/stores/{store_id}/shelf-image-analysis  Shelf image analysis (mock default)
 POST /api/v1/alerts/{alert_id}/feedback          Rep confirms / dismisses / flags alert
 POST /api/v1/agent/osa-summary                   Grounded OSA summary (LLM or template)
-POST /api/v1/agent/run                           SSE agent stream (event-by-event)
+POST /api/v1/agent/run                           SSE supervisor/action stream (event-by-event)
 GET  /api/v1/audit/session/{session_id}          Full session audit trail
 ```
 
