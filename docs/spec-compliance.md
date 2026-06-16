@@ -11,7 +11,7 @@ This document correlates the original internal MVP brief, the revised hybrid imp
 | Data layer | Snowflake/Databricks semantic views | Mock first; corrected schema contract; future adapters behind factory-selected ports | Implemented: mock adapters active with exported public-safe demo seed artifacts; Databricks/Snowflake parameterized query adapters scaffolded; Snowflake SQL API client contract, public-safe live contract manifest with column/failure examples, validation script, readiness env manifest, and data-platform readiness added for credentialed environments |
 | Priority scoring | Formula sketched in OSA MCP SQL | Deterministic service formula with explainable components | Implemented and tested |
 | OOS alerts | OOS risk + phantom inventory | Deterministic alert IDs, action rules, confidence labels | Implemented and tested |
-| Agent orchestration | LangGraph multi-agent mesh | Phase 1 uses plain async orchestration; LangGraph is not required for pilot readiness per correction #9; Supervisor + Action Agent mesh is Phase 2 scope | Implemented: deterministic graph-style state/nodes with no `langgraph` dependency; `AGENT_GRAPH_ENABLED=false` remains the pilot default; summary routes have parity coverage |
+| Agent orchestration | LangGraph multi-agent mesh | Phase 1 uses plain async orchestration; LangGraph is not required for pilot readiness per correction #9; Supervisor + Action Agent mesh is Phase 2 scope | Implemented: deterministic graph-style state/nodes with no `langgraph` dependency; `AGENT_GRAPH_ENABLED=false` remains the pilot default; summary routes have parity coverage; `/agent/run` now emits supervisor/action-agent SSE events for OSA summaries, order drafts, CRM visit-log drafts, and manager tasks while preserving HITL approval gates |
 | LLM grounding | Agent should not hallucinate SKU data | Summary constrained to supplied alert IDs; Anthropic SDK provider is config-gated behind deterministic template fallback | Implemented: `SUMMARY_PROVIDER=template|anthropic`, grounded identifier validation, provider metadata in audit |
 | MCP layer | FastMCP servers for OSA/RGM/CRM/orders/store master | Top-level MCP functions share backend adapters/services; local JSON transport first | Implemented: mock-backed tool functions, local JSON transport, Compose services, and CI-backed manifest smoke; FastMCP dependency deferred |
 | Memory | Mem0 rep/account/session memory | Add provider scaffold; keep disabled for MVP | Implemented: `MemoryPort`, null adapter default, discovery-gated Mem0 HTTP contract, summary audit metadata, `/health/memory` readiness, and dry-run scoped memory smoke |
@@ -117,7 +117,7 @@ Highest priority:
 
 Later:
 
-- Phase 2 Supervisor + Action Agent mesh remains roadmap scope; it should extend the existing plain async/SSE architecture unless pilot evidence justifies a LangGraph dependency.
+- Phase 2 Supervisor + Action Agent mesh is partially scaffolded through deterministic `/agent/run` routing and shared action services. Remaining Phase 2 work is richer intent planning, multi-step task composition, and UX controls for non-summary action intents.
 - Mem0 workspace provisioning, retention approval, and credentialed smoke tests.
 - Managed MLflow tracking server configuration beyond local MLflow-ready artifact export.
 - Credentialed Unity Catalog audit smoke tests beyond the parameterized insert path.

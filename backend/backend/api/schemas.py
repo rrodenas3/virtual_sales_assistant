@@ -117,12 +117,20 @@ class OSASummaryResponse(BaseModel):
 
 
 class AgentRunRequest(BaseModel):
-    intent: Literal["osa_summary"] = "osa_summary"
+    intent: Literal["osa_summary", "order_draft", "visit_log_draft", "manager_task"] = "osa_summary"
     run_id: str | None = None
     territory_code: str
     store_id: str | None = None
     session_id: str
     alert_ids: list[str] | None = None
+    items: list[dict] | None = None
+    notes: str | None = Field(default=None, max_length=1000)
+    outcome: Literal["completed", "needs_follow_up", "skipped"] | None = None
+    assigned_rep_id: str | None = None
+    title: str | None = Field(default=None, min_length=3, max_length=160)
+    task_type: Literal["shelf_check", "follow_up", "promo_check", "order_review"] | None = None
+    priority: Literal["low", "medium", "high"] | None = None
+    due_date: str | None = None
 
 
 class AuditEventOut(BaseModel):

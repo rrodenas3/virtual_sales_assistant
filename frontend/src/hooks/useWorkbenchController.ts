@@ -282,7 +282,7 @@ export function useWorkbenchController() {
               ? {
                   ...current,
                   audit_event_id: event.data.audit_event_id,
-                  model_id: event.data.model_id
+                  model_id: event.data.model_id ?? current.model_id
                 }
               : current
           );
