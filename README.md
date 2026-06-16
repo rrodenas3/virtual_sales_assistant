@@ -237,6 +237,10 @@ POST /api/v1/orders/drafts                       Create order draft (SHA-256 has
 POST /api/v1/approvals/{draft_id}/approve        Manager approves (hash stored)
 POST /api/v1/orders/drafts/{draft_id}/submit-sandbox  Submit after hash verification
 GET  /api/v1/integrations/readiness              Activation targets + blocker list
+GET  /api/v1/integrations/pilot-gap-report       Owner-grouped activation blockers
+GET  /api/v1/integrations/activation-runbook     Step-by-step path to each activation target
+GET  /api/v1/integrations/discovery-packet       Owner-grouped open discovery questions
+GET  /api/v1/integrations/ai-demo-activation-pack  Config presence, commands, evidence blockers
 GET  /api/v1/admin/audit-events                  Append-only audit feed
 ```
 
@@ -283,6 +287,7 @@ FULL PILOT       Live data adapters, real SSO, real ERP/CRM, Unity Catalog audit
 GET /api/v1/integrations/readiness          # current target status and blockers
 python scripts/pilot_readiness_report.py --target local
 python scripts/pilot_readiness_report.py --target ai-demo
+python scripts/pilot_activation_runbook.py --target pilot
 ```
 
 ---
@@ -293,6 +298,8 @@ python scripts/pilot_readiness_report.py --target ai-demo
 |---|---|
 | [docs/spec-compliance.md](docs/spec-compliance.md) | Implementation posture — what is built, deferred, and remaining |
 | [docs/spec-corrections.md](docs/spec-corrections.md) | 10 permanent architectural corrections with rationale |
+| [docs/implementation-continuation-plan.md](docs/implementation-continuation-plan.md) | Chunk order, done checklist, and locked forward decisions |
+| [docs/architecture-ontology.md](docs/architecture-ontology.md) | Domain language and architectural concept definitions |
 | [docs/commercial-workflow-explanation.md](docs/commercial-workflow-explanation.md) | End-to-end CPG commercial scenario with interview talking points |
 | [docs/pilot-activation-runbook.md](docs/pilot-activation-runbook.md) | Step-by-step activation gates for each target |
 | [AGENTS.md](AGENTS.md) | Agent gate for AI coding sessions — conventions, locked decisions, safety rules |
