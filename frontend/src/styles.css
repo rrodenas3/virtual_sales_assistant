@@ -221,24 +221,48 @@ button { font: inherit; }
 }
 .runtimeCommandGroup strong,
 .runtimeCommandGroup span,
+.runtimeCommandGroup small,
 .runtimeCommandGroup code,
 .activationEvidenceGroup strong,
 .activationEvidenceGroup span,
 .activationEvidenceGroup small {
   display: block;
 }
+.runtimeCommandGroup__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
 .runtimeCommandGroup strong,
 .activationEvidenceGroup strong {
   font-family: "Archivo", sans-serif;
   font-size: 0.84rem;
 }
-.runtimeCommandGroup span,
+.runtimeCommandGroup__top span,
+.runtimeCommandGroup small,
 .activationEvidenceGroup span,
 .activationEvidenceGroup small {
   color: var(--muted);
   font-size: 0.78rem;
   line-height: 1.35;
   margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+.commandChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 9px;
+}
+.commandChips span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: color-mix(in oklch, var(--paper), white 30%);
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.2;
   overflow-wrap: anywhere;
 }
 .runtimeCommandGroup code {
@@ -263,6 +287,24 @@ button { font: inherit; }
 }
 .activationEvidenceGroup small {
   color: var(--accent-dark);
+  font-weight: 700;
+}
+.evidenceList {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 5px;
+}
+.evidenceList li {
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.evidenceList--env li {
+  color: color-mix(in oklch, var(--accent-dark), black 8%);
   font-weight: 700;
 }
 .managerTable, .auditFeed, .approvalQueue, .taskQueue {

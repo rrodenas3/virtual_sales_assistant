@@ -126,6 +126,7 @@ Whenever a locked decision changes or a deferred technology is activated, update
 - Runtime validation command manifests now include the repo-root local verification gate, so `/integrations/readiness`, readiness bundles, and pilot reports direct operators to the same pre-push proof path.
 - API contract validation now requires the full implemented pilot route surface, including health subroutes, admin filters, alerts pagination/filtering, HITL, CRM, sync, agent, and audit routes.
 - The pilot API route and response-field contract now lives in `backend.api.contract` and is reused by both `/api/v1` and `scripts/validate_api_contract.py`, removing duplicate route lists.
+- Manager/admin readiness panels now expose runtime command counts, command chips, next command names, required evidence artifacts, and required env keys for each activation target.
 
 ## Deferred Spec Areas
 
