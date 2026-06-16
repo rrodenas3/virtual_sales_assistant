@@ -27,12 +27,14 @@ def test_validation_suite_combines_local_handoff_and_commands() -> None:
         "readiness_bundle",
         "pilot_status_snapshot",
         "pilot_gap_report",
+        "pilot_activation_runbook",
         "public_safety_scan",
     } <= check_names
     assert any(command["name"] == "local_dev_smoke" for command in suite["runtime_validation_commands"])
     assert any(command["name"] == "local_verification" for command in suite["runtime_validation_commands"])
     assert any(command["name"] == "pilot_status_snapshot" for command in suite["runtime_validation_commands"])
     assert any(command["name"] == "pilot_gap_report" for command in suite["runtime_validation_commands"])
+    assert any(command["name"] == "pilot_activation_runbook" for command in suite["runtime_validation_commands"])
     assert any(command["name"] == "spec_decision_guard" for command in suite["runtime_validation_commands"])
     assert suite["runtime_validation_commands"][-1]["name"] == "validation_suite"
     assert suite["activation_targets"][0]["target"] == "local"
@@ -58,3 +60,4 @@ def test_validation_suite_writes_nested_artifacts(tmp_path: Path) -> None:
     assert (tmp_path / "local-handoff" / "readiness-bundle" / "readiness_bundle.json").exists()
     assert (tmp_path / "local-handoff" / "pilot-status" / "pilot_status_snapshot.json").exists()
     assert (tmp_path / "local-handoff" / "pilot-gap-report" / "pilot_gap_report.json").exists()
+    assert (tmp_path / "local-handoff" / "pilot-activation-runbook" / "pilot_activation_runbook.json").exists()

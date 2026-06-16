@@ -1,5 +1,6 @@
 import { ReadinessPanel } from "./ReadinessPanel";
 import type {
+  ActivationRunbook,
   AdminAuditEventDetailResponse,
   AdminAuditEventsResponse,
   IntegrationReadinessResponse,
@@ -15,6 +16,7 @@ type AuditFilters = {
 export function AdminAuditView({
   readiness,
   pilotGapReport,
+  activationRunbook,
   adminAudit,
   auditDetail,
   auditFilters,
@@ -23,6 +25,7 @@ export function AdminAuditView({
 }: {
   readiness: IntegrationReadinessResponse | null;
   pilotGapReport: PilotGapReport | null;
+  activationRunbook: ActivationRunbook | null;
   adminAudit: AdminAuditEventsResponse;
   auditDetail: AdminAuditEventDetailResponse | null;
   auditFilters: AuditFilters;
@@ -31,7 +34,14 @@ export function AdminAuditView({
 }) {
   return (
     <section className="leadershipPane">
-      {readiness && <ReadinessPanel readiness={readiness} pilotGapReport={pilotGapReport} variant="admin" />}
+      {readiness && (
+        <ReadinessPanel
+          readiness={readiness}
+          pilotGapReport={pilotGapReport}
+          activationRunbook={activationRunbook}
+          variant="admin"
+        />
+      )}
       <div className="sectionHead">
         <div>
           <p className="eyebrow">Audit</p>

@@ -38,6 +38,7 @@ def test_local_readiness_report_includes_scaffold_smoke() -> None:
         "local_verification",
         "pilot_status_snapshot",
         "pilot_gap_report",
+        "pilot_activation_runbook",
         "validation_suite",
     }
     assert report["ai_demo_eval_validated"] is False

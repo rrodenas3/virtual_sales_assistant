@@ -522,3 +522,28 @@ class PilotGapReportResponse(BaseModel):
     recommended_commands: list[RuntimeValidationCommandOut]
     roadmap_items: list[PilotRoadmapItemOut]
     public_safety_notes: list[str]
+
+
+class ActivationRunbookPhaseOut(BaseModel):
+    phase_id: str
+    title: str
+    target: Literal["local", "ai-demo", "pilot"]
+    owner: Literal["engineering", "delivery", "delivery+engineering"]
+    estimated_effort: str
+    goal: str
+    status: Literal["ready", "blocked", "scaffolded", "deferred"]
+    required_command_names: list[str]
+    required_configuration_keys: list[str]
+    exit_gate_summary: list[str]
+    blockers: list[str] = Field(default_factory=list)
+
+
+class ActivationRunbookResponse(BaseModel):
+    generated_at: str
+    current_target: Literal["local", "ai-demo", "pilot"]
+    final_outcome: str
+    phase_count: int
+    ready_phase_count: int
+    blocked_phase_count: int
+    phases: list[ActivationRunbookPhaseOut]
+    public_safety_notes: list[str]

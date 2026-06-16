@@ -312,6 +312,11 @@ test.beforeEach(async ({ page }) => {
               notes: "Writes a public-safe blocker, owner, and next-command report for pilot activation."
             },
             {
+              name: "pilot_activation_runbook",
+              command: "python scripts/pilot_activation_runbook.py --target local --output-dir artifacts/pilot-activation-runbook/local",
+              notes: "Writes the public-safe phase plan from current scaffold to final VSA pilot outcome."
+            },
+            {
               name: "validation_suite",
               command: "python scripts/validation_suite.py --target local --output-dir artifacts/validation-suite/local --include-local-dev-smoke",
               notes: "Runs the consolidated operator handoff bundle."
@@ -344,6 +349,11 @@ test.beforeEach(async ({ page }) => {
               notes: "Writes a public-safe blocker, owner, and next-command report for pilot activation."
             },
             {
+              name: "pilot_activation_runbook",
+              command: "python scripts/pilot_activation_runbook.py --target ai-demo --output-dir artifacts/pilot-activation-runbook/ai-demo",
+              notes: "Writes the public-safe phase plan from current scaffold to final VSA pilot outcome."
+            },
+            {
               name: "validation_suite",
               command: "python scripts/validation_suite.py --target ai-demo --output-dir artifacts/validation-suite/ai-demo",
               notes: "Runs the consolidated AI-demo handoff bundle."
@@ -359,6 +369,11 @@ test.beforeEach(async ({ page }) => {
               name: "pilot_gap_report",
               command: "python scripts/pilot_gap_report.py --target pilot --output-dir artifacts/pilot-gap-report/pilot",
               notes: "Writes a public-safe blocker, owner, and next-command report for pilot activation."
+            },
+            {
+              name: "pilot_activation_runbook",
+              command: "python scripts/pilot_activation_runbook.py --target pilot --output-dir artifacts/pilot-activation-runbook/pilot",
+              notes: "Writes the public-safe phase plan from current scaffold to final VSA pilot outcome."
             },
             {
               name: "validation_suite",
@@ -555,6 +570,100 @@ test.beforeEach(async ({ page }) => {
             owner: "delivery+engineering",
             status: "blocked_by_credentials",
             next_gate: "live_data_contracts"
+          }
+        ],
+        public_safety_notes: ["No secrets, token values, local user paths, or client-confidential identifiers are included."]
+      }
+    });
+  });
+
+  await page.route("**/api/v1/integrations/activation-runbook**", async (route) => {
+    await route.fulfill({
+      json: {
+        generated_at: "2026-06-15T00:00:00Z",
+        current_target: "pilot",
+        final_outcome: "A governed VSA pilot where reps prioritize stores, inspect grounded recommendations, run the SSE assistant, submit feedback, and create HITL-gated drafts.",
+        phase_count: 8,
+        ready_phase_count: 1,
+        blocked_phase_count: 4,
+        phases: [
+          {
+            phase_id: "phase-0-local-scaffold",
+            title: "Local Scaffold Readiness",
+            target: "local",
+            owner: "engineering",
+            estimated_effort: "same day after each implementation chunk",
+            goal: "Prove the mock-backed workbench still works.",
+            status: "ready",
+            required_command_names: ["local_readiness", "api_contract", "final_api_smoke"],
+            required_configuration_keys: [],
+            exit_gate_summary: ["Local readiness report passes."],
+            blockers: []
+          },
+          {
+            phase_id: "phase-1-ai-demo",
+            title: "Real AI Demo Readiness",
+            target: "ai-demo",
+            owner: "delivery+engineering",
+            estimated_effort: "1-2 engineering days",
+            goal: "Prove the assistant is more than a deterministic template.",
+            status: "blocked",
+            required_command_names: ["ai_summary_eval", "mlflow_handoff_dry_run", "summary_load_test"],
+            required_configuration_keys: ["SUMMARY_PROVIDER", "ANTHROPIC_TOKEN_REF", "AI_DEMO_EVAL_VALIDATED"],
+            exit_gate_summary: ["Approved-provider eval passes."],
+            blockers: ["SUMMARY_PROVIDER must be anthropic for AI-demo readiness"]
+          },
+          {
+            phase_id: "phase-2-live-data-contracts",
+            title: "Live Data Contract Readiness",
+            target: "pilot",
+            owner: "delivery+engineering",
+            estimated_effort: "2-5 engineering days",
+            goal: "Prove selected Databricks and Snowflake views match the ontology.",
+            status: "blocked",
+            required_command_names: ["live_data_contracts"],
+            required_configuration_keys: ["LIVE_DATA_CONTRACT_VALIDATED"],
+            exit_gate_summary: ["Live data contract validation passes."],
+            blockers: ["Live data contracts must be validated for pilot readiness"]
+          },
+          {
+            phase_id: "phase-3-identity-governance",
+            title: "Identity And Governance Readiness",
+            target: "pilot",
+            owner: "delivery+engineering",
+            estimated_effort: "2-4 engineering days",
+            goal: "Move from mock identity and local audit to governed identity and mirror audit.",
+            status: "blocked",
+            required_command_names: ["unity_audit_smoke", "guardrail_classifier_smoke"],
+            required_configuration_keys: ["AUTH_PROVIDER", "AUDIT_UNITY_CATALOG_TABLE"],
+            exit_gate_summary: ["Unauthorized store access still returns 404."],
+            blockers: ["Unity Catalog audit sink or mirror must be selected for pilot readiness"]
+          },
+          {
+            phase_id: "phase-4-crm-erp-hitl",
+            title: "CRM, ERP, And HITL Write-Back",
+            target: "pilot",
+            owner: "delivery+engineering",
+            estimated_effort: "3-7 engineering days",
+            goal: "Preserve HITL while enabling write-back integrations.",
+            status: "scaffolded",
+            required_command_names: ["action_provider_smoke"],
+            required_configuration_keys: ["CRM_ADAPTER", "ERP_ADAPTER"],
+            exit_gate_summary: ["Agents can draft but cannot submit."],
+            blockers: []
+          },
+          {
+            phase_id: "phase-6-final-pilot",
+            title: "Final VSA Pilot Gate",
+            target: "pilot",
+            owner: "delivery+engineering",
+            estimated_effort: "1-2 days",
+            goal: "Joint signoff before pilot traffic.",
+            status: "blocked",
+            required_command_names: ["pilot_readiness", "pilot_env_handoff"],
+            required_configuration_keys: [],
+            exit_gate_summary: ["Every AI summary and write intent is grounded and audited."],
+            blockers: ["Live data contracts must be validated for pilot readiness"]
           }
         ],
         public_safety_notes: ["No secrets, token values, local user paths, or client-confidential identifiers are included."]
@@ -787,11 +896,16 @@ test("manager can assign a shelf-check task from the command view", async ({ pag
   await expect(page.getByTestId("runtime-commands")).toContainText("pilot_status_snapshot");
   await expect(page.getByTestId("runtime-commands")).toContainText("pilot_gap_report");
   await expect(page.getByTestId("runtime-commands")).toContainText("validation_suite");
-  await expect(page.getByTestId("runtime-commands")).toContainText("6 commands");
+  await expect(page.getByTestId("runtime-commands")).toContainText("7 commands");
   await expect(page.getByTestId("pilot-gap-summary")).toContainText("pilot gap report");
   await expect(page.getByTestId("pilot-gap-summary")).toContainText("3 gaps");
   await expect(page.getByTestId("pilot-gap-summary")).toContainText("delivery+engineering");
   await expect(page.getByTestId("pilot-gap-summary")).toContainText("live_data_contracts");
+  await expect(page.getByTestId("activation-runbook")).toContainText("Final VSA runbook");
+  await expect(page.getByTestId("activation-runbook")).toContainText("1/8 ready");
+  await expect(page.getByTestId("activation-runbook")).toContainText("Real AI Demo Readiness");
+  await expect(page.getByTestId("activation-runbook")).toContainText("ai_summary_eval");
+  await expect(page.getByTestId("activation-runbook")).toContainText("Final VSA Pilot Gate");
   await expect(page.getByTestId("activation-evidence")).toContainText("local evidence");
   await expect(page.getByTestId("activation-evidence")).toContainText("ai_demo_eval");
   await expect(page.getByTestId("activation-evidence")).toContainText("pilot_env_handoff");
@@ -825,6 +939,9 @@ test("admin can review readiness and audit detail", async ({ page }) => {
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot_readiness");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot gap report");
   await expect(page.getByTestId("admin-readiness-panel")).toContainText("unity_audit_smoke");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("Final VSA runbook");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("Live Data Contract Readiness");
+  await expect(page.getByTestId("admin-readiness-panel")).toContainText("pilot_env_handoff");
   await expect(page.getByTestId("activation-evidence")).toContainText("live_data_contracts");
   await expect(page.getByTestId("activation-evidence")).toContainText("4 artifacts");
   await expect(page.getByLabel("pilot required artifacts")).toContainText("pilot-env/pilot_validation.env.snippet");

@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from typing import Literal
 
-from backend.api.schemas import DiscoveryGateOut, IntegrationReadinessResponse, PilotGapReportResponse
+from backend.api.schemas import ActivationRunbookResponse, DiscoveryGateOut, IntegrationReadinessResponse, PilotGapReportResponse
 from backend.auth.mock_jwt import CurrentUser, get_current_user
 from backend.auth.providers import auth_status
 from backend.config import settings
 from backend.governance.activation import build_activation_targets, flatten_provider_blockers, runtime_validation_command_sets
 from backend.governance.activation_evidence import build_evidence_manifest_sets
+from backend.governance.activation_runbook import build_activation_runbook
 from backend.governance.action_providers import action_provider_status
 from backend.governance.data_platform import data_platform_status
 from backend.governance.discovery import discovery_gates, readiness_blockers, selected_live_modes
@@ -35,6 +36,19 @@ def _provider_readiness() -> dict[str, dict]:
         "offline_agent": offline_agent_status(),
         "observability": observability_status(),
     }
+
+
+def _activation_context() -> tuple[list[dict], dict[str, dict], dict]:
+    blockers = readiness_blockers()
+    summary_status = summary_provider_status()
+    provider_readiness = _provider_readiness()
+    activation_targets = build_activation_targets(
+        discovery_blockers=blockers,
+        provider_blockers=flatten_provider_blockers(provider_readiness),
+        provider_readiness=provider_readiness,
+        summary_status=summary_status,
+    )
+    return activation_targets, provider_readiness, summary_status
 
 
 @router.get("/readiness", response_model=IntegrationReadinessResponse)
@@ -95,13 +109,23 @@ async def pilot_gap_report(
 ) -> PilotGapReportResponse:
     if current_user.role not in {"manager", "admin"}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Manager or admin role required")
-    blockers = readiness_blockers()
-    summary_status = summary_provider_status()
-    provider_readiness = _provider_readiness()
-    activation_targets = build_activation_targets(
-        discovery_blockers=blockers,
-        provider_blockers=flatten_provider_blockers(provider_readiness),
-        provider_readiness=provider_readiness,
-        summary_status=summary_status,
-    )
+    activation_targets, _, _ = _activation_context()
     return PilotGapReportResponse(**build_gap_report(target, [dict(item) for item in activation_targets]))
+
+
+@router.get("/activation-runbook", response_model=ActivationRunbookResponse)
+async def activation_runbook(
+    target: Literal["local", "ai-demo", "pilot"] = "pilot",
+    current_user: CurrentUser = Depends(get_current_user),
+) -> ActivationRunbookResponse:
+    if current_user.role not in {"manager", "admin"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Manager or admin role required")
+    activation_targets, provider_readiness, _ = _activation_context()
+    return ActivationRunbookResponse(
+        **build_activation_runbook(
+            current_target=target,
+            activation_targets=[dict(item) for item in activation_targets],
+            provider_readiness=provider_readiness,
+            runtime_validation_commands=runtime_validation_command_sets(),
+        )
+    )

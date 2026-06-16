@@ -1,4 +1,4 @@
-import type { IntegrationReadinessResponse, PilotGapReport } from "../lib/types";
+import type { ActivationRunbook, IntegrationReadinessResponse, PilotGapReport } from "../lib/types";
 
 const TARGETS = ["local", "ai-demo", "pilot"] as const;
 
@@ -160,13 +160,46 @@ function PilotGapSummary({ report }: { report: PilotGapReport }) {
   );
 }
 
+function ActivationRunbookSummary({ runbook }: { runbook: ActivationRunbook }) {
+  const visiblePhases = runbook.phases.slice(0, 6);
+  return (
+    <div className="activationRunbook" data-testid="activation-runbook">
+      <div className="runtimeCommandGroup__top">
+        <strong>Final VSA runbook</strong>
+        <span>{runbook.ready_phase_count}/{runbook.phase_count} ready</span>
+      </div>
+      <small>{runbook.blocked_phase_count} blocked phases / target {runbook.current_target}</small>
+      <div className="activationRunbookGrid">
+        {visiblePhases.map((phase) => (
+          <article key={phase.phase_id} className={`activationRunbookPhase activationRunbookPhase--${phase.status}`}>
+            <div className="runtimeCommandGroup__top">
+              <strong>{phase.title}</strong>
+              <span>{phase.status}</span>
+            </div>
+            <small>{phase.owner} / {phase.estimated_effort}</small>
+            <div className="commandChips">
+              {phase.required_command_names.slice(0, 3).map((commandName) => (
+                <span key={commandName}>{commandName}</span>
+              ))}
+              {phase.required_command_names.length > 3 && <span>+{phase.required_command_names.length - 3}</span>}
+            </div>
+            {phase.blockers[0] && <small>{phase.blockers[0]}</small>}
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function ReadinessPanel({
   readiness,
   pilotGapReport,
+  activationRunbook,
   variant
 }: {
   readiness: IntegrationReadinessResponse;
   pilotGapReport: PilotGapReport | null;
+  activationRunbook: ActivationRunbook | null;
   variant: "manager" | "admin";
 }) {
   const readinessOwnerSummary = discoveryOwnerSummary(readiness);
@@ -208,6 +241,7 @@ export function ReadinessPanel({
         </div>
       )}
       {pilotGapReport && <PilotGapSummary report={pilotGapReport} />}
+      {activationRunbook && <ActivationRunbookSummary runbook={activationRunbook} />}
       <ActivationTargets readiness={readiness} />
       <RuntimeCommands readiness={readiness} />
       <ActivationEvidence readiness={readiness} />

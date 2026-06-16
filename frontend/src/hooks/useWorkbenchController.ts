@@ -6,6 +6,7 @@ import {
   buildSessionId,
   createManagerTask,
   createOrderDraft,
+  getActivationRunbook,
   getAdminAuditEvent,
   getAdminAuditEvents,
   getAlerts,
@@ -33,6 +34,7 @@ import { cacheGet, cacheKey, cacheSet } from "../lib/offlineCache";
 import { clearQueuedFeedback, getQueuedFeedback, queueFeedback } from "../lib/offlineQueue";
 import type {
   AlertFeedback,
+  ActivationRunbook,
   AdminAuditEventDetailResponse,
   AdminAuditEventsResponse,
   AgentRunEvent,
@@ -85,6 +87,7 @@ export function useWorkbenchController() {
   const [approvalQueue, setApprovalQueue] = useState<ApprovalQueueResponse | null>(null);
   const [readiness, setReadiness] = useState<IntegrationReadinessResponse | null>(null);
   const [pilotGapReport, setPilotGapReport] = useState<PilotGapReport | null>(null);
+  const [activationRunbook, setActivationRunbook] = useState<ActivationRunbook | null>(null);
   const [managerTasks, setManagerTasks] = useState<ManagerTaskListResponse | null>(null);
   const [myTasks, setMyTasks] = useState<ManagerTaskListResponse | null>(null);
   const [taskNotice, setTaskNotice] = useState<string | null>(null);
@@ -187,14 +190,16 @@ export function useWorkbenchController() {
 
   useEffect(() => {
     if (role !== "manager" && role !== "admin") return;
-    Promise.all([getIntegrationReadiness(), getPilotGapReport("pilot")])
-      .then(([readinessRows, gapRows]) => {
+    Promise.all([getIntegrationReadiness(), getPilotGapReport("pilot"), getActivationRunbook("pilot")])
+      .then(([readinessRows, gapRows, runbookRows]) => {
         setReadiness(readinessRows);
         setPilotGapReport(gapRows);
+        setActivationRunbook(runbookRows);
       })
       .catch(() => {
         setReadiness(null);
         setPilotGapReport(null);
+        setActivationRunbook(null);
       });
   }, [role]);
 
@@ -344,6 +349,7 @@ export function useWorkbenchController() {
     setApprovalQueue(null);
     setReadiness(null);
     setPilotGapReport(null);
+    setActivationRunbook(null);
     setManagerTasks(null);
     setMyTasks(null);
     setTaskNotice(null);
@@ -385,6 +391,7 @@ export function useWorkbenchController() {
     approvalQueue,
     readiness,
     pilotGapReport,
+    activationRunbook,
     managerTasks,
     myTasks,
     adminAudit,
