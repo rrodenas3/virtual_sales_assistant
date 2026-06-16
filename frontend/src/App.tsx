@@ -27,6 +27,7 @@ import {
 import { buildSessionId, getCurrentIdentity, getDemoRole, setDemoRole } from "./lib/api";
 import { clearQueuedFeedback, getQueuedFeedback, queueFeedback } from "./lib/offlineQueue";
 import { cacheGet, cacheKey, cacheSet } from "./lib/offlineCache";
+import { AssignedWorkPanel } from "./components/AssignedWorkPanel";
 import type {
   AlertFeedback,
   AdminAuditEventDetailResponse,
@@ -210,16 +211,6 @@ export function App() {
     () => visits.find((visit) => visit.store_id === selectedStoreId) ?? null,
     [selectedStoreId, visits]
   );
-  const openMyTasks = useMemo(() => {
-    const seen = new Set<string>();
-    return (myTasks?.tasks ?? []).filter((task) => {
-      if (task.status !== "OPEN") return false;
-      const taskKey = `${task.store_id}:${task.task_type}:${task.title}`;
-      if (seen.has(taskKey)) return false;
-      seen.add(taskKey);
-      return true;
-    });
-  }, [myTasks]);
 
   async function handleFeedback(alertId: string, value: AlertFeedback) {
     setFeedback((current) => ({ ...current, [alertId]: value }));
@@ -488,41 +479,7 @@ export function App() {
 
       {role === "rep" && (
       <>
-      {myTasks && openMyTasks.length > 0 && (
-        <section className="taskStrip" data-testid="my-tasks">
-          <div>
-            <p className="eyebrow">Assigned work</p>
-            <h3>{openMyTasks.length} open tasks</h3>
-          </div>
-          <div className="taskQueue">
-            {openMyTasks.map((task) => (
-              <article key={task.task_id} className="taskRow">
-                <div>
-                  <strong>{task.title}</strong>
-                  <span>{task.store_name ?? task.store_id} / {task.priority} / {task.status}</span>
-                </div>
-                <div className="taskActions">
-                  <button
-                    className="secondaryButton"
-                    data-testid={`complete-work-${task.task_id}`}
-                    disabled={task.status !== "OPEN"}
-                    onClick={() => changeTaskStatus(task, "COMPLETED")}
-                  >
-                    Complete
-                  </button>
-                  <button
-                    className="secondaryButton"
-                    disabled={task.status !== "OPEN"}
-                    onClick={() => changeTaskStatus(task, "BLOCKED")}
-                  >
-                    Block
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
+      {myTasks && <AssignedWorkPanel tasks={myTasks.tasks} onStatusChange={changeTaskStatus} />}
       <section className="layout">
         <aside className="routePane">
           <div className="paneTitle">
