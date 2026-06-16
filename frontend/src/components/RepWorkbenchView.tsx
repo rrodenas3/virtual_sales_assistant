@@ -16,6 +16,14 @@ import type {
   VisitPriority
 } from "../lib/types";
 
+function agentEventDetail(event: AgentRunEvent) {
+  if (event.event === "message") return event.data.content;
+  if (event.event === "action_result") return `${event.data.type.replace(/_/g, " ")} created`;
+  if (event.event === "hitl_required") return event.data.reason.replace(/_/g, " ");
+  if (event.event === "audit") return `${event.data.model_id ?? "action"} / audit ${event.data.audit_event_id.slice(0, 8)}`;
+  return event.data.run_id;
+}
+
 export function RepWorkbenchView({
   agentRunEnabled,
   visits,
@@ -39,6 +47,8 @@ export function RepWorkbenchView({
   onApproveDraft,
   onSubmitSandbox,
   onRunAssistant,
+  onRunAgentOrderDraft,
+  onRunAgentVisitLogDraft,
   onSummarize,
   onFeedback
 }: {
@@ -64,6 +74,8 @@ export function RepWorkbenchView({
   onApproveDraft: () => void;
   onSubmitSandbox: () => void;
   onRunAssistant: () => void;
+  onRunAgentOrderDraft: () => void;
+  onRunAgentVisitLogDraft: () => void;
   onSummarize: () => void;
   onFeedback: (alertId: string, value: AlertFeedback) => void;
 }) {
@@ -139,8 +151,8 @@ export function RepWorkbenchView({
                     </div>
                   </div>
                   <div className="draftPanel">
-                    <button className="primaryButton" onClick={onDraftTopAlert} disabled={!alerts[0]}>
-                      Draft top alert
+                    <button className="secondaryButton" onClick={onDraftTopAlert} disabled={!alerts[0]}>
+                      Manual draft
                     </button>
                     {draft && (
                       <div className="draftStatus">
@@ -163,9 +175,32 @@ export function RepWorkbenchView({
                 </div>
                 <div className="sectionActions">
                   {agentRunEnabled && (
-                    <button className="primaryButton" data-testid="run-agent" onClick={onRunAssistant} disabled={agentRunning || alerts.length === 0}>
-                      <Bot size={16} /> {agentRunning ? "Running" : "Run agent"}
-                    </button>
+                    <div className="agentActionStack">
+                      <button
+                        className="primaryButton"
+                        data-testid="run-agent"
+                        onClick={onRunAssistant}
+                        disabled={agentRunning || alerts.length === 0}
+                      >
+                        <Bot size={16} /> {agentRunning ? "Running" : "Run summary"}
+                      </button>
+                      <button
+                        className="secondaryButton"
+                        data-testid="agent-draft-order"
+                        onClick={onRunAgentOrderDraft}
+                        disabled={agentRunning || !alerts[0]}
+                      >
+                        Agent draft
+                      </button>
+                      <button
+                        className="secondaryButton"
+                        data-testid="agent-visit-log"
+                        onClick={onRunAgentVisitLogDraft}
+                        disabled={agentRunning || alerts.length === 0}
+                      >
+                        Visit log
+                      </button>
+                    </div>
                   )}
                   <button className="secondaryButton" data-testid="generate-summary" onClick={onSummarize}>Generate summary</button>
                 </div>
@@ -188,13 +223,7 @@ export function RepWorkbenchView({
                     {agentEvents.map((event, index) => (
                       <div key={`${event.event}-${index}`} className="agentEvent">
                         <span>{event.event.replace(/_/g, " ")}</span>
-                        <strong>
-                          {event.event === "message"
-                            ? event.data.content
-                            : event.event === "audit"
-                              ? `${event.data.model_id} / audit ${event.data.audit_event_id.slice(0, 8)}`
-                              : event.data.run_id}
-                        </strong>
+                        <strong>{agentEventDetail(event)}</strong>
                       </div>
                     ))}
                   </div>

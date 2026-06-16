@@ -78,6 +78,8 @@ export function App() {
           onApproveDraft={workbench.approveDraft}
           onSubmitSandbox={workbench.submitSandbox}
           onRunAssistant={workbench.runAssistant}
+          onRunAgentOrderDraft={workbench.runAgentOrderDraftForTopAlert}
+          onRunAgentVisitLogDraft={workbench.runAgentVisitLogDraftForStore}
           onSummarize={workbench.summarize}
           onFeedback={workbench.handleFeedback}
         />
