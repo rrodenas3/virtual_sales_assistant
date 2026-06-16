@@ -105,6 +105,7 @@ This plan continues the MVP from the current public repository state. It hardens
 - Guardrail classifier activation now has a dry-run smoke artifact covering below-threshold allow, threshold block, and fail-open pattern fallback behavior.
 - Memory activation now has a dry-run smoke artifact covering default no-memory mode plus scoped Mem0 read/write payloads.
 - Manager task APIs now support explicit status filtering, duplicate open assignment prevention, and the rep workbench requests only actionable open tasks while hiding terminal task history.
+- API contract validation now checks required query parameter names for local FastAPI routes, including manager task status filters, instead of only checking path presence.
 
 ## Deferred Spec Areas
 
